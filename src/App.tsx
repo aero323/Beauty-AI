@@ -8,7 +8,6 @@ import { Layout } from './components/Layout';
 import { RMDashboard } from './pages/Dashboard';
 import { SADashboard } from './pages/SADashboard';
 import { HTDashboard } from './pages/HTDashboard';
-import { RTDashboard } from './pages/RTDashboard';
 import { SMDashboard } from './pages/SMDashboard';
 import { CourseCreation, CourseTask } from './pages/CourseCreation';
 import { CourseManagement } from './pages/CourseManagement';
@@ -69,7 +68,7 @@ export default function App() {
         case 'Regional Training Manager':
           return <RMDashboard />;
         case 'Regional Trainer':
-          return <RTDashboard />;
+          return <RMDashboard />;
         case 'Regional Manager':
           return <RMDashboard />;
         default:
@@ -197,4 +196,3 @@ export default function App() {
     </>
   );
 }
-

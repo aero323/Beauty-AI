@@ -118,7 +118,7 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
         ];
       case 'Regional Trainer':
         return [
-          { id: 'dashboard', label: 'BA进度', icon: LayoutDashboard },
+          { id: 'dashboard', label: '区域数据', icon: LayoutDashboard },
           { id: 'regional_content', label: '区域补充内容', icon: BookOpen, subMenu: [
             { id: 'courses', label: '生成新课件' },
             { id: 'courses_manage', label: '区域课件管理' },
@@ -130,7 +130,6 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
             { id: 'practice_task_manage', label: '练习任务' },
             { id: 'exam_task_manage', label: '考试任务' }
           ] },
-          { id: 'roleplay', label: '陪练大厅', icon: Users },
         ];
 
       default:
@@ -276,7 +275,7 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
         {/* Header (Role Bar) */}
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 shadow-sm shrink-0 z-10 transition-colors">
           <div className="flex items-center space-x-4">
-             <h1 className="text-lg font-semibold text-slate-900">{role === 'Super Admin' ? '系统运行概览' : role === 'HQ Trainer' ? '全国培训总览' : role === 'Regional Manager' ? '大区业务看板' : role === 'Regional Training Manager' ? '大区培训看板' : role === 'Regional Trainer' ? 'BA进度与辅导看板' : '门店考评看板'}</h1>
+             <h1 className="text-lg font-semibold text-slate-900">{role === 'Super Admin' ? '系统运行概览' : role === 'HQ Trainer' ? '全国培训总览' : role === 'Regional Manager' ? '大区业务看板' : (role === 'Regional Training Manager' || role === 'Regional Trainer') ? '大区培训看板' : '门店考评看板'}</h1>
              <span className="text-slate-300 hidden md:block">|</span>
              <span className="text-xs font-medium text-slate-500 hidden md:block">Lumina AI 培训后台</span>
           </div>
@@ -326,4 +325,3 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
     </div>
   );
 }
-
