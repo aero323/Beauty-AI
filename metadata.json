@@ -1,0 +1,6 @@
+{
+  "name": "Lumina BA Training system",
+  "description": "A backend management dashboard for the Lumina AI beauty advisor training system.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
