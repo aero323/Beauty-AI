@@ -1,17 +1,44 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# BeautyAI 管理后台
 
-# Lumina BA Training System
+BeautyAI 管理后台是一个面向培训、内容和组织管理的 Web 应用，当前版本聚焦课件生成、课件管理、数字人顾客、场景剧本、产品金句、考试管理和任务分发。
 
-This contains everything you need to run the app locally. The current app does not require a Gemini API key.
+## 当前模块
 
-## Run Locally
+- 仪表盘：不同角色视角的管理首页。
+- 组织与人员：组织视图、门店档案、人员档案、用户管理。
+- 课件体系：课件生成、课件管理、区域课件管理。
+- 陪练资产：数字人顾客、场景剧本、产品金句。
+- 考试体系：试卷生成、题库、作业、考试管理、考试任务。
+- 学习与练习任务：学习任务管理、练习任务管理。
+- 配置类能力：分类管理、通知设置、知识图谱。
 
-**Prerequisites:**  Node.js
+## 本地运行
 
+1. 安装依赖
 
-1. Install dependencies:
-   `npm install`
-2. Run the app:
-   `npm run dev`
+```bash
+npm install
+```
+
+2. 启动开发服务
+
+```bash
+npm run dev
+```
+
+默认端口是 `3000`。
+
+## 技术栈
+
+- React 19
+- TypeScript
+- Vite
+- Tailwind CSS
+- shadcn/ui
+- Recharts
+
+## 说明
+
+- 当前项目主要是后台管理与内容配置界面。
+- 课件生成和任务发布逻辑目前以前端 mock 为主。
+- 项目已去掉对 Gemini API key 的依赖，支持本地开发。

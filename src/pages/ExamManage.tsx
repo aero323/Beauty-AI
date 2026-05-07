@@ -323,15 +323,9 @@ export function ExamManage() {
                 <label className="block text-sm font-medium text-slate-700 mb-1">截止时间</label>
                 <input type="datetime-local" className="w-full px-3 py-2 border rounded-md text-sm" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">及格分数</label>
-                  <input type="number" placeholder="80" className="w-full px-3 py-2 border rounded-md text-sm" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">重考次数限制</label>
-                  <input type="number" placeholder="3" className="w-full px-3 py-2 border rounded-md text-sm" />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">及格分数</label>
+                <input type="number" placeholder="80" className="w-full px-3 py-2 border rounded-md text-sm" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">考试时长 (分钟)</label>
