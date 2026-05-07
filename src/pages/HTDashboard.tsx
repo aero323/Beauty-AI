@@ -7,10 +7,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 
 const MOCK_ONGOING_TASKS = [
-  { id: '2', title: '『敏感肌抗老』场景陪练', type: 'AI 陪练', completed: 850, total: 1428, progress: 59, deadlineText: '本周五 (剩余 3 天)', isWarning: true, color: 'emerald' },
-  { id: '3', title: '全员基础服务礼仪月度测试', type: '在线考试', completed: 900, total: 1428, progress: 63, deadlineText: '下周五', isWarning: false, color: 'rose' },
-  { id: '4', title: '新晋店长管理赋能 (第一期)', type: '在线课件', completed: 45, total: 50, progress: 90, deadlineText: '无需截止日期 (长期有效)', isWarning: false, color: 'amber' },
-  { id: '5', title: '秋冬面霜系列话术演练', type: 'AI 陪练', completed: 1000, total: 1428, progress: 70, deadlineText: '本月月底', isWarning: false, color: 'emerald' },
+  { id: '2', title: '『敏感肌抗老』场景陪练', scope: '全国', type: '练习任务', completed: 850, total: 1428, progress: 59, deadlineText: '本周五 (剩余 3 天)', isWarning: true, color: 'emerald' },
+  { id: '3', title: '全员基础服务礼仪月度测试', scope: '全国', type: '考试任务', completed: 900, total: 1428, progress: 63, deadlineText: '下周五', isWarning: false, color: 'rose' },
+  { id: '4', title: '新晋店长管理赋能 (第一期)', scope: '全国', type: '学习任务', completed: 45, total: 50, progress: 90, deadlineText: '无需截止日期 (长期有效)', isWarning: false, color: 'amber' },
+  { id: '5', title: '秋冬面霜系列话术演练', scope: '全国', type: '练习任务', completed: 1000, total: 1428, progress: 70, deadlineText: '本月月底', isWarning: false, color: 'emerald' },
 ];
 
 export function HTDashboard() {
@@ -191,10 +191,13 @@ export function HTDashboard() {
                    <div className={`absolute top-0 left-0 w-1 h-full bg-${task.color}-500`}></div>
                    <div className="flex justify-between items-start mb-2">
                       <h4 className={`text-xs font-bold text-slate-800 group-hover:text-${task.color}-600 transition-colors`}>{task.title}</h4>
-                      <Badge variant="outline" className={`text-[9px] py-0 border-${task.color}-200 text-${task.color}-600 bg-${task.color}-50`}>{task.type}</Badge>
+                      <div className="flex items-center gap-1">
+                        <Badge variant="outline" className="text-[9px] py-0 border-slate-200 text-slate-600 bg-slate-50">{task.scope}</Badge>
+                        <Badge variant="outline" className={`text-[9px] py-0 border-${task.color}-200 text-${task.color}-600 bg-${task.color}-50`}>{task.type}</Badge>
+                      </div>
                    </div>
                    <div className="flex justify-between text-[10px] text-slate-500 mb-1.5 font-medium">
-                      <span>{task.completed} / {task.total} 人已{task.type === 'AI 陪练' ? '达标' : '完成'}</span>
+                      <span>{task.completed} / {task.total} 人已{task.type === '练习任务' ? '达标' : '完成'}</span>
                       <span className="text-slate-800 font-bold">{task.progress}%</span>
                    </div>
                    <Progress value={task.progress} className={`h-1.5 [&>div]:bg-${task.color}-500`} />
@@ -337,9 +340,6 @@ export function HTDashboard() {
                               根据近期错题统计，该员工的知识盲区主要集中在<span className="font-bold text-slate-800">「夏季新品系列」</span>。其中涉及<span className="bg-white shadow-sm px-1 border border-orange-100 rounded text-[10px] font-mono mx-1">焕白精华适用肤质</span>的考题错误率达 <span className="font-bold text-rose-600">60%</span>。
                               <span className="text-slate-500 mt-2 block border-t border-orange-100 pt-2">此外，该员工本月尚未进行任何「场景陪练」打卡。建议提醒门店长针对新品知识面进行当面抽查与辅导。</span>
                             </p>
-                            <button className="mt-3 text-xs text-indigo-600 hover:text-indigo-800 font-bold flex items-center transition-colors group-hover:underline">
-                               发送学习跟进提醒至店长 <ChevronRight className="h-3 w-3 ml-1" />
-                            </button>
                          </div>
                       </div>
                    </div>
@@ -360,6 +360,7 @@ export function HTDashboard() {
                             <th className="py-2.5 px-4 font-bold">员工姓名</th>
                             <th className="py-2.5 px-2 font-bold hidden sm:table-cell w-1/4">所属区域/门店</th>
                             <th className="py-2.5 px-3 font-bold text-center">任务完成率</th>
+                            <th className="py-2.5 px-3 font-bold text-center text-indigo-600">当月积分</th>
                             <th className="py-2.5 px-5 font-bold text-right text-indigo-600">最新考试平均分</th>
                           </tr>
                         </thead>
@@ -369,6 +370,7 @@ export function HTDashboard() {
                             <td className="py-3 px-4 font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">Siti</td>
                             <td className="py-3 px-2 text-[10px] text-slate-500 hidden sm:table-cell">雅加达区 | Toko Senayan City</td>
                             <td className="py-3 px-3 text-center font-medium text-slate-700">100%</td>
+                            <td className="py-3 px-3 text-center font-bold text-indigo-600">236</td>
                             <td className="py-3 px-5 text-right font-bold text-slate-800 text-base">98</td>
                           </tr>
                           <tr className="hover:bg-slate-50 transition-colors group cursor-pointer" onClick={() => handleStaffClick('Dewi')}>
@@ -376,6 +378,7 @@ export function HTDashboard() {
                             <td className="py-3 px-4 font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">Dewi</td>
                             <td className="py-3 px-2 text-[10px] text-slate-500 hidden sm:table-cell">泗水区 | Tunjungan Plaza</td>
                             <td className="py-3 px-3 text-center font-medium text-slate-700">98%</td>
+                            <td className="py-3 px-3 text-center font-bold text-indigo-600">228</td>
                             <td className="py-3 px-5 text-right font-bold text-slate-800 text-base">96</td>
                           </tr>
                           <tr className="hover:bg-slate-50 transition-colors group cursor-pointer" onClick={() => handleStaffClick('Fitri')}>
@@ -383,6 +386,7 @@ export function HTDashboard() {
                             <td className="py-3 px-4 font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">Fitri</td>
                             <td className="py-3 px-2 text-[10px] text-slate-500 hidden sm:table-cell">雅加达区 | Toko Pacific Place</td>
                             <td className="py-3 px-3 text-center font-medium text-slate-700">95%</td>
+                            <td className="py-3 px-3 text-center font-bold text-indigo-600">219</td>
                             <td className="py-3 px-5 text-right font-bold text-slate-800 text-base">95</td>
                           </tr>
                           <tr className="hover:bg-slate-50 transition-colors group cursor-pointer" onClick={() => handleStaffClick('Putri')}>
@@ -390,16 +394,17 @@ export function HTDashboard() {
                             <td className="py-3 px-4 font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">Putri</td>
                             <td className="py-3 px-2 text-[10px] text-slate-500 hidden sm:table-cell">巴厘岛区 | Beachwalk Center</td>
                             <td className="py-3 px-3 text-center font-medium text-slate-700">92%</td>
+                            <td className="py-3 px-3 text-center font-bold text-indigo-600">207</td>
                             <td className="py-3 px-5 text-right font-bold text-slate-800 text-base">92</td>
                           </tr>
                            <tr className="hover:bg-rose-50/50 transition-colors group cursor-pointer bg-rose-50/20" onClick={() => handleStaffClick('Rina')}>
                             <td className="py-3 px-5 font-bold text-rose-400 text-center">342</td>
                             <td className="py-3 px-4 font-bold text-rose-600 group-hover:text-rose-800 transition-colors flex items-center">
-                              Rina 
-                              <span className="ml-2 px-1.5 py-0 bg-rose-100 text-[9px] rounded text-rose-700 font-bold hidden xl:inline-block">高退流风险</span>
+                              Rina
                             </td>
                             <td className="py-3 px-2 text-[10px] text-slate-500 hidden sm:table-cell">雅加达区 | T. Kelapa Gading</td>
                             <td className="py-3 px-3 text-center font-medium text-rose-600">30%</td>
+                            <td className="py-3 px-3 text-center font-bold text-rose-600">58</td>
                             <td className="py-3 px-5 text-right font-bold text-rose-600 text-base">45</td>
                           </tr>
                         </tbody>
@@ -547,10 +552,13 @@ export function HTDashboard() {
                 <div className={`absolute top-0 left-0 w-1 h-full bg-${task.color}-500`}></div>
                 <div className="flex justify-between items-start mb-3">
                   <h4 className={`text-sm font-bold text-slate-800`}>{task.title}</h4>
-                  <Badge variant="outline" className={`text-[10px] py-0 border-${task.color}-200 text-${task.color}-600 bg-${task.color}-50`}>{task.type}</Badge>
+                  <div className="flex items-center gap-1">
+                    <Badge variant="outline" className="text-[10px] py-0 border-slate-200 text-slate-600 bg-slate-50">{task.scope}</Badge>
+                    <Badge variant="outline" className={`text-[10px] py-0 border-${task.color}-200 text-${task.color}-600 bg-${task.color}-50`}>{task.type}</Badge>
+                  </div>
                 </div>
                 <div className="flex justify-between text-xs text-slate-500 mb-2 font-medium">
-                  <span>{task.completed} / {task.total} 人已{task.type === 'AI 陪练' ? '达标' : '完成'}</span>
+                  <span>{task.completed} / {task.total} 人已{task.type === '练习任务' ? '达标' : '完成'}</span>
                   <span className="text-slate-800 font-bold">{task.progress}%</span>
                 </div>
                 <Progress value={task.progress} className={`h-2 [&>div]:bg-${task.color}-500`} />

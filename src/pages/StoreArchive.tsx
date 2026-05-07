@@ -21,9 +21,9 @@ const MOCK_STORE_DATA: Record<string, any> = {
     avgStudyCount: 24,
     avgPracticeCount: 15,
     employees: [
-      { id: 'BA001', name: 'Siti Aminah', position: '高级BA', completionRate: '98%', lastExamScore: 95 },
-      { id: 'BA012', name: 'Rini Yulianti', position: '初级BA', completionRate: '85%', lastExamScore: 82 },
-      { id: 'BA023', name: 'Andi Saputra', position: 'BA', completionRate: '90%', lastExamScore: 88 },
+      { id: 'BA001', name: 'Siti Aminah', position: '高级BA', completionRate: '98%', monthlyPoints: 236, lastExamScore: 95 },
+      { id: 'BA012', name: 'Rini Yulianti', position: '初级BA', completionRate: '85%', monthlyPoints: 184, lastExamScore: 82 },
+      { id: 'BA023', name: 'Andi Saputra', position: 'BA', completionRate: '90%', monthlyPoints: 203, lastExamScore: 88 },
     ]
   },
   's2': {
@@ -32,8 +32,8 @@ const MOCK_STORE_DATA: Record<string, any> = {
     avgStudyCount: 18,
     avgPracticeCount: 12,
     employees: [
-      { id: 'BA002', name: 'Budi Santoso', position: 'BA', completionRate: '88%', lastExamScore: 85 },
-      { id: 'BA015', name: 'Lestari', position: '高级BA', completionRate: '100%', lastExamScore: 98 },
+      { id: 'BA002', name: 'Budi Santoso', position: 'BA', completionRate: '88%', monthlyPoints: 191, lastExamScore: 85 },
+      { id: 'BA015', name: 'Lestari', position: '高级BA', completionRate: '100%', monthlyPoints: 248, lastExamScore: 98 },
     ]
   },
   // Fallback for others
@@ -43,7 +43,7 @@ const MOCK_STORE_DATA: Record<string, any> = {
     avgStudyCount: 20,
     avgPracticeCount: 10,
     employees: [
-      { id: 'BA055', name: 'Dian Sastrowardoyo', position: 'BA', completionRate: '85%', lastExamScore: 80 },
+      { id: 'BA055', name: 'Dian Sastrowardoyo', position: 'BA', completionRate: '85%', monthlyPoints: 176, lastExamScore: 80 },
     ]
   }
 };
@@ -181,6 +181,7 @@ export function StoreArchive({ userRole }: { userRole?: string }) {
                      <th className="p-4 font-bold text-slate-500 w-48">姓名</th>
                      <th className="p-4 font-bold text-slate-500 w-32">岗位</th>
                      <th className="p-4 font-bold text-slate-500 w-32">任务完成率</th>
+                     <th className="p-4 font-bold text-slate-500 w-32">当月积分</th>
                      <th className="p-4 font-bold text-slate-500 w-48">最近一次考试分数</th>
                    </tr>
                  </thead>
@@ -199,6 +200,9 @@ export function StoreArchive({ userRole }: { userRole?: string }) {
                         </td>
                         <td className="p-4">
                            <span className="font-bold text-emerald-600">{emp.completionRate}</span>
+                        </td>
+                        <td className="p-4">
+                           <span className="font-bold text-indigo-600">{emp.monthlyPoints}</span>
                         </td>
                         <td className="p-4">
                            <div className="flex items-center">

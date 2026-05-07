@@ -144,7 +144,10 @@ export function RTMDashboard() {
                  <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
                  <div className="flex justify-between items-start mb-2">
                     <h4 className="text-xs font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">夏季新品区域通关考核</h4>
-                    <Badge variant="outline" className="text-[9px] py-0 border-indigo-200 text-indigo-600 bg-indigo-50">综合任务</Badge>
+                    <div className="flex items-center gap-1">
+                      <Badge variant="outline" className="text-[9px] py-0 border-slate-200 text-slate-600 bg-slate-50">区域</Badge>
+                      <Badge variant="outline" className="text-[9px] py-0 border-indigo-200 text-indigo-600 bg-indigo-50">考试任务</Badge>
+                    </div>
                  </div>
                  <div className="flex justify-between text-[10px] text-slate-500 mb-1.5 font-medium">
                     <span>280 / 342 人已完成</span>
@@ -161,7 +164,10 @@ export function RTMDashboard() {
                  <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
                  <div className="flex justify-between items-start mb-2">
                     <h4 className="text-xs font-bold text-slate-800 group-hover:text-emerald-600 transition-colors">『敏感肌抗老』区域专项陪练</h4>
-                    <Badge variant="outline" className="text-[9px] py-0 border-emerald-200 text-emerald-600 bg-emerald-50">AI 陪练</Badge>
+                    <div className="flex items-center gap-1">
+                      <Badge variant="outline" className="text-[9px] py-0 border-slate-200 text-slate-600 bg-slate-50">区域</Badge>
+                      <Badge variant="outline" className="text-[9px] py-0 border-emerald-200 text-emerald-600 bg-emerald-50">练习任务</Badge>
+                    </div>
                  </div>
                  <div className="flex justify-between text-[10px] text-slate-500 mb-1.5 font-medium">
                     <span>215 / 342 人已达标</span>

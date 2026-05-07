@@ -112,7 +112,7 @@ export function CourseManagement() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const handleCopyLink = (course: Course) => {
-    const textToCopy = `【L'ÉCLAT AI 课件】${course.title}\n链接：https://lumina-ai.com/course/${course.id}`;
+    const textToCopy = `【BEAUTY AI 课件】${course.title}\n链接：https://beauty-ai.com/course/${course.id}`;
     navigator.clipboard.writeText(textToCopy);
     setCopiedId(course.id);
     setTimeout(() => setCopiedId(null), 2000);

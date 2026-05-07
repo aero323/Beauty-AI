@@ -295,12 +295,8 @@ export function CourseCreation({ courseTask, startGeneration, resetTask }: Cours
                       生成的作业题将进入题库；可以在作业管理中查看作业题
                     </div>
                   </label>
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input type="checkbox" className="rounded text-blue-600 focus:ring-blue-500" defaultChecked />
-                    <span className="text-sm font-medium text-gray-700">生成AI讲解</span>
-                  </label>
                 </div>
-                <div className="flex items-center shrink-0">
+                <div className="flex items-center shrink-0 relative group/voice-note">
                   <span className="text-xs text-gray-500 mr-2">选择讲解角色：</span>
                   <Select defaultValue="role1">
                     <SelectTrigger className="w-[160px] h-8 text-xs bg-white">
@@ -321,6 +317,9 @@ export function CourseCreation({ courseTask, startGeneration, resetTask }: Cours
                       </SelectItem>
                     </SelectContent>
                   </Select>
+                  <div className="absolute left-24 bottom-full mb-2 hidden group-hover/voice-note:block z-50 w-72 rounded-lg bg-black/75 px-3 py-2 text-xs leading-relaxed text-white shadow-xl backdrop-blur-sm">
+                    给研发：把 minimax 支持印尼语的音色列表拿来放这里
+                  </div>
                 </div>
               </div>
             </div>

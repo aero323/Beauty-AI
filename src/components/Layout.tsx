@@ -162,7 +162,7 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
         <div className="p-6 overflow-y-auto">
           <div className="flex items-center space-x-2 mb-8">
             <div className="w-8 h-8 bg-gradient-to-tr from-rose-400 to-amber-200 rounded-lg"></div>
-            <span className="font-bold tracking-tight text-lg">L'ÉCLAT <span className="font-light opacity-60">AI</span></span>
+            <span className="font-bold tracking-tight text-lg">BEAUTY <span className="font-light opacity-60">AI</span></span>
           </div>
 
           <nav className="space-y-1">
@@ -277,7 +277,7 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
           <div className="flex items-center space-x-4">
              <h1 className="text-lg font-semibold text-slate-900">{role === 'Super Admin' ? '系统运行概览' : role === 'HQ Trainer' ? '全国培训总览' : role === 'Regional Manager' ? '大区业务看板' : (role === 'Regional Training Manager' || role === 'Regional Trainer') ? '大区培训看板' : '门店考评看板'}</h1>
              <span className="text-slate-300 hidden md:block">|</span>
-             <span className="text-xs font-medium text-slate-500 hidden md:block">Lumina AI 培训后台</span>
+             <span className="text-xs font-medium text-slate-500 hidden md:block">BEAUTY AI</span>
           </div>
           <div className="flex items-center space-x-6 ml-auto">
              <button className="text-slate-400 hover:text-slate-600 transition-colors relative">

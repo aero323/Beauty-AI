@@ -156,7 +156,10 @@ export function RMDashboard() {
                  <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
                  <div className="flex justify-between items-start mb-2">
                     <h4 className="text-xs font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">夏季新品区域通关考核</h4>
-                    <Badge variant="outline" className="text-[9px] py-0 border-indigo-200 text-indigo-600 bg-indigo-50">综合任务</Badge>
+                    <div className="flex items-center gap-1">
+                      <Badge variant="outline" className="text-[9px] py-0 border-slate-200 text-slate-600 bg-slate-50">区域</Badge>
+                      <Badge variant="outline" className="text-[9px] py-0 border-indigo-200 text-indigo-600 bg-indigo-50">考试任务</Badge>
+                    </div>
                  </div>
                  <div className="flex justify-between text-[10px] text-slate-500 mb-1.5 font-medium">
                     <span>280 / 342 人已完成</span>
@@ -173,7 +176,10 @@ export function RMDashboard() {
                  <div className="absolute top-0 left-0 w-1 h-full bg-amber-500"></div>
                  <div className="flex justify-between items-start mb-2">
                     <h4 className="text-xs font-bold text-slate-800 group-hover:text-amber-600 transition-colors">新客破冰沟通场景演练</h4>
-                    <Badge variant="outline" className="text-[9px] py-0 border-amber-200 text-amber-600 bg-amber-50">AI 陪练</Badge>
+                    <div className="flex items-center gap-1">
+                      <Badge variant="outline" className="text-[9px] py-0 border-slate-200 text-slate-600 bg-slate-50">区域</Badge>
+                      <Badge variant="outline" className="text-[9px] py-0 border-amber-200 text-amber-600 bg-amber-50">练习任务</Badge>
+                    </div>
                  </div>
                  <div className="flex justify-between text-[10px] text-slate-500 mb-1.5 font-medium">
                     <span>145 / 342 人已达标</span>
@@ -198,7 +204,6 @@ export function RMDashboard() {
                <span className="w-2 h-2 bg-rose-500 rounded-full mr-2"></span>
                高风险 BA <span className="ml-2 text-xs font-normal text-slate-400 px-2 py-0.5 bg-slate-100 rounded-full">3人需关注</span>
             </CardTitle>
-            <button className="text-xs text-rose-600 font-semibold hover:underline">一键处理</button>
           </CardHeader>
           <CardContent className="p-2 flex-1">
             <div className="space-y-2 overflow-hidden">
@@ -211,7 +216,6 @@ export function RMDashboard() {
                      <p className="text-[11px] text-rose-600 mt-0.5">连续7天未登录 | 考试 52分 | 陪练 0次</p>
                    </div>
                 </div>
-                <button className="bg-rose-600 text-white text-[10px] px-3 py-1.5 rounded-full font-bold opacity-0 group-hover:opacity-100 transition-opacity">重点跟进</button>
               </div>
 
                {/* Alert 2 */}
@@ -223,7 +227,6 @@ export function RMDashboard() {
                     <p className="text-[11px] text-amber-600 mt-0.5">参与度低：金句跟读20% | 本周仅登录1次</p>
                   </div>
                 </div>
-                <span className="text-[10px] text-amber-600 font-bold uppercase tracking-widest hidden sm:inline-block">警告</span>
               </div>
 
                {/* Alert 3 */}
@@ -235,12 +238,11 @@ export function RMDashboard() {
                     <p className="text-[11px] text-slate-500 mt-0.5 italic">考试存疑：AI监考检测到切屏2次</p>
                   </div>
                 </div>
-                <button className="text-[10px] font-bold text-slate-400 border border-slate-200 px-3 py-1.5 rounded-full bg-white hidden sm:block">查看日志</button>
               </div>
             </div>
           </CardContent>
           <div className="p-4 text-center border-t border-slate-50 bg-white">
-            <p className="text-[11px] text-slate-400 font-medium">由AI基于活跃度预警模型自动计算 (权重20.5%)</p>
+            <p className="text-[11px] text-slate-400 font-medium">根据登录、任务、考试和练习记录自动识别</p>
           </div>
         </Card>
 
@@ -299,7 +301,7 @@ export function RMDashboard() {
 
                         <div className="space-y-4">
                             <div className="bg-white rounded-xl p-4 border border-slate-100 shadow-sm h-full flex flex-col">
-                             <h4 className="text-xs font-bold text-slate-800 mb-4 tracking-wider flex items-center"><PlayCircle className="h-4 w-4 mr-2 text-emerald-500" /> 陪练与打卡</h4>
+                             <h4 className="text-xs font-bold text-slate-800 mb-4 tracking-wider flex items-center"><PlayCircle className="h-4 w-4 mr-2 text-emerald-500" /> 练习</h4>
                              <div className="space-y-3 text-sm flex-1">
                                <div className="bg-slate-50/50 p-3 rounded-lg border border-slate-100 h-full">
                                  <div className="flex justify-between items-center border-b border-slate-200/60 pb-3 mb-3">
@@ -311,8 +313,8 @@ export function RMDashboard() {
                                    <span className="font-bold text-slate-800">1 次</span>
                                  </div>
                                  <div className="flex justify-between items-center">
-                                   <span className="text-slate-500 text-xs font-medium">金句跟读连击</span>
-                                   <span className="font-bold text-rose-500">0 天</span>
+                                   <span className="text-slate-500 text-xs font-medium">金句跟读次数</span>
+                                   <span className="font-bold text-rose-500">0 次</span>
                                  </div>
                                </div>
                              </div>
@@ -330,9 +332,6 @@ export function RMDashboard() {
                                 根据近期错题统计，该员工的知识盲区主要集中在<span className="font-bold text-slate-800">「夏季新品系列」</span>。其中涉及<span className="bg-white shadow-sm px-1 border border-orange-100 rounded text-[10px] font-mono mx-1">焕白精华适用肤质</span>的考题错误率达 <span className="font-bold text-rose-600">60%</span>。
                                 <span className="text-slate-500 mt-2 block border-t border-orange-100 pt-2">此外，该员工本月尚未进行任何「场景陪练」打卡。建议提醒门店长针对新品知识面进行当面抽查与辅导。</span>
                               </p>
-                              <button className="mt-3 text-xs text-indigo-600 hover:text-indigo-800 font-bold flex items-center transition-colors group-hover:underline">
-                                 发送学习跟进提醒至店长 <ChevronRight className="h-3 w-3 ml-1" />
-                              </button>
                            </div>
                         </div>
                      </div>
@@ -353,6 +352,7 @@ export function RMDashboard() {
                               <th className="py-2.5 px-4 font-bold">员工姓名</th>
                               <th className="py-2.5 px-2 font-bold hidden sm:table-cell w-1/4">所属门店</th>
                               <th className="py-2.5 px-3 font-bold text-center">任务完成率</th>
+                              <th className="py-2.5 px-3 font-bold text-center text-indigo-600">当月积分</th>
                               <th className="py-2.5 px-5 font-bold text-right text-indigo-600">最新考试平均分</th>
                             </tr>
                           </thead>
@@ -362,6 +362,7 @@ export function RMDashboard() {
                               <td className="py-3 px-4 font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">Siti</td>
                               <td className="py-3 px-2 text-[10px] text-slate-500 hidden sm:table-cell">Toko Senayan City</td>
                               <td className="py-3 px-3 text-center font-medium text-slate-700">100%</td>
+                              <td className="py-3 px-3 text-center font-bold text-indigo-600">236</td>
                               <td className="py-3 px-5 text-right font-bold text-slate-800 text-base">98</td>
                             </tr>
                             <tr className="hover:bg-slate-50 transition-colors group cursor-pointer" onClick={() => handleStaffClick('Fitri')}>
@@ -369,6 +370,7 @@ export function RMDashboard() {
                               <td className="py-3 px-4 font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">Fitri</td>
                               <td className="py-3 px-2 text-[10px] text-slate-500 hidden sm:table-cell">Toko Pacific Place</td>
                               <td className="py-3 px-3 text-center font-medium text-slate-700">95%</td>
+                              <td className="py-3 px-3 text-center font-bold text-indigo-600">219</td>
                               <td className="py-3 px-5 text-right font-bold text-slate-800 text-base">95</td>
                             </tr>
                             <tr className="hover:bg-slate-50 transition-colors group cursor-pointer" onClick={() => handleStaffClick('Ayu')}>
@@ -376,6 +378,7 @@ export function RMDashboard() {
                               <td className="py-3 px-4 font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">Ayu</td>
                               <td className="py-3 px-2 text-[10px] text-slate-500 hidden sm:table-cell">Toko Gandaria City</td>
                               <td className="py-3 px-3 text-center font-medium text-slate-700">90%</td>
+                              <td className="py-3 px-3 text-center font-bold text-indigo-600">203</td>
                               <td className="py-3 px-5 text-right font-bold text-slate-800 text-base">91</td>
                             </tr>
                             <tr className="hover:bg-slate-50 transition-colors group cursor-pointer" onClick={() => handleStaffClick('Maya')}>
@@ -383,16 +386,17 @@ export function RMDashboard() {
                               <td className="py-3 px-4 font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">Maya</td>
                               <td className="py-3 px-2 text-[10px] text-slate-500 hidden sm:table-cell">Toko Pondok Indah</td>
                               <td className="py-3 px-3 text-center font-medium text-slate-700">85%</td>
+                              <td className="py-3 px-3 text-center font-bold text-indigo-600">187</td>
                               <td className="py-3 px-5 text-right font-bold text-slate-800 text-base">86</td>
                             </tr>
                              <tr className="hover:bg-rose-50/50 transition-colors group cursor-pointer bg-rose-50/20" onClick={() => handleStaffClick('Rina')}>
                               <td className="py-3 px-5 font-bold text-rose-400 text-center">18</td>
                               <td className="py-3 px-4 font-bold text-rose-600 group-hover:text-rose-800 transition-colors flex items-center">
-                                Rina 
-                                <span className="ml-2 px-1.5 py-0 bg-rose-100 text-[9px] rounded text-rose-700 font-bold hidden xl:inline-block">高退流风险</span>
+                                Rina
                               </td>
                                 <td className="py-3 px-2 text-[10px] text-slate-500 hidden sm:table-cell">T. Kelapa Gading</td>
                               <td className="py-3 px-3 text-center font-medium text-rose-600">30%</td>
+                              <td className="py-3 px-3 text-center font-bold text-rose-600">58</td>
                               <td className="py-3 px-5 text-right font-bold text-rose-600 text-base">45</td>
                             </tr>
                           </tbody>
@@ -550,4 +554,3 @@ export function RMDashboard() {
 function ActivityIcon(props: any) { return <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> }
 function PlayIcon(props: any) { return <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg> }
 function CheckCircleIcon(props: any) { return <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> }
-

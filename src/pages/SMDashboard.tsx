@@ -174,6 +174,7 @@ export function SMDashboard() {
                             <th className="py-2.5 px-5 font-bold w-12 text-center">Rank</th>
                             <th className="py-2.5 px-4 font-bold">员工姓名</th>
                             <th className="py-2.5 px-2 font-bold w-1/3">完课进度</th>
+                            <th className="py-2.5 px-3 font-bold text-center text-indigo-600">当月积分</th>
                             <th className="py-2.5 px-5 font-bold text-right text-indigo-600">最新考试成绩</th>
                           </tr>
                         </thead>
@@ -187,6 +188,7 @@ export function SMDashboard() {
                                  <span className="text-[10px] font-bold text-green-600">100%</span>
                                </div>
                             </td>
+                            <td className="py-3 px-3 text-center font-bold text-indigo-600">214</td>
                             <td className="py-3 px-5 text-right font-bold text-slate-800 text-base">92</td>
                           </tr>
                           <tr className="hover:bg-slate-50 transition-colors group cursor-pointer" onClick={() => handleStaffClick('Eka')}>
@@ -198,6 +200,7 @@ export function SMDashboard() {
                                  <span className="text-[10px] font-bold text-blue-600">90%</span>
                                </div>
                             </td>
+                            <td className="py-3 px-3 text-center font-bold text-indigo-600">196</td>
                             <td className="py-3 px-5 text-right font-bold text-slate-800 text-base">86</td>
                           </tr>
                           <tr className="hover:bg-slate-50 transition-colors group cursor-pointer" onClick={() => handleStaffClick('Putri')}>
@@ -209,6 +212,7 @@ export function SMDashboard() {
                                  <span className="text-[10px] font-bold text-blue-600">85%</span>
                                </div>
                             </td>
+                            <td className="py-3 px-3 text-center font-bold text-indigo-600">173</td>
                             <td className="py-3 px-5 text-right font-bold text-slate-800 text-base">75</td>
                           </tr>
                           <tr className="hover:bg-slate-50 transition-colors group cursor-pointer" onClick={() => handleStaffClick('Lestari')}>
@@ -220,6 +224,7 @@ export function SMDashboard() {
                                  <span className="text-[10px] font-bold text-amber-600">60%</span>
                                </div>
                             </td>
+                            <td className="py-3 px-3 text-center font-bold text-amber-600">126</td>
                             <td className="py-3 px-5 text-right font-bold text-amber-600 text-base">65</td>
                           </tr>
                            <tr className="hover:bg-rose-50/50 transition-colors group cursor-pointer bg-rose-50/20" onClick={() => handleStaffClick('Rina')}>
@@ -234,6 +239,7 @@ export function SMDashboard() {
                                  <span className="text-[10px] font-bold text-rose-600">37%</span>
                                </div>
                             </td>
+                            <td className="py-3 px-3 text-center font-bold text-rose-600">58</td>
                             <td className="py-3 px-5 text-right font-bold text-rose-600 text-base">52</td>
                           </tr>
                         </tbody>

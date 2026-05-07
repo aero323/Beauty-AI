@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Upload, Video, User, FileText, Tag, Image as ImageIcon, Save, CheckCircle, MessageSquare } from 'lucide-react';
+import { Plus, Trash2, Upload, User, FileText, Tag, Image as ImageIcon, Save, CheckCircle, MessageSquare } from 'lucide-react';
 import { Badge } from '../components/ui/badge';
 
 interface Avatar {
@@ -36,11 +36,28 @@ const INITIAL_AVATARS: Avatar[] = [
   }
 ];
 
+const MOCK_SCENARIO_SCRIPTS = [
+  {
+    id: 'sun-care',
+    title: '通勤防晒咨询',
+    description: '适合干皮通勤顾客，重点考察防晒质地、上妆兼容和试用引导。',
+    outline: '1. 顾客询问有没有适合干皮的防晒推荐。\n2. 顾客担心产品会油腻、搓泥或影响底妆。\n3. BA 需要解释质地、使用顺序和适用肤质。\n4. 顾客要求试涂或询问小样，BA 完成试用引导。'
+  },
+  {
+    id: 'acne-care',
+    title: '油痘肌基础护理',
+    description: '适合预算有限的年轻顾客，重点考察控油祛痘推荐和价格异议处理。',
+    outline: '1. 顾客在祛痘产品区停留，对产品选择犹豫。\n2. 顾客说明油痘肌问题，并强调预算有限。\n3. BA 需要推荐入门组合，并解释使用顺序。\n4. 顾客提出价格顾虑，BA 给出单品优先级建议。'
+  }
+];
+
 export function BAAvatars() {
   const [avatars, setAvatars] = useState<Avatar[]>(INITIAL_AVATARS);
   const [selectedId, setSelectedId] = useState<string>(INITIAL_AVATARS[0].id);
   const [tagInput, setTagInput] = useState('');
   const [showToast, setShowToast] = useState(false);
+  const [flowMode, setFlowMode] = useState<'custom' | 'existing'>('custom');
+  const [selectedScriptId, setSelectedScriptId] = useState(MOCK_SCENARIO_SCRIPTS[0].id);
 
   const selectedAvatar = avatars.find(a => a.id === selectedId) || avatars[0];
 
@@ -60,6 +77,14 @@ export function BAAvatars() {
 
   const handleRemoveTag = (tagToRemove: string) => {
     handleUpdate('tags', selectedAvatar.tags.filter(t => t !== tagToRemove));
+  };
+
+  const handleSelectScript = (scriptId: string) => {
+    const script = MOCK_SCENARIO_SCRIPTS.find(item => item.id === scriptId);
+    setSelectedScriptId(scriptId);
+    if (script) {
+      handleUpdate('flow', script.outline);
+    }
   };
 
   const handleAddNew = () => {
@@ -200,17 +225,17 @@ export function BAAvatars() {
                       </div>
                     </div>
                     
-                    {/* VIDEO UPLOAD */}
+                    {/* COVER IMAGE UPLOAD */}
                     <div className="col-span-1 md:col-span-2">
-                       <label className="block text-xs font-bold text-slate-500 mb-2">动画形象 (视频)</label>
+                       <label className="block text-xs font-bold text-slate-500 mb-2">上传大图</label>
                        <div className="h-40 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer flex flex-col items-center justify-center text-slate-400 group">
                           {selectedAvatar.videoUrl ? (
-                            <div className="text-indigo-600 font-bold text-sm">✓ 已上传视频</div>
+                            <div className="text-indigo-600 font-bold text-sm">✓ 已上传大图</div>
                           ) : (
                             <>
-                              <Video className="h-8 w-8 mb-2 group-hover:text-indigo-500 transition-colors" />
-                              <span className="text-sm font-bold text-slate-600 group-hover:text-indigo-600 mb-1">点击上传或拖拽视频至此</span>
-                              <span className="text-[10px]">支持 MP4, MOV 格式，需带绿幕或透明背景</span>
+                              <ImageIcon className="h-8 w-8 mb-2 group-hover:text-indigo-500 transition-colors" />
+                              <span className="text-sm font-bold text-slate-600 group-hover:text-indigo-600 mb-1">点击上传或拖拽大图至此</span>
+                              <span className="text-[10px]">建议上传横版人物大图，用于学员端角色封面</span>
                             </>
                           )}
                        </div>
@@ -274,11 +299,47 @@ export function BAAvatars() {
                       <FileText className="h-4 w-4 mr-2 text-amber-500" />
                       对话流程与剧本大纲
                     </h3>
-                    <p className="text-[10px] text-slate-500 mb-4">定义数字人在陪练中的环节与考察重点</p>
+                    <p className="text-[10px] text-slate-500 mb-4">可以自定义剧本大纲，也可以从已有场景剧本中选择</p>
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                      <button
+                        type="button"
+                        onClick={() => setFlowMode('custom')}
+                        className={`h-9 rounded-lg border text-xs font-bold transition-colors ${flowMode === 'custom' ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+                      >
+                        自定义大纲
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFlowMode('existing');
+                          handleSelectScript(selectedScriptId);
+                        }}
+                        className={`h-9 rounded-lg border text-xs font-bold transition-colors ${flowMode === 'existing' ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+                      >
+                        选择场景剧本
+                      </button>
+                    </div>
+                    {flowMode === 'existing' && (
+                      <div className="mb-3 rounded-xl border border-amber-100 bg-amber-50/40 p-3">
+                        <label className="block text-[10px] font-bold text-amber-700 mb-2">已有场景剧本</label>
+                        <select
+                          value={selectedScriptId}
+                          onChange={(e) => handleSelectScript(e.target.value)}
+                          className="w-full h-9 rounded-lg border border-amber-200 bg-white px-3 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                        >
+                          {MOCK_SCENARIO_SCRIPTS.map(script => (
+                            <option key={script.id} value={script.id}>{script.title}</option>
+                          ))}
+                        </select>
+                        <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
+                          {MOCK_SCENARIO_SCRIPTS.find(script => script.id === selectedScriptId)?.description}
+                        </p>
+                      </div>
+                    )}
                     <textarea 
                       value={selectedAvatar.flow}
                       onChange={(e) => handleUpdate('flow', e.target.value)}
-                      className="w-full h-64 p-4 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 resize-none leading-relaxed"
+                      className="w-full h-40 p-4 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 resize-none leading-relaxed"
                     />
                   </div>
                 </div>

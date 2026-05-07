@@ -72,7 +72,7 @@ export function RTCourseManagement() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const handleCopyLink = (course: Course) => {
-    const textToCopy = `【L'ÉCLAT AI 区域课件】${course.title}\n链接：https://lumina-ai.com/course/rt/${course.id}`;
+    const textToCopy = `【BEAUTY AI 区域课件】${course.title}\n链接：https://beauty-ai.com/course/rt/${course.id}`;
     navigator.clipboard.writeText(textToCopy);
     setCopiedId(course.id);
     setTimeout(() => setCopiedId(null), 2000);
