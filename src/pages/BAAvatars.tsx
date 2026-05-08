@@ -1,9 +1,20 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, Upload, User, FileText, Tag, Image as ImageIcon, Save, CheckCircle, MessageSquare } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+
+type AvatarLanguage = '中文' | '英文' | '印尼语';
+
+const AVATAR_VOICE_OPTIONS: Record<AvatarLanguage, string[]> = {
+  中文: ['中文女声 晓雅', '中文女声 晨曦', '中文男声 云泽'],
+  英文: ['英文女声 Ava', '英文女声 Emma', '英文男声 Noah'],
+  印尼语: ['印尼语女声 Sari', '印尼语女声 Dewi', '印尼语男声 Budi']
+};
 
 interface Avatar {
   id: string;
   name: string;
+  language: AvatarLanguage;
+  voice: string;
   avatarUrl: string;
   videoUrl: string;
   tags: string[];
@@ -15,6 +26,8 @@ const INITIAL_AVATARS: Avatar[] = [
   {
     id: '1',
     name: '职场莉莉',
+    language: '印尼语',
+    voice: AVATAR_VOICE_OPTIONS['印尼语'][0],
     avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lily&backgroundColor=ffdfbf',
     videoUrl: '',
     tags: ['25-30岁', '混干皮', '女性', '通勤防晒需求'],
@@ -24,6 +37,8 @@ const INITIAL_AVATARS: Avatar[] = [
   {
     id: '2',
     name: '学生小雅',
+    language: '印尼语',
+    voice: AVATAR_VOICE_OPTIONS['印尼语'][1],
     avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Yaya&backgroundColor=c0aede',
     videoUrl: '',
     tags: ['18-22岁', '油痘肌', '女性', '预算有限'],
@@ -61,6 +76,14 @@ export function BAAvatars() {
     setAvatars(prev => prev.map(a => a.id === selectedId ? { ...a, [field]: value } : a));
   };
 
+  const handleLanguageChange = (language: AvatarLanguage) => {
+    setAvatars(prev => prev.map(a => (
+      a.id === selectedId
+        ? { ...a, language, voice: AVATAR_VOICE_OPTIONS[language][0] }
+        : a
+    )));
+  };
+
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && tagInput.trim() !== '') {
       e.preventDefault();
@@ -87,6 +110,8 @@ export function BAAvatars() {
     const newAvatar: Avatar = {
       id: Date.now().toString(),
       name: '新数字人顾客',
+      language: '印尼语',
+      voice: AVATAR_VOICE_OPTIONS['印尼语'][0],
       avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${Date.now()}&backgroundColor=e2e8f0`,
       videoUrl: '',
       tags: ['新标签'],
@@ -235,14 +260,48 @@ export function BAAvatars() {
                     </div>
                   </div>
 
-                  <div className="mt-6 border-t border-slate-100 pt-6">
-                    <label className="block text-xs font-bold text-slate-500 mb-2">数字人名称</label>
-                    <input 
-                      type="text" 
-                      value={selectedAvatar.name}
-                      onChange={(e) => handleUpdate('name', e.target.value)}
-                      className="w-full max-w-sm px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-shadow font-medium"
-                    />
+                  <div className="mt-6 border-t border-slate-100 pt-6 grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-2">数字人名称</label>
+                      <input
+                        type="text"
+                        value={selectedAvatar.name}
+                        onChange={(e) => handleUpdate('name', e.target.value)}
+                        className="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-shadow font-medium"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-2">语种</label>
+                      <Select
+                        value={selectedAvatar.language}
+                        onValueChange={(value) => handleLanguageChange(value as AvatarLanguage)}
+                      >
+                        <SelectTrigger className="w-full h-10 bg-white border-slate-200 text-sm font-medium text-slate-700">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="中文">中文</SelectItem>
+                          <SelectItem value="英文">英文</SelectItem>
+                          <SelectItem value="印尼语">印尼语</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-2">选择音色</label>
+                      <Select
+                        value={selectedAvatar.voice}
+                        onValueChange={(value) => handleUpdate('voice', value)}
+                      >
+                        <SelectTrigger className="w-full h-10 bg-white border-slate-200 text-sm font-medium text-slate-700">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {AVATAR_VOICE_OPTIONS[selectedAvatar.language].map(voice => (
+                            <SelectItem key={voice} value={voice}>{voice}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
 
