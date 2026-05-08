@@ -104,12 +104,20 @@ const MOCK_COURSES: Course[] = [
 
 const ALL_TAGS = ['全部', '护肤', '彩妆', '香水', '销售技巧', '专业知识', '客户关系'];
 
-export function CourseManagement() {
+interface CourseManagementProps {
+  onOpenCourse?: (courseTitle: string) => void;
+}
+
+export function CourseManagement({ onOpenCourse }: CourseManagementProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState('全部');
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleOpenCourse = (course: Course) => {
+    onOpenCourse?.(course.title);
+  };
 
   const handleCopyLink = (course: Course) => {
     const textToCopy = `【BEAUTY AI 课件】${course.title}\n链接：https://beauty-ai.com/course/${course.id}`;
@@ -195,8 +203,20 @@ export function CourseManagement() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pb-12 overflow-y-auto">
-        {filteredCourses.map(course => (
-          <div key={course.id} className="group relative bg-white rounded-2xl border border-slate-100 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+        {filteredCourses.map((course, courseIndex) => (
+          <div
+            key={course.id}
+            role="button"
+            tabIndex={0}
+            onClick={() => handleOpenCourse(course)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                handleOpenCourse(course);
+              }
+            }}
+            className="group relative bg-white rounded-2xl border border-slate-100 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+          >
             {/* Thumbnail */}
             <div className={`aspect-video w-full bg-gradient-to-br ${course.imageColor} relative`}>
               <div className="absolute inset-0 bg-black/10 transition-opacity duration-300 group-hover:bg-black/60"></div>
@@ -220,22 +240,41 @@ export function CourseManagement() {
               {/* Hover Actions */}
               <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-[2px] gap-3">
                 <button 
-                  onClick={() => handleCopyLink(course)}
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleCopyLink(course);
+                  }}
                   className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-full shadow-lg hover:scale-105 transition-all"
                 >
                   {copiedId === course.id ? <CheckCircle2 className="h-4 w-4" /> : <Link className="h-4 w-4" />}
                   {copiedId === course.id ? '已复制链接' : '生成链接'}
                 </button>
                 <div className="flex items-center gap-2">
-                  <button className="flex flex-col items-center justify-center w-8 h-8 rounded-full bg-white/20 text-white hover:bg-white/40 hover:scale-110 transition-all select-none group/btn relative">
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleOpenCourse(course);
+                    }}
+                    className="flex flex-col items-center justify-center w-8 h-8 rounded-full bg-white/20 text-white hover:bg-white/40 hover:scale-110 transition-all select-none group/btn relative"
+                  >
                     <Edit className="h-3.5 w-3.5" />
                     <span className="absolute -bottom-5 text-[9px] font-bold text-white opacity-0 group-hover/btn:opacity-100 drop-shadow-md">编辑</span>
                   </button>
-                  <button className="flex flex-col items-center justify-center w-8 h-8 rounded-full bg-white/20 text-white hover:bg-white/40 hover:scale-110 transition-all select-none group/btn relative">
+                  <button
+                    type="button"
+                    onClick={(event) => event.stopPropagation()}
+                    className="flex flex-col items-center justify-center w-8 h-8 rounded-full bg-white/20 text-white hover:bg-white/40 hover:scale-110 transition-all select-none group/btn relative"
+                  >
                     <CalendarCheck className="h-3.5 w-3.5" />
                     <span className="absolute -bottom-5 text-[9px] font-bold text-white opacity-0 group-hover/btn:opacity-100 drop-shadow-md">任务</span>
                   </button>
-                  <button className="flex flex-col items-center justify-center w-8 h-8 rounded-full bg-white/20 text-white hover:bg-white/40 hover:scale-110 transition-all select-none group/btn relative">
+                  <button
+                    type="button"
+                    onClick={(event) => event.stopPropagation()}
+                    className="flex flex-col items-center justify-center w-8 h-8 rounded-full bg-white/20 text-white hover:bg-white/40 hover:scale-110 transition-all select-none group/btn relative"
+                  >
                     <Download className="h-3.5 w-3.5" />
                     <span className="absolute -bottom-5 text-[9px] font-bold text-white opacity-0 group-hover/btn:opacity-100 drop-shadow-md">导出</span>
                   </button>
@@ -245,15 +284,25 @@ export function CourseManagement() {
 
             {/* Content */}
             <div className="p-4">
-              <div className="flex flex-wrap gap-1 mb-2">
-                {course.scope && course.scope !== 'HQ' && (
-                  <Badge variant="secondary" className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border-none px-1.5 py-0 h-5 text-[9px]">{course.scope}</Badge>
+              <div className="relative group/course-tag-note mb-2 w-fit max-w-full pr-4">
+                {courseIndex === 0 && (
+                  <>
+                    <span className="absolute -right-1 -top-2 z-10 h-4 min-w-4 rounded-full bg-blue-950 px-1 text-[9px] font-bold leading-4 text-white text-center shadow-sm backdrop-blur-sm">注</span>
+                    <div className="absolute left-0 bottom-full mb-2 hidden group-hover/course-tag-note:block z-[80] w-64 rounded-lg bg-blue-950/95 px-3 py-2 text-xs leading-relaxed text-white shadow-xl backdrop-blur-sm">
+                      给研发：这块让模型自己生成标签。
+                    </div>
+                  </>
                 )}
-                {course.tags.map(tag => (
-                  <span key={tag} className="text-[9px] font-bold px-1.5 py-0.5 rounded text-indigo-500 bg-indigo-50 border border-indigo-100">
-                    {tag}
-                  </span>
-                ))}
+                <div className="flex flex-wrap gap-1">
+                  {course.scope && course.scope !== 'HQ' && (
+                    <Badge variant="secondary" className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border-none px-1.5 py-0 h-5 text-[9px]">{course.scope}</Badge>
+                  )}
+                  {course.tags.map(tag => (
+                    <span key={tag} className="text-[9px] font-bold px-1.5 py-0.5 rounded text-indigo-500 bg-indigo-50 border border-indigo-100">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
               <h3 className="font-bold text-slate-800 text-sm leading-tight mb-1 outline-none line-clamp-1 group-hover:text-indigo-600 transition-colors">
                 {course.title}
@@ -266,7 +315,11 @@ export function CourseManagement() {
             {/* Meta */}
             <div className="px-4 py-3 border-t border-slate-50 flex items-center justify-between mt-auto">
               <span className="text-[10px] text-slate-400 font-medium">创建于 {course.createdAt}</span>
-              <button className="text-slate-400 hover:text-indigo-600 transition-colors">
+              <button
+                type="button"
+                onClick={(event) => event.stopPropagation()}
+                className="text-slate-400 hover:text-indigo-600 transition-colors"
+              >
                 <MoreVertical className="h-4 w-4" />
               </button>
             </div>

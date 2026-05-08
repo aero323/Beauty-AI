@@ -280,10 +280,16 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
              <span className="text-xs font-medium text-slate-500 hidden md:block">BEAUTY AI</span>
           </div>
           <div className="flex items-center space-x-6 ml-auto">
-             <button className="text-slate-400 hover:text-slate-600 transition-colors relative">
-               <Bell className="h-5 w-5" />
-               <span className="absolute top-0 right-0 block h-2 border-2 border-white w-2 rounded-full bg-rose-500" />
-             </button>
+             <div className="relative group/notification-note">
+               <span className="absolute -right-3 -top-2 z-20 h-4 min-w-4 rounded-full bg-blue-950 px-1 text-[9px] font-bold leading-4 text-white text-center shadow-sm backdrop-blur-sm">注</span>
+               <button className="text-slate-400 hover:text-slate-600 transition-colors relative">
+                 <Bell className="h-5 w-5" />
+                 <span className="absolute top-0 right-0 block h-2 border-2 border-white w-2 rounded-full bg-rose-500" />
+               </button>
+               <div className="absolute right-0 top-full mt-2 hidden group-hover/notification-note:block z-50 w-80 rounded-lg bg-blue-950/95 px-3 py-2 text-xs leading-relaxed text-white shadow-xl backdrop-blur-sm">
+                 给研发：这个通知系统可做可不做；如果做，建议先只提示课件或题目生成完成，后续最多加上周期任务到期提醒。
+               </div>
+             </div>
              <div className="text-right hidden md:block">
                <p className="text-sm font-semibold text-slate-800">
                  {role === 'Super Admin' ? 'Admin' : 

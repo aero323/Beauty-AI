@@ -48,8 +48,17 @@ export function RTBAScripts() {
   const [scripts, setScripts] = useState<ScriptScenario[]>(RT_INITIAL_SCRIPTS);
   const [selectedId, setSelectedId] = useState<string>(RT_INITIAL_SCRIPTS[0].id);
   const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('区域剧本已保存');
+  const [toastTone, setToastTone] = useState<'success' | 'warning'>('success');
 
   const selectedScript = scripts.find(s => s.id === selectedId) || scripts[0];
+
+  const showFeedback = (message: string, tone: 'success' | 'warning' = 'success', duration = 2500) => {
+    setToastMessage(message);
+    setToastTone(tone);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), duration);
+  };
 
   const handleUpdate = (field: keyof ScriptScenario, value: any) => {
     setScripts(prev => prev.map(s => s.id === selectedId ? { ...s, [field]: value } : s));
@@ -103,8 +112,54 @@ export function RTBAScripts() {
   };
 
   const handleSave = () => {
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+    showFeedback('区域剧本已保存', 'success', 3000);
+  };
+
+  const handleGenerateScriptSteps = () => {
+    const scriptName = selectedScript.name.trim();
+    const scenario = selectedScript.description.trim();
+
+    if (!scriptName || !scenario) {
+      showFeedback('请先填写剧本名称和区域场景介绍', 'warning');
+      return;
+    }
+
+    const context = scenario.length > 36 ? `${scenario.slice(0, 36)}...` : scenario;
+    const generatedSteps: ScriptStep[] = [
+      {
+        id: `${Date.now()}-ai-1`,
+        description: `开场破冰，确认顾客是否符合「${scriptName}」区域场景`,
+        hint: `结合本区域门店语境自然问候，再围绕“${context}”确认顾客当前需求。`
+      },
+      {
+        id: `${Date.now()}-ai-2`,
+        description: '追问当地气候、肤质状态和消费习惯，补齐推荐前信息',
+        hint: '至少确认肤质、近期使用产品、当地环境影响和预算限制。'
+      },
+      {
+        id: `${Date.now()}-ai-3`,
+        description: '复述顾客核心需求，并结合区域特点给出问题判断',
+        hint: '把顾客痛点与当地气候、商圈或客群特征连接起来，再进入方案推荐。'
+      },
+      {
+        id: `${Date.now()}-ai-4`,
+        description: `推荐匹配「${scriptName}」的产品或服务组合`,
+        hint: '讲清楚推荐理由、关键卖点和使用顺序，并说明为什么适合该区域场景。'
+      },
+      {
+        id: `${Date.now()}-ai-5`,
+        description: '处理顾客异议，补充体验、对比或区域替代方案',
+        hint: '针对价格、效果、安全性、缺货等异议给出可在门店执行的回应。'
+      },
+      {
+        id: `${Date.now()}-ai-6`,
+        description: '推动试用或成交，并确认后续跟进动作',
+        hint: '给出明确下一步，例如现场试用、加购搭配、预约护理或门店复访提醒。'
+      }
+    ];
+
+    handleUpdate('steps', generatedSteps);
+    showFeedback('已生成 6 个区域剧本步骤', 'success');
   };
 
   return (
@@ -171,9 +226,9 @@ export function RTBAScripts() {
       {/* Right Content */}
       <div className="flex-1 bg-[#FAF9F8] flex flex-col relative overflow-hidden">
         {showToast && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2 animate-in fade-in slide-in-from-top-4">
-            <CheckCircle className="h-4 w-4" />
-            <span className="text-sm font-bold">区域剧本保存成功</span>
+          <div className={`absolute top-4 left-1/2 -translate-x-1/2 z-50 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2 animate-in fade-in slide-in-from-top-4 ${toastTone === 'warning' ? 'bg-amber-500' : 'bg-emerald-600'}`}>
+            {toastTone === 'warning' ? <AlertCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
+            <span className="text-sm font-bold">{toastMessage}</span>
           </div>
         )}
 
@@ -267,20 +322,25 @@ export function RTBAScripts() {
                             }}
                           />
                         </Button>
-                        <Button 
-                          variant="secondary" 
-                          size="sm" 
-                          className="h-9 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 border-none relative overflow-hidden"
-                          disabled={!selectedScript.name || !selectedScript.description}
-                          onClick={() => {
-                            handleUpdate('imageUrl', `https://source.unsplash.com/random/800x800/?beauty,store,china,${encodeURIComponent(selectedScript.name)}`);
-                            setShowToast(true);
-                            setTimeout(() => setShowToast(false), 2000);
-                          }}
-                        >
-                          <Wand2 className="h-4 w-4 mr-1.5" />
-                          <span>AI 一键生成区域配图</span>
-                        </Button>
+                        <div className="relative group/image-note">
+                          <span className="absolute -right-1 -top-2 z-10 h-4 min-w-4 rounded-full bg-blue-950 px-1 text-[9px] font-bold leading-4 text-white text-center shadow-sm backdrop-blur-sm">注</span>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className="h-9 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 border-none relative overflow-hidden"
+                            disabled={!selectedScript.name || !selectedScript.description}
+                            onClick={() => {
+                              handleUpdate('imageUrl', `https://source.unsplash.com/random/800x800/?beauty,store,china,${encodeURIComponent(selectedScript.name)}`);
+                              showFeedback('已生成区域场景配图', 'success', 2000);
+                            }}
+                          >
+                            <Wand2 className="h-4 w-4 mr-1.5" />
+                            <span>AI 一键生成区域配图</span>
+                          </Button>
+                          <div className="absolute left-0 bottom-full mb-2 hidden group-hover/image-note:block z-50 w-80 rounded-lg bg-blue-950/95 px-3 py-2 text-xs leading-relaxed text-white shadow-xl backdrop-blur-sm">
+                            给研发：必须先有剧本名称和场景介绍才能生图；生图的预制 prompt 里要写清楚这是美妆店场景，然后拼接剧本名称、场景介绍等基础信息。
+                          </div>
+                        </div>
                       </div>
                       {(!selectedScript.name || !selectedScript.description) && (
                         <p className="text-[10px] text-amber-600">完善“剧本名称”和“场景介绍”后，可使用 AI 配图。</p>
@@ -296,10 +356,16 @@ export function RTBAScripts() {
                       <MessageSquare className="h-4 w-4 mr-2 text-amber-500" />
                       区域剧本步骤与提示节点
                     </h3>
-                    <Button onClick={handleAddStep} variant="outline" size="sm" className="h-8 shadow-sm border-amber-200 text-amber-600 hover:bg-amber-50 hover:text-amber-700">
-                      <Plus className="h-4 w-4 mr-1" />
-                      新增步骤
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button onClick={handleGenerateScriptSteps} variant="secondary" size="sm" className="h-8 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800 border-none shadow-sm">
+                        <Wand2 className="h-4 w-4 mr-1" />
+                        AI 一键生成剧本
+                      </Button>
+                      <Button onClick={handleAddStep} variant="outline" size="sm" className="h-8 shadow-sm border-amber-200 text-amber-600 hover:bg-amber-50 hover:text-amber-700">
+                        <Plus className="h-4 w-4 mr-1" />
+                        新增步骤
+                      </Button>
+                    </div>
                   </div>
                   
                   <div className="space-y-4">

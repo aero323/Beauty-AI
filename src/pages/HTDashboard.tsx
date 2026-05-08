@@ -183,7 +183,7 @@ export function HTDashboard() {
                <CardTitle className="text-sm font-bold flex items-center text-slate-800">
                  <CalendarCheck className="h-4 w-4 mr-2 text-indigo-500" /> 全国任务监控 (进行中)
                </CardTitle>
-               <button onClick={() => setShowAllTasks(true)} className="text-[10px] font-bold text-indigo-600 flex items-center hover:underline">查看全部 <ArrowRight className="h-3 w-3 ml-1" /></button>
+               <button onClick={() => setShowAllTasks(true)} className="text-[10px] font-bold text-indigo-600 flex items-center hover:underline">查看全部任务 <ArrowRight className="h-3 w-3 ml-1" /></button>
             </CardHeader>
             <CardContent className="p-4 overflow-y-auto flex-1 flex flex-col space-y-4">
                {MOCK_ONGOING_TASKS.slice(0, 3).map(task => (
@@ -223,13 +223,17 @@ export function HTDashboard() {
             <div className="absolute top-0 right-0 p-4 opacity-10">
                <BrainCircuit className="h-24 w-24" />
             </div>
-            <CardHeader className="p-4 border-b border-slate-700 bg-slate-900/50 z-10 relative">
+            <CardHeader className="p-4 border-b border-slate-700 bg-slate-900/50 z-30 relative group/insight-note">
+               <span className="absolute right-3 top-3 z-20 h-4 min-w-4 rounded-full bg-blue-950 px-1 text-[9px] font-bold leading-4 text-white text-center shadow-sm backdrop-blur-sm">注</span>
                <CardTitle className="text-sm font-bold flex items-center text-white">
                  <BrainCircuit className="h-4 w-4 mr-2 text-indigo-400" /> AI 自动洞察: 全国核心薄弱点
                </CardTitle>
                <CardDescription className="text-[10px] text-slate-400 mt-1">
                  该洞察基于近期数据生成，每周刷新
                </CardDescription>
+               <div className="absolute right-3 top-full mt-2 hidden group-hover/insight-note:block z-[80] w-96 rounded-lg bg-blue-950/95 px-3 py-2 text-xs leading-relaxed text-white shadow-xl backdrop-blur-sm">
+                 给研发：每周离线跑一次，只扫近 7-14 天聚合数据：任务完成率、考试题目错误率、陪练场景卡点率、语音转写标签统计、门店/区域 Top N。为降低 token，先用 SQL/规则聚合出 Top 20 候选，每个候选只传指标、趋势和 2-3 条短样例，不传全量原文/录音；结果缓存为周报，低置信度再二次调用模型。
+               </div>
             </CardHeader>
             <CardContent className="p-4 overflow-y-auto flex-1 space-y-4 z-10 relative">
                
@@ -542,11 +546,11 @@ export function HTDashboard() {
 
       {/* View All Tasks Dialog */}
       <Dialog open={showAllTasks} onOpenChange={setShowAllTasks}>
-        <DialogContent className="sm:max-w-3xl flex flex-col h-[80vh]">
+        <DialogContent className="sm:max-w-2xl flex flex-col max-h-[80vh]">
           <DialogHeader className="border-b border-slate-100 pb-4 shrink-0">
             <DialogTitle>全国任务监控 (所有进行中)</DialogTitle>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto px-1 py-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="overflow-y-auto px-1 py-4 space-y-3">
             {MOCK_ONGOING_TASKS.map(task => (
               <div key={task.id} className="border border-slate-100 rounded-xl p-4 bg-white shadow-sm relative overflow-hidden">
                 <div className={`absolute top-0 left-0 w-1 h-full bg-${task.color}-500`}></div>

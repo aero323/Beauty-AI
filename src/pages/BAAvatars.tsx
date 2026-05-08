@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, Upload, User, FileText, Tag, Image as ImageIcon, Save, CheckCircle, MessageSquare } from 'lucide-react';
-import { Badge } from '../components/ui/badge';
 
 interface Avatar {
   id: string;
@@ -10,7 +9,6 @@ interface Avatar {
   tags: string[];
   prompt: string;
   flow: string;
-  scope?: string;
 }
 
 const INITIAL_AVATARS: Avatar[] = [
@@ -21,8 +19,7 @@ const INITIAL_AVATARS: Avatar[] = [
     videoUrl: '',
     tags: ['25-30岁', '混干皮', '女性', '通勤防晒需求'],
     prompt: '你叫莉莉，是一名在雅加达CBD工作的白领。你平时工作很忙，经常对着电脑，皮肤容易干燥并且有肤色不均的问题。你现在想寻找一款既能保湿又能防晒，并且上妆不搓泥的妆前/防晒产品。你的态度比较直接，看重产品的效率和实际效果。',
-    flow: '1. 进店询问有没有适合干皮的防晒推荐。\n2. 对BA推荐的产品提出质疑（比如“会不会很油？”或“跟我的粉底会不会搓泥？”）。\n3. 询问有没有小样可以试用，或者要求试涂在手上。\n4. 根据BA的解答专业度决定是否购买。',
-    scope: 'HQ'
+    flow: '1. 进店询问有没有适合干皮的防晒推荐。\n2. 对BA推荐的产品提出质疑（比如“会不会很油？”或“跟我的粉底会不会搓泥？”）。\n3. 询问有没有小样可以试用，或者要求试涂在手上。\n4. 根据BA的解答专业度决定是否购买。'
   },
   {
     id: '2',
@@ -31,8 +28,7 @@ const INITIAL_AVATARS: Avatar[] = [
     videoUrl: '',
     tags: ['18-22岁', '油痘肌', '女性', '预算有限'],
     prompt: '你是小雅，一名在读的大学生。你的皮肤是油痘肌，经常长痘痘和闭口，非常苦恼。你每月的护肤预算有限。你希望BA能推荐一些平价但有效祛痘、控油的产品。如果产品太贵，你会犹豫。',
-    flow: '1. 在祛痘产品区徘徊，表现出不知所措。\n2. 告诉BA自己的痘痘问题，并强调自己是学生，可能买不起太贵的套盒。\n3. 询问除了护肤品，有没有什么日常护理的建议。\n4. 如果推荐的产品在预算内且听起来合理，会考虑购买单品。',
-    scope: '雅加达区'
+    flow: '1. 在祛痘产品区徘徊，表现出不知所措。\n2. 告诉BA自己的痘痘问题，并强调自己是学生，可能买不起太贵的套盒。\n3. 询问除了护肤品，有没有什么日常护理的建议。\n4. 如果推荐的产品在预算内且听起来合理，会考虑购买单品。'
   }
 ];
 
@@ -148,9 +144,6 @@ export function BAAvatars() {
                   <h3 className={`font-bold text-sm truncate ${selectedId === avatar.id ? 'text-indigo-900' : 'text-slate-800'}`}>
                     {avatar.name}
                   </h3>
-                  {avatar.scope && avatar.scope !== 'HQ' && (
-                    <Badge variant="secondary" className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border-none px-1.5 py-0 h-4 text-[9px] font-normal tracking-widest leading-none flex items-center">{avatar.scope}</Badge>
-                  )}
                 </div>
                 <div className="flex flex-wrap gap-1 mt-0.5 h-4 overflow-hidden">
                   {avatar.tags.slice(0, 2).map((tag, i) => (

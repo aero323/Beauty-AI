@@ -40,9 +40,11 @@ export default function App() {
 
   // Global Course Generation State
   const [courseTask, setCourseTask] = useState<CourseTask | null>(null);
+  const [courseEditorReturnTab, setCourseEditorReturnTab] = useState<string | null>(null);
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
 
   const startGeneration = () => {
+    setCourseEditorReturnTab(null);
     setCourseTask({ status: 'generating', progress: 0 });
     let p = 0;
     const interval = setInterval(() => {
@@ -56,6 +58,26 @@ export default function App() {
         setCourseTask(prev => prev ? { ...prev, progress: p } : null);
       }
     }, 500);
+  };
+
+  const openCourseEditor = (courseTitle: string) => {
+    setCourseTask({ status: 'done', progress: 100, courseTitle });
+    setCourseEditorReturnTab('courses_manage');
+    setShowSuccessBanner(false);
+    setActiveTab('courses');
+  };
+
+  const resetCourseTask = () => {
+    setCourseTask(null);
+    setCourseEditorReturnTab(null);
+  };
+
+  const exitCourseEditor = () => {
+    const returnTab = courseEditorReturnTab;
+    resetCourseTask();
+    if (returnTab) {
+      setActiveTab(returnTab);
+    }
   };
 
   const renderContent = () => {
@@ -95,15 +117,16 @@ export default function App() {
         <CourseCreation 
           courseTask={courseTask} 
           startGeneration={startGeneration} 
-          resetTask={() => setCourseTask(null)} 
+          resetTask={resetCourseTask}
+          onExitEditor={courseEditorReturnTab ? exitCourseEditor : undefined}
         />
       );
     }
     if (activeTab === 'courses_manage') {
       if (role === 'Regional Training Manager') {
-        return <RTCourseManagement />;
+        return <RTCourseManagement onOpenCourse={openCourseEditor} />;
       }
-      return <CourseManagement />;
+      return <CourseManagement onOpenCourse={openCourseEditor} />;
     }
     if (activeTab === 'ba_avatars') {
       return <BAAvatars />;

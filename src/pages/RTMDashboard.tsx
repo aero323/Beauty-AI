@@ -1,10 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Target, Users, BookOpen, Clock, AlertTriangle, LayoutDashboard, CalendarCheck, Database, MessageSquare, TextSelect, Plus, ArrowRight, BrainCircuit, ClipboardList } from 'lucide-react';
 import { Badge } from '../components/ui/badge';
 import { Progress } from '../components/ui/progress';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
+
+const RTM_ONGOING_TASKS = [
+  { id: 'rtm-task-1', title: '夏季新品区域通关考核', scope: '区域', type: '考试任务', completed: 280, total: 342, progress: 81, deadlineText: '本周五 (剩余 3 天)', color: 'indigo', isWarning: true },
+  { id: 'rtm-task-2', title: '『敏感肌抗老』区域专项陪练', scope: '区域', type: '练习任务', completed: 215, total: 342, progress: 62, deadlineText: '下周三', color: 'emerald', isWarning: false },
+  { id: 'rtm-task-3', title: '店长基础服务抽检复训', scope: '区域', type: '学习任务', completed: 78, total: 96, progress: 81, deadlineText: '本月月底', color: 'blue', isWarning: false },
+];
 
 export function RTMDashboard() {
+  const [showAllTasks, setShowAllTasks] = useState(false);
+
   return (
     <div className="space-y-6 flex-1 flex flex-col pt-2">
       {/* Top KPIs - Auto Stats */}
@@ -136,7 +145,7 @@ export function RTMDashboard() {
                <CardTitle className="text-sm font-bold flex items-center text-slate-800">
                  <CalendarCheck className="h-4 w-4 mr-2 text-indigo-500" /> 区域任务监控 (进行中)
                </CardTitle>
-               <button className="text-[10px] font-bold text-indigo-600 flex items-center hover:underline">查看全部任务 <ArrowRight className="h-3 w-3 ml-1" /></button>
+               <button onClick={() => setShowAllTasks(true)} className="text-[10px] font-bold text-indigo-600 flex items-center hover:underline">查看全部任务 <ArrowRight className="h-3 w-3 ml-1" /></button>
             </CardHeader>
             <CardContent className="p-4 overflow-y-auto flex-1 space-y-4">
                {/* Task 1 */}
@@ -192,13 +201,17 @@ export function RTMDashboard() {
             <div className="absolute top-0 right-0 p-4 opacity-10">
                <BrainCircuit className="h-24 w-24" />
             </div>
-            <CardHeader className="p-4 border-b border-slate-700 bg-slate-900/50 z-10 relative">
+            <CardHeader className="p-4 border-b border-slate-700 bg-slate-900/50 z-30 relative group/insight-note">
+               <span className="absolute right-3 top-3 z-20 h-4 min-w-4 rounded-full bg-blue-950 px-1 text-[9px] font-bold leading-4 text-white text-center shadow-sm backdrop-blur-sm">注</span>
                <CardTitle className="text-sm font-bold flex items-center text-white">
                  <BrainCircuit className="h-4 w-4 mr-2 text-indigo-400" /> AI 自动洞察: 区域核心薄弱点
                </CardTitle>
                <CardDescription className="text-[10px] text-slate-400 mt-1">
                  该洞察基于区域近期数据生成，每周刷新
                </CardDescription>
+               <div className="absolute right-3 top-full mt-2 hidden group-hover/insight-note:block z-[80] w-96 rounded-lg bg-blue-950/95 px-3 py-2 text-xs leading-relaxed text-white shadow-xl backdrop-blur-sm">
+                 给研发：每周离线跑一次，只扫近 7-14 天聚合数据：任务完成率、考试题目错误率、陪练场景卡点率、语音转写标签统计、门店/区域 Top N。为降低 token，先用 SQL/规则聚合出 Top 20 候选，每个候选只传指标、趋势和 2-3 条短样例，不传全量原文/录音；结果缓存为周报，低置信度再二次调用模型。
+               </div>
             </CardHeader>
             <CardContent className="p-4 overflow-y-auto flex-1 space-y-4 z-10 relative">
                
@@ -222,6 +235,37 @@ export function RTMDashboard() {
         </div>
 
       </div>
+
+      <Dialog open={showAllTasks} onOpenChange={setShowAllTasks}>
+        <DialogContent className="sm:max-w-2xl flex flex-col max-h-[80vh]">
+          <DialogHeader className="border-b border-slate-100 pb-4 shrink-0">
+            <DialogTitle>区域任务监控 (所有进行中)</DialogTitle>
+          </DialogHeader>
+          <div className="overflow-y-auto px-1 py-4 space-y-3">
+            {RTM_ONGOING_TASKS.map(task => (
+              <div key={task.id} className="border border-slate-100 rounded-xl p-4 bg-white shadow-sm relative overflow-hidden">
+                <div className={`absolute top-0 left-0 w-1 h-full bg-${task.color}-500`} />
+                <div className="flex justify-between items-start mb-3">
+                  <h4 className="text-sm font-bold text-slate-800">{task.title}</h4>
+                  <div className="flex items-center gap-1">
+                    <Badge variant="outline" className="text-[10px] py-0 border-slate-200 text-slate-600 bg-slate-50">{task.scope}</Badge>
+                    <Badge variant="outline" className={`text-[10px] py-0 border-${task.color}-200 text-${task.color}-600 bg-${task.color}-50`}>{task.type}</Badge>
+                  </div>
+                </div>
+                <div className="flex justify-between text-xs text-slate-500 mb-2 font-medium">
+                  <span>{task.completed} / {task.total} 人已{task.type === '练习任务' ? '达标' : '完成'}</span>
+                  <span className="text-slate-800 font-bold">{task.progress}%</span>
+                </div>
+                <Progress value={task.progress} className={`h-2 [&>div]:bg-${task.color}-500 bg-slate-100`} />
+                <div className="mt-4 text-xs text-slate-500 font-medium flex items-center">
+                  {task.isWarning && <AlertTriangle className="h-4 w-4 mr-1 text-amber-500" />}
+                  截止日期: {task.deadlineText}
+                </div>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
