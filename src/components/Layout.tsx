@@ -16,7 +16,6 @@ import {
 import { Role } from '../types';
 import { cn } from '../lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useI18n } from '../lib/i18n';
 
 interface LayoutProps {
@@ -242,18 +241,20 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
            {/* Role Switcher Demo */}
           <div className="bg-white/[0.06] rounded-xl p-4 mb-4">
              <p className="text-xs opacity-50 mb-1 uppercase tracking-widest font-semibold flex items-center justify-between">角色切换 (Demo)</p>
-             <Select value={role} onValueChange={(val) => setRole(val as Role)}>
-              <SelectTrigger className="w-full bg-transparent border-white/20 text-white hover:bg-white/[0.12] text-xs min-h-8 h-auto mt-2 text-left">
-                <SelectValue placeholder="选择角色" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Super Admin">系统管理员 (SA)</SelectItem>
-                <SelectItem value="HQ Trainer">总部培训师 (HT)</SelectItem>
-                <SelectItem value="Regional Manager">区域经理 (RM)</SelectItem>
-                <SelectItem value="Regional Training Manager">区域培训师主管 (RTM)</SelectItem>
-                <SelectItem value="Regional Trainer">区域培训师 (RT)</SelectItem>
-              </SelectContent>
-            </Select>
+             <div className="relative mt-2">
+               <select
+                 value={role}
+                 onChange={(event) => setRole(event.target.value as Role)}
+                 className="min-h-8 h-auto w-full appearance-none rounded-lg border border-white/20 bg-[#232026] px-3 py-2 pr-8 text-left text-xs font-medium text-white outline-none transition-colors hover:bg-white/[0.12] focus:border-white/40 focus:ring-2 focus:ring-white/10"
+               >
+                 <option value="Super Admin">系统管理员 (SA)</option>
+                 <option value="HQ Trainer">总部培训师 (HT)</option>
+                 <option value="Regional Manager">区域经理 (RM)</option>
+                 <option value="Regional Training Manager">区域培训师主管 (RTM)</option>
+                 <option value="Regional Trainer">区域培训师 (RT)</option>
+               </select>
+               <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/60" />
+             </div>
           </div>
 
           <div className="bg-white/[0.06] rounded-xl p-4 border border-white/10">

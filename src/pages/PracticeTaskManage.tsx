@@ -38,6 +38,9 @@ const MOCK_PRACTICE_TASKS = [
     progress: 58,
     targetCount: 1428,
     completedCount: 828,
+    periodCompletedCount: 828,
+    periodTargetCount: 1428,
+    periodProgress: 58,
     scope: '全国',
   },
   {
@@ -74,6 +77,9 @@ const MOCK_PRACTICE_TASKS = [
     progress: 15,
     targetCount: 300,
     completedCount: 45,
+    periodCompletedCount: 45,
+    periodTargetCount: 300,
+    periodProgress: 15,
     scope: '区域',
     region: '南区',
   }
@@ -89,6 +95,42 @@ const MOCK_CANDIDATES = [
   { id: 'BA007', name: 'Putri Maharani', store: 'Yogyakarta Hartono Mall', status: '练习中' },
 ];
 
+const getPracticeCycleLabel = (frequency: string) => {
+  if (frequency.includes('每日')) return '本日';
+  if (frequency.includes('每周')) return '本周';
+  return '当前周期';
+};
+
+const getPracticeRateMetric = (task: any) => {
+  if (task.status === '已结束') {
+    return {
+      completedCount: task.completedCount,
+      completedLabel: '已达标',
+      countText: `${task.completedCount} / ${task.targetCount} 人已达标`,
+      progress: task.progress,
+      rateLabel: '整体达标率',
+      ruleText: '达标 = 完成全部要求次数',
+      shortText: `${task.progress}% 达标`,
+      targetCount: task.targetCount,
+    };
+  }
+
+  const cycleLabel = getPracticeCycleLabel(task.frequency);
+  const completedCount = task.periodCompletedCount ?? task.completedCount;
+  const targetCount = task.periodTargetCount ?? task.targetCount;
+  const progress = task.periodProgress ?? task.progress;
+  return {
+    completedCount,
+    completedLabel: `${cycleLabel}已达标`,
+    countText: `${cycleLabel} ${completedCount} / ${targetCount} 人已达标`,
+    progress,
+    rateLabel: `${cycleLabel}达标率`,
+    ruleText: `达标 = ${cycleLabel}完成规定次数`,
+    shortText: `${cycleLabel} ${progress}% 达标`,
+    targetCount,
+  };
+};
+
 export function PracticeTaskManage({ isReadOnly = false, userRole }: { isReadOnly?: boolean, userRole?: string }) {
   const [tasks, setTasks] = useState(MOCK_PRACTICE_TASKS);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(MOCK_PRACTICE_TASKS[0].id);
@@ -103,6 +145,8 @@ export function PracticeTaskManage({ isReadOnly = false, userRole }: { isReadOnl
   const selectedTask = tasks.find(t => t.id === selectedTaskId);
   const isRegionalReadOnlyTask = selectedTask && (userRole === 'Regional Training Manager' || userRole === 'Regional Trainer') && selectedTask.scope === '全国';
   const canDeactivateSelectedTask = Boolean(selectedTask && !isReadOnly && !isRegionalReadOnlyTask && selectedTask.status === '进行中');
+  const selectedTaskRateMetric = selectedTask ? getPracticeRateMetric(selectedTask) : null;
+  const detailTaskRateMetric = detailTask ? getPracticeRateMetric(detailTask) : null;
 
   const handleDeactivateTask = () => {
     if (!deactivateTask) return;
@@ -160,7 +204,9 @@ export function PracticeTaskManage({ isReadOnly = false, userRole }: { isReadOnl
               </h3>
               <div className="task-card-metrics flex items-center justify-between mt-3 text-[10px] text-[#9A9396] font-medium">
                 <span className="flex min-w-0 items-start leading-snug"><Clock className="w-3 h-3 mr-1 mt-0.5 shrink-0" /> {task.frequency}</span>
-                <span className={`font-bold leading-snug ${getProgressTone(task.progress).textClass}`}>{`${task.progress}% 达标`}</span>
+                <span className={`font-bold leading-snug ${getProgressTone(task.progress).textClass}`}>
+                  {getPracticeRateMetric(task).shortText}
+                </span>
               </div>
             </div>
             </React.Fragment>
@@ -210,10 +256,14 @@ export function PracticeTaskManage({ isReadOnly = false, userRole }: { isReadOnl
                    <span className="text-[10px] uppercase tracking-wider text-[#766F73] font-bold mb-1 flex items-center"><Calendar className="w-3 h-3 mr-1" /> 任务周期</span>
                    <span className="text-xs font-medium text-[#242124]">{selectedTask.publishTime} 至 {selectedTask.deadline}</span>
                  </div>
-                 <div className="flex flex-col">
-                   <span className="text-[10px] uppercase tracking-wider text-[#766F73] font-bold mb-1 flex items-center"><CheckCircle2 className="w-3 h-3 mr-1" /> 整体达标率</span>
-                   <span className={`text-sm font-bold ${getProgressTone(selectedTask.progress).textClass}`}>{selectedTask.progress}%</span>
-                 </div>
+                 {selectedTaskRateMetric && (
+                   <div className="flex flex-col">
+                     <span className="text-[10px] uppercase tracking-wider text-[#766F73] font-bold mb-1 flex items-center"><CheckCircle2 className="w-3 h-3 mr-1" /> {selectedTaskRateMetric.rateLabel}</span>
+                     <span className={`text-sm font-bold ${getProgressTone(selectedTaskRateMetric.progress).textClass}`}>{selectedTaskRateMetric.progress}%</span>
+                     <span className="mt-1 text-[10px] leading-snug text-[#766F73]">{selectedTaskRateMetric.countText}</span>
+                     <span className="mt-0.5 text-[10px] leading-snug text-[#9A9396]">{selectedTaskRateMetric.ruleText}</span>
+                   </div>
+                 )}
               </div>
             </div>
 
@@ -400,6 +450,9 @@ export function PracticeTaskManage({ isReadOnly = false, userRole }: { isReadOnl
                 progress: 0,
                 targetCount: 100,
                 completedCount: 0,
+                periodCompletedCount: 0,
+                periodTargetCount: 100,
+                periodProgress: 0,
                 scope: (userRole === 'Regional Training Manager' || userRole === 'Regional Trainer') ? '区域' : '全国',
                 region: (userRole === 'Regional Training Manager' || userRole === 'Regional Trainer') ? '南区' : undefined,
               }, ...tasks]);
@@ -463,21 +516,25 @@ export function PracticeTaskManage({ isReadOnly = false, userRole }: { isReadOnl
                <Card className="bg-[#F8F5F3] border-[#E9E4DF] shadow-none">
                  <CardContent className="p-4 flex items-center justify-between">
                    <div>
-                     <p className="text-xs font-medium text-[#766F73] mb-1">已达标</p>
-                     <p className="text-xl font-bold text-rose-600">{detailTask?.completedCount}</p>
+                     <p className="text-xs font-medium text-[#766F73] mb-1">{detailTaskRateMetric?.completedLabel ?? '已达标'}</p>
+                     <p className="text-xl font-bold text-rose-600">{detailTaskRateMetric?.completedCount ?? detailTask?.completedCount}</p>
                    </div>
                    <CheckCircle className="w-8 h-8 text-indigo-200" />
                  </CardContent>
                </Card>
-               <Card className="bg-[#F8F5F3] border-[#E9E4DF] shadow-none">
-                 <CardContent className="p-4 flex items-center justify-between">
-                   <div>
-                     <p className="text-xs font-medium text-[#766F73] mb-1">整体达标率</p>
-                     <p className={`text-xl font-bold ${getProgressTone(detailTask?.progress ?? 0).textClass}`}>{detailTask?.progress}%</p>
-                   </div>
-                   <Target className="w-8 h-8 text-indigo-200" />
-                 </CardContent>
-               </Card>
+               {detailTaskRateMetric && (
+                 <Card className="bg-[#F8F5F3] border-[#E9E4DF] shadow-none">
+                   <CardContent className="p-4 flex items-center justify-between">
+                     <div>
+                       <p className="text-xs font-medium text-[#766F73] mb-1">{detailTaskRateMetric.rateLabel}</p>
+                       <p className={`text-xl font-bold ${getProgressTone(detailTaskRateMetric.progress).textClass}`}>{detailTaskRateMetric.progress}%</p>
+                       <p className="mt-1 text-[10px] leading-snug text-[#766F73]">{detailTaskRateMetric.countText}</p>
+                       <p className="mt-0.5 text-[10px] leading-snug text-[#9A9396]">{detailTaskRateMetric.ruleText}</p>
+                     </div>
+                     <Target className="w-8 h-8 text-indigo-200" />
+                   </CardContent>
+                 </Card>
+               )}
             </div>
 
             <div className="flex justify-between items-center mb-4 shrink-0">

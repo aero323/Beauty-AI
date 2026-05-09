@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Progress } from '../components/ui/progress';
-import { Users, Building, ChevronRight, Search, Target, Clock, CalendarCheck, BookOpen, Presentation, CheckCircle, GraduationCap, LayoutDashboard, LayoutList } from 'lucide-react';
+import { Users, Building, ChevronRight, Search, Clock, CalendarCheck, BookOpen, Presentation, CheckCircle, GraduationCap, LayoutList } from 'lucide-react';
 import { getProgressTone, getTaskStatusBadgeClass } from '../lib/visualTones';
 
 const MOCK_BA_LIST = [
-  { id: 'BA001', name: 'Siti Aminah', store: 'Jakarta Grand Indonesia', position: '高级BA', joinedAt: '2022-03-15' },
-  { id: 'BA002', name: 'Budi Santoso', store: 'Jakarta Plaza Senayan', position: 'BA', joinedAt: '2023-01-10' },
-  { id: 'BA003', name: 'Ayu Lestari', store: 'Surabaya Tunjungan Plaza', position: '初级BA', joinedAt: '2023-11-05' },
-  { id: 'BA004', name: 'Rizky Pratama', store: 'Bali Beachwalk', position: '高级BA', joinedAt: '2021-08-20' },
-  { id: 'BA005', name: 'Dewi Sartika', store: 'Bandung Trans Studio', position: 'BA', joinedAt: '2022-12-01' },
+  { id: 'BA001', name: 'Siti Aminah', store: 'Jakarta Grand Indonesia', joinedAt: '2022-03-15' },
+  { id: 'BA002', name: 'Budi Santoso', store: 'Jakarta Plaza Senayan', joinedAt: '2023-01-10' },
+  { id: 'BA003', name: 'Ayu Lestari', store: 'Surabaya Tunjungan Plaza', joinedAt: '2023-11-05' },
+  { id: 'BA004', name: 'Rizky Pratama', store: 'Bali Beachwalk', joinedAt: '2021-08-20' },
+  { id: 'BA005', name: 'Dewi Sartika', store: 'Bandung Trans Studio', joinedAt: '2022-12-01' },
 ];
 
 const MOCK_USER_DATA: Record<string, any> = {
@@ -135,12 +135,7 @@ export function PersonnelArchive({ userRole }: { userRole?: string }) {
                 {selectedUser?.name.charAt(0)}
               </div>
               <div className="flex flex-col">
-                 <div className="flex items-center gap-3 mb-1">
-                    <h1 className="text-2xl font-bold text-[#242124]">{selectedUser?.name}</h1>
-                    <Badge variant="outline" className="text-rose-600 border-rose-200 bg-rose-50 font-normal">
-                      {selectedUser?.position}
-                    </Badge>
-                 </div>
+                 <h1 className="text-2xl font-bold text-[#242124] mb-1">{selectedUser?.name}</h1>
                  <div className="flex items-center gap-4 text-sm text-[#766F73]">
                    <span className="flex items-center"><Building className="w-4 h-4 mr-1" /> {selectedUser?.store}</span>
                    <span className="flex items-center"><Clock className="w-4 h-4 mr-1" /> 入职: {selectedUser?.joinedAt}</span>

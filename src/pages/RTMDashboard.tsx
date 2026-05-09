@@ -8,14 +8,22 @@ import { getProgressTone } from '../lib/visualTones';
 
 const RTM_ONGOING_TASKS = [
   { id: 'rtm-task-1', title: '夏季新品区域通关考核', scope: '区域', type: '考试任务', completed: 280, total: 342, progress: 81, deadlineText: '本周五 (剩余 3 天)', isWarning: true, badgeClass: 'border-rose-200 text-rose-600 bg-rose-50' },
-  { id: 'rtm-task-2', title: '『敏感肌抗老』区域专项陪练', scope: '区域', type: '练习任务', completed: 215, total: 342, progress: 62, deadlineText: '下周三', isWarning: false, badgeClass: 'border-[#BFDCCF] text-[#3B8F72] bg-[#EEF8F4]' },
-  { id: 'rtm-task-3', title: '店长基础服务抽检复训', scope: '区域', type: '学习任务', completed: 78, total: 96, progress: 81, deadlineText: '本月月底', isWarning: false, badgeClass: 'border-[#E5DED8] text-[#5D565A] bg-[#F8F5F3]' },
+  { id: 'rtm-task-2', title: '秋冬面霜系列话术演练', scope: '区域', type: '练习任务', completed: 145, total: 342, progress: 42, cycleLabel: '本日', frequency: '每日完成 1 次', deadlineText: '今天 23:59', isWarning: false, badgeClass: 'border-[#E8CCA0] text-[#B9822B] bg-[#FFF7EA]' },
+  { id: 'rtm-task-3', title: '『敏感肌抗老』区域专项陪练', scope: '区域', type: '练习任务', completed: 215, total: 342, progress: 62, cycleLabel: '本周', frequency: '每周完成 3 次', deadlineText: '下周三', isWarning: false, badgeClass: 'border-[#BFDCCF] text-[#3B8F72] bg-[#EEF8F4]' },
+  { id: 'rtm-task-4', title: '店长基础服务抽检复训', scope: '区域', type: '学习任务', completed: 78, total: 96, progress: 81, deadlineText: '本月月底', isWarning: false, badgeClass: 'border-[#E5DED8] text-[#5D565A] bg-[#F8F5F3]' },
 ];
+
+const getRtmTaskProgressText = (task: any) => {
+  if (task.type === '练习任务') {
+    return `${task.cycleLabel ?? '当前周期'} ${task.completed} / ${task.total} 人已达标`;
+  }
+  return `${task.completed} / ${task.total} 人已完成`;
+};
+
+const VISIBLE_RTM_ONGOING_TASK_COUNT = 3;
 
 export function RTMDashboard() {
   const [showAllTasks, setShowAllTasks] = useState(false);
-  const taskOneTone = getProgressTone(81);
-  const taskTwoTone = getProgressTone(62);
 
   return (
     <div className="space-y-6 flex-1 flex flex-col pt-2">
@@ -151,45 +159,36 @@ export function RTMDashboard() {
                <button onClick={() => setShowAllTasks(true)} className="text-[10px] font-bold text-rose-600 flex items-center hover:underline">查看全部任务 <ArrowRight className="h-3 w-3 ml-1" /></button>
             </CardHeader>
             <CardContent className="p-4 overflow-y-auto flex-1 space-y-4">
-               {/* Task 1 */}
-               <div className="border border-[#E9E4DF] rounded-xl p-3 bg-white shadow-sm hover:shadow relative overflow-hidden transition-all group cursor-pointer">
-                 <div className={`absolute top-0 left-0 w-1 h-full ${taskOneTone.barClass}`}></div>
-                 <div className="flex justify-between items-start mb-2">
-                    <h4 className={`text-xs font-bold text-[#242124] ${taskOneTone.hoverClass} transition-colors`}>夏季新品区域通关考核</h4>
-                    <div className="flex items-center gap-1">
-                      <Badge variant="outline" className="text-[9px] py-0 border-[#E5DED8] text-[#5D565A] bg-[#F8F5F3]">区域</Badge>
-                      <Badge variant="outline" className="text-[9px] py-0 border-rose-200 text-rose-600 bg-rose-50">考试任务</Badge>
-                    </div>
-                 </div>
-                 <div className="flex justify-between text-[10px] text-[#766F73] mb-1.5 font-medium">
-                    <span>280 / 342 人已完成</span>
-                    <span className={`font-bold ${taskOneTone.textClass}`}>81%</span>
-                 </div>
-                 <Progress value={81} className="h-1.5 bg-slate-100" indicatorClassName={taskOneTone.indicatorClass} />
-                 <div className="mt-3 text-[10px] text-[#9A9396] flex items-center">
-                    <AlertTriangle className="h-3 w-3 mr-1 text-[#B9822B]" /> 截止日期: 本周五 (剩余 3 天)
-                 </div>
-               </div>
+               {RTM_ONGOING_TASKS.slice(0, VISIBLE_RTM_ONGOING_TASK_COUNT).map(task => {
+                 const tone = getProgressTone(task.progress);
+                 return (
+                   <div key={task.id} className="border border-[#E9E4DF] rounded-xl p-3 bg-white shadow-sm hover:shadow relative overflow-hidden transition-all group cursor-pointer">
+                     <div className={`absolute top-0 left-0 w-1 h-full ${tone.barClass}`}></div>
+                     <div className="flex justify-between items-start mb-2">
+                        <h4 className={`text-xs font-bold text-[#242124] ${tone.hoverClass} transition-colors`}>{task.title}</h4>
+                        <div className="flex items-center gap-1">
+                          <Badge variant="outline" className="text-[9px] py-0 border-[#E5DED8] text-[#5D565A] bg-[#F8F5F3]">{task.scope}</Badge>
+                          <Badge variant="outline" className={`text-[9px] py-0 ${task.badgeClass}`}>{task.type}</Badge>
+                        </div>
+                     </div>
+                     <div className="flex justify-between text-[10px] text-[#766F73] mb-1.5 font-medium">
+                        <span>{getRtmTaskProgressText(task)}</span>
+                        <span className={`font-bold ${tone.textClass}`}>{task.progress}%</span>
+                     </div>
+                     <Progress value={task.progress} className="h-1.5 bg-slate-100" indicatorClassName={tone.indicatorClass} />
+                     <div className="mt-3 text-[10px] text-[#9A9396] flex items-center">
+                        {task.isWarning && <AlertTriangle className="h-3 w-3 mr-1 text-[#B9822B]" />}
+                        截止日期: {task.deadlineText}
+                     </div>
+                   </div>
+                 );
+               })}
 
-               {/* Task 2 */}
-               <div className="border border-[#E9E4DF] rounded-xl p-3 bg-white shadow-sm hover:shadow relative overflow-hidden transition-all group cursor-pointer">
-                 <div className={`absolute top-0 left-0 w-1 h-full ${taskTwoTone.barClass}`}></div>
-                 <div className="flex justify-between items-start mb-2">
-                    <h4 className={`text-xs font-bold text-[#242124] ${taskTwoTone.hoverClass} transition-colors`}>『敏感肌抗老』区域专项陪练</h4>
-                    <div className="flex items-center gap-1">
-                      <Badge variant="outline" className="text-[9px] py-0 border-[#E5DED8] text-[#5D565A] bg-[#F8F5F3]">区域</Badge>
-                      <Badge variant="outline" className="text-[9px] py-0 border-[#BFDCCF] text-[#3B8F72] bg-[#EEF8F4]">练习任务</Badge>
-                    </div>
+               {RTM_ONGOING_TASKS.length > VISIBLE_RTM_ONGOING_TASK_COUNT && (
+                 <div className="w-full pt-1 text-center text-xs font-bold text-[#9A9396]">
+                   其他 {RTM_ONGOING_TASKS.length - VISIBLE_RTM_ONGOING_TASK_COUNT} 个任务进行中
                  </div>
-                 <div className="flex justify-between text-[10px] text-[#766F73] mb-1.5 font-medium">
-                    <span>215 / 342 人已达标</span>
-                    <span className={`font-bold ${taskTwoTone.textClass}`}>62%</span>
-                 </div>
-                 <Progress value={62} className="h-1.5 bg-slate-100" indicatorClassName={taskTwoTone.indicatorClass} />
-                 <div className="mt-3 text-[10px] text-[#9A9396] flex items-center">
-                    截止日期: 下周三
-                 </div>
-               </div>
+               )}
 
                <button className="w-full mt-2 border border-dashed border-slate-300 rounded-xl py-3 flex items-center justify-center text-xs font-bold text-[#766F73] hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50/50 transition-colors cursor-pointer">
                  <CalendarCheck className="h-3 w-3 mr-1" /> 新增区域任务
@@ -258,7 +257,7 @@ export function RTMDashboard() {
                   </div>
                 </div>
                 <div className="flex justify-between text-xs text-[#766F73] mb-2 font-medium">
-                  <span>{task.completed} / {task.total} 人已{task.type === '练习任务' ? '达标' : '完成'}</span>
+                  <span>{getRtmTaskProgressText(task)}</span>
                   <span className={`font-bold ${tone.textClass}`}>{task.progress}%</span>
                 </div>
                 <Progress value={task.progress} className="h-2 bg-slate-100" indicatorClassName={tone.indicatorClass} />
