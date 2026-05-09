@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, CheckCircle, Save, Settings, MessageSquare, AlertCircle, ImageIcon, Upload, Wand2, ChevronRight, ChevronDown, Package, Folder, FolderOpen } from 'lucide-react';
 import { Button } from '../components/ui/button';
+import { aiActionTone } from '../lib/visualTones';
 
 interface Quote {
   id: string;
@@ -119,7 +120,7 @@ export function BAQuotes() {
   // Find the selected product from nested structure
   let selectedProduct: Product | undefined;
   let breadcrumbs: string[] = [];
-  
+
   for (const cat of categories) {
     for (const line of cat.lines) {
       for (const prod of line.products) {
@@ -139,7 +140,7 @@ export function BAQuotes() {
       ...cat,
       lines: cat.lines.map(line => ({
         ...line,
-        products: line.products.map(prod => 
+        products: line.products.map(prod =>
           prod.id === selectedProductId ? { ...prod, [field]: value } : prod
         )
       }))
@@ -148,7 +149,7 @@ export function BAQuotes() {
 
   const handleUpdateQuote = (quoteId: string, field: keyof Quote, value: string) => {
     if (!selectedProduct) return;
-    handleUpdateProduct('quotes', selectedProduct.quotes.map(q => 
+    handleUpdateProduct('quotes', selectedProduct.quotes.map(q =>
       q.id === quoteId ? { ...q, [field]: value } : q
     ));
   };
@@ -221,58 +222,59 @@ export function BAQuotes() {
   };
 
   return (
-    <div className="flex h-full bg-[#FAF9F8] overflow-hidden pt-2 rounded-xl border border-slate-200">
+    <div className="flex h-full bg-[#F7F3F1] overflow-hidden pt-2 rounded-xl border border-[#E5DED8]">
       {/* Left Sidebar - Hierarchy Tree */}
-      <div className="w-80 bg-white border-r border-slate-200 flex flex-col shrink-0">
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between z-10 bg-white">
-          <h2 className="font-bold text-slate-800 tracking-tight">产品与金句库</h2>
-          <button 
-            className="flex items-center justify-center p-1.5 rounded-md bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors"
+      <div className="w-80 bg-white border-r border-[#E5DED8] flex flex-col shrink-0">
+        <div className="p-4 border-b border-[#E9E4DF] flex items-center justify-between z-10 bg-white">
+          <h2 className="font-bold text-[#242124] tracking-tight">产品与金句库</h2>
+          <button
+            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg bg-rose-600 px-3 text-xs font-bold text-white shadow-sm transition-colors hover:bg-rose-700"
             title="添加品类或产品 (开发中)"
           >
-            <Plus className="h-5 w-5" />
+            <Plus className="h-4 w-4" />
+            <span>新建</span>
           </button>
         </div>
-        
+
         <div className="flex-1 overflow-y-auto p-4 space-y-1">
           {categories.map(category => (
             <div key={category.id} className="space-y-1">
-              <div 
-                className="flex items-center space-x-2 p-2 hover:bg-slate-50 cursor-pointer rounded-lg text-slate-700 select-none"
+              <div
+                className="flex items-center space-x-2 p-2 hover:bg-[#F8F5F3] cursor-pointer rounded-lg text-[#3F3A3D] select-none"
                 onClick={(e) => toggleExpand(category.id, e)}
               >
                 {expandedItems.has(category.id) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                {expandedItems.has(category.id) ? <FolderOpen className="h-4 w-4 text-indigo-400" /> : <Folder className="h-4 w-4 text-indigo-400" />}
-                <span className="font-bold text-sm">{category.name}</span>
+                {expandedItems.has(category.id) ? <FolderOpen className="h-4 w-4 text-rose-400" /> : <Folder className="h-4 w-4 text-rose-400" />}
+                <span data-i18n-skip="true" className="font-bold text-sm">{category.name}</span>
               </div>
-              
+
               {expandedItems.has(category.id) && (
                 <div className="pl-6 space-y-1">
                   {category.lines.map(line => (
                     <div key={line.id} className="space-y-1">
-                      <div 
-                        className="flex items-center space-x-2 p-2 hover:bg-slate-50 cursor-pointer rounded-lg text-slate-600 select-none"
+                      <div
+                        className="flex items-center space-x-2 p-2 hover:bg-[#F8F5F3] cursor-pointer rounded-lg text-[#5D565A] select-none"
                         onClick={(e) => toggleExpand(line.id, e)}
                       >
                         {expandedItems.has(line.id) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                         {expandedItems.has(line.id) ? <FolderOpen className="h-4 w-4 text-emerald-400" /> : <Folder className="h-4 w-4 text-emerald-400" />}
-                        <span className="font-medium text-sm">{line.name}</span>
+                        <span data-i18n-skip="true" className="font-medium text-sm">{line.name}</span>
                       </div>
-                      
+
                       {expandedItems.has(line.id) && (
                         <div className="pl-6 space-y-0.5">
                           {line.products.map(product => (
-                            <div 
+                            <div
                               key={product.id}
                               onClick={() => setSelectedProductId(product.id)}
                               className={`flex items-center space-x-2 p-2 cursor-pointer rounded-lg text-sm transition-all ${
-                                selectedProductId === product.id 
-                                  ? 'bg-rose-50 text-rose-700 font-bold' 
-                                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                                selectedProductId === product.id
+                                  ? 'bg-rose-50 text-rose-700 font-bold'
+                                  : 'text-[#766F73] hover:bg-[#F8F5F3] hover:text-[#242124]'
                               }`}
                             >
-                              <Package className={`h-4 w-4 ${selectedProductId === product.id ? 'text-rose-500' : 'text-slate-400'}`} />
-                              <span className="truncate">{product.name}</span>
+                              <Package className={`h-4 w-4 ${selectedProductId === product.id ? 'text-rose-500' : 'text-[#9A9396]'}`} />
+                              <span data-i18n-skip="true" className="truncate">{product.name}</span>
                             </div>
                           ))}
                         </div>
@@ -287,9 +289,9 @@ export function BAQuotes() {
       </div>
 
       {/* Right Content */}
-      <div className="flex-1 bg-[#FAF9F8] flex flex-col relative overflow-hidden">
+      <div className="flex-1 bg-[#F7F3F1] flex flex-col relative overflow-hidden">
         {showToast && (
-          <div className={`absolute top-4 left-1/2 -translate-x-1/2 z-50 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2 animate-in fade-in slide-in-from-top-4 ${toastTone === 'warning' ? 'bg-amber-500' : 'bg-emerald-600'}`}>
+          <div className={`absolute top-4 left-1/2 -translate-x-1/2 z-50 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2 animate-in fade-in slide-in-from-top-4 ${toastTone === 'warning' ? 'bg-[#B9822B]' : 'bg-[#3B8F72]'}`}>
             {toastTone === 'warning' ? <AlertCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
             <span className="text-sm font-bold">{toastMessage}</span>
           </div>
@@ -297,16 +299,16 @@ export function BAQuotes() {
 
         {selectedProduct ? (
           <>
-            <div className="p-6 border-b border-slate-200 bg-white flex items-center justify-between shrink-0">
+            <div className="p-6 border-b border-[#E5DED8] bg-white flex items-center justify-between shrink-0">
               <div>
-                <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1 flex items-center">
+                <p data-i18n-skip="true" className="text-[10px] uppercase font-bold text-[#9A9396] tracking-wider mb-1 flex items-center">
                   {breadcrumbs.join(' / ')}
                 </p>
-                <h1 className="text-xl font-bold text-slate-800">编辑产品：{selectedProduct.name}</h1>
+                <h1 className="text-xl font-bold text-[#242124]">编辑产品：{selectedProduct.name}</h1>
               </div>
-              <button 
+              <button
                 onClick={handleSave}
-                className="flex items-center space-x-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm font-bold text-sm transition-colors"
+                className="flex items-center space-x-2 px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg shadow-sm font-bold text-sm transition-colors"
               >
                 <Save className="h-4 w-4" />
                 <span>保存产品库</span>
@@ -315,46 +317,46 @@ export function BAQuotes() {
 
             <div className="flex-1 overflow-y-auto p-6 md:p-8">
               <div className="max-w-4xl mx-auto space-y-6">
-                
+
                 {/* Product Basic Info */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                  <h3 className="text-sm font-bold text-slate-800 mb-5 flex items-center">
-                    <Settings className="h-4 w-4 mr-2 text-indigo-500" />
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#E9E4DF]">
+                  <h3 className="text-sm font-bold text-[#242124] mb-5 flex items-center">
+                    <Settings className="h-4 w-4 mr-2 text-rose-500" />
                     产品基础信息
                   </h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-2">产品名称</label>
-                      <input 
-                        type="text" 
+                      <label className="block text-xs font-bold text-[#766F73] mb-2">产品名称</label>
+                      <input
+                        type="text"
                         value={selectedProduct.name}
                         onChange={(e) => handleUpdateProduct('name', e.target.value)}
-                        className="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-shadow font-medium"
+                        className="w-full px-4 py-2 border border-[#E5DED8] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-shadow font-medium"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-2">产品卖点 / 介绍</label>
-                      <textarea 
+                      <label className="block text-xs font-bold text-[#766F73] mb-2">产品卖点 / 介绍</label>
+                      <textarea
                         value={selectedProduct.description}
                         onChange={(e) => handleUpdateProduct('description', e.target.value)}
                         rows={3}
-                        className="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-shadow resize-none"
+                        className="w-full px-4 py-2 border border-[#E5DED8] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-shadow resize-none"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Product Image */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                  <h3 className="text-sm font-bold text-slate-800 mb-5 flex items-center">
-                    <ImageIcon className="h-4 w-4 mr-2 text-emerald-500" />
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#E9E4DF]">
+                  <h3 className="text-sm font-bold text-[#242124] mb-5 flex items-center">
+                    <ImageIcon className="h-4 w-4 mr-2 text-[#3B8F72]" />
                     产品图配图
                   </h3>
-                  <div className="flex flex-col lg:flex-row border border-slate-200 rounded-xl overflow-hidden bg-slate-50/50">
-                    <div className="lg:w-[360px] bg-slate-100 flex items-center justify-center shrink-0 border-b lg:border-b-0 lg:border-r border-slate-200 p-4">
+                  <div className="flex flex-col lg:flex-row border border-[#E5DED8] rounded-xl overflow-hidden bg-[#F8F5F3]/50">
+                    <div className="lg:w-[360px] bg-slate-100 flex items-center justify-center shrink-0 border-b lg:border-b-0 lg:border-r border-[#E5DED8] p-4">
                       <div className="w-full max-w-[320px] rounded-2xl bg-slate-900 p-1.5 shadow-sm">
                         <div className="overflow-hidden rounded-xl bg-white">
-                          <div className="flex h-5 items-center justify-between px-3 text-[8px] font-bold text-slate-400">
+                          <div className="flex h-5 items-center justify-between px-3 text-[8px] font-bold text-[#9A9396]">
                             <span>9:41</span>
                             <span>BA Training</span>
                           </div>
@@ -362,13 +364,13 @@ export function BAQuotes() {
                             {selectedProduct.imageUrl ? (
                               <img src={selectedProduct.imageUrl} alt="Product cover" className="w-full h-full object-cover" />
                             ) : (
-                              <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-slate-400">
+                              <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-[#9A9396]">
                                 <ImageIcon className="h-8 w-8 mb-2 opacity-50" />
                                 <span className="text-xs">移动端方形头图预览</span>
                               </div>
                             )}
                             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/55 to-transparent px-3 pb-3 pt-8">
-                              <p className="text-[10px] font-bold text-white line-clamp-1">{selectedProduct.name}</p>
+                              <p data-i18n-skip="true" className="text-[10px] font-bold text-white line-clamp-1">{selectedProduct.name}</p>
                               <p className="text-[8px] text-white/75">Training cover image</p>
                             </div>
                           </div>
@@ -377,8 +379,8 @@ export function BAQuotes() {
                     </div>
                     <div className="flex-1 p-6 flex flex-col justify-center space-y-4">
                       <div>
-                        <p className="text-sm font-medium text-slate-700">用于移动端培训详情页顶部头图，展示产品实物、使用场景或主视觉</p>
-                        <ul className="text-xs text-slate-500 mt-2 space-y-1 list-disc pl-4">
+                        <p className="text-sm font-medium text-[#3F3A3D]">用于移动端培训详情页顶部头图，展示产品实物、使用场景或主视觉</p>
+                        <ul className="text-xs text-[#766F73] mt-2 space-y-1 list-disc pl-4">
                           <li>建议尺寸：1080x1080 px，比例 1:1</li>
                           <li>主体内容居中，四周预留安全边距，避免文字或 Logo 贴边</li>
                           <li>图片会以 cover 方式裁切，重要信息不要放在边缘</li>
@@ -388,10 +390,10 @@ export function BAQuotes() {
                       </div>
                       <div className="flex items-center space-x-3 pt-2">
                         <Button variant="outline" size="sm" className="h-9 relative overflow-hidden">
-                          <Upload className="h-4 w-4 mr-1.5 text-slate-500" />
+                          <Upload className="h-4 w-4 mr-1.5 text-[#766F73]" />
                           <span>上传头图</span>
-                          <input 
-                            type="file" 
+                          <input
+                            type="file"
                             className="absolute inset-0 opacity-0 cursor-pointer"
                             accept="image/png, image/jpeg, image/webp"
                             onChange={(e) => {
@@ -409,15 +411,15 @@ export function BAQuotes() {
                 </div>
 
                 {/* Quotes */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#E9E4DF]">
                   <div className="flex items-center justify-between mb-5">
                     <div className="flex items-center">
                       <MessageSquare className="h-4 w-4 mr-2 text-rose-500" />
-                      <h3 className="text-sm font-bold text-slate-800">产品销售金句库</h3>
+                      <h3 className="text-sm font-bold text-[#242124]">产品销售金句库</h3>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button onClick={handleGenerateQuotes} variant="secondary" size="sm" className="h-8 bg-rose-50 text-rose-700 hover:bg-rose-100 hover:text-rose-800 border-none shadow-sm">
-                        <Wand2 className="h-4 w-4 mr-1" />
+                      <Button onClick={handleGenerateQuotes} variant="secondary" size="sm" className={`h-8 ${aiActionTone.buttonClass}`}>
+                        <Wand2 className={`h-4 w-4 mr-1 ${aiActionTone.iconClass}`} />
                         AI 一键生成金句
                       </Button>
                       <Button onClick={handleAddQuote} variant="outline" size="sm" className="h-8 shadow-sm">
@@ -426,48 +428,48 @@ export function BAQuotes() {
                       </Button>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-4">
                     {selectedProduct.quotes.map((quote, index) => (
-                      <div key={quote.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 relative group">
+                      <div key={quote.id} className="p-4 rounded-xl border border-[#E5DED8] bg-[#F8F5F3]/50 relative group">
                         <div className="absolute left-4 top-4 bg-rose-100 text-rose-700 font-bold text-xs h-6 w-6 flex items-center justify-center rounded-md">
                           {index + 1}
                         </div>
                         <div className="pl-10 space-y-3 mt-2">
                           <div>
-                            <label className="block text-xs font-bold text-slate-500 mb-1">具体金句内容</label>
-                            <textarea 
+                            <label className="block text-xs font-bold text-[#766F73] mb-1">具体金句内容</label>
+                            <textarea
                               value={quote.text}
                               onChange={(e) => handleUpdateQuote(quote.id, 'text', e.target.value)}
                               rows={2}
-                              className="w-full px-3 py-1.5 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 bg-white font-medium resize-none"
+                              className="w-full px-3 py-1.5 border border-[#E5DED8] rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 bg-white font-medium resize-none"
                               placeholder="输入推荐给顾客的销售话术..."
                             />
                           </div>
                           <div>
-                            <label className="block text-xs font-bold text-slate-500 mb-1 flex items-center">
-                              <AlertCircle className="h-3 w-3 mr-1 text-amber-500" />
+                            <label className="block text-xs font-bold text-[#766F73] mb-1 flex items-center">
+                              <AlertCircle className="h-3 w-3 mr-1 text-[#B9822B]" />
                               金句使用提示 (场景、受众等)
                             </label>
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               value={quote.hint}
                               onChange={(e) => handleUpdateQuote(quote.id, 'hint', e.target.value)}
-                              className="w-full px-3 py-1.5 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white"
+                              className="w-full px-3 py-1.5 border border-[#E5DED8] rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#B9822B]/20 focus:border-[#B9822B] bg-white"
                               placeholder="例如：适合在顾客抱怨皮肤干燥脱皮时使用..."
                             />
                           </div>
                         </div>
-                        <button 
+                        <button
                           onClick={() => handleRemoveQuote(quote.id)}
-                          className="absolute right-4 top-4 p-1 rounded-md text-slate-400 hover:bg-red-50 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all focus:opacity-100"
+                          className="absolute right-4 top-4 p-1 rounded-md text-[#9A9396] hover:bg-red-50 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all focus:opacity-100"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                     ))}
                     {selectedProduct.quotes.length === 0 && (
-                      <div className="text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-slate-500 text-sm">
+                      <div className="text-center py-6 bg-[#F8F5F3] rounded-xl border border-dashed border-[#E5DED8] text-[#766F73] text-sm">
                         暂无销售金句，请点击右上角新增
                       </div>
                     )}
@@ -478,9 +480,9 @@ export function BAQuotes() {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
+          <div className="flex-1 flex flex-col items-center justify-center text-[#9A9396]">
             <Package className="h-16 w-16 mb-4 opacity-20" />
-            <p className="font-medium text-slate-500">在左侧选择一个产品查看金句</p>
+            <p className="font-medium text-[#766F73]">在左侧选择一个产品查看金句</p>
           </div>
         )}
       </div>

@@ -17,6 +17,7 @@ import { Role } from '../types';
 import { cn } from '../lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { useI18n } from '../lib/i18n';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -40,6 +41,13 @@ interface NavItem {
 
 export function Layout({ children, role, setRole, activeTab, setActiveTab }: LayoutProps) {
   const [expandedNavs, setExpandedNavs] = useState<string[]>(['course_group']);
+  const { language, setLanguage } = useI18n();
+  const isMultilingualLayout = language !== 'zh';
+  const languageOptionLabels = {
+    zh: { zh: '中文', en: '英文', id: '印尼语' },
+    en: { zh: 'Chinese', en: 'English', id: 'Indonesian' },
+    id: { zh: 'Mandarin', en: 'Inggris', id: 'Indonesia' },
+  } as const;
 
   const toggleNav = (id: string) => {
     setExpandedNavs(prev => prev.includes(id) ? prev.filter(v => v !== id) : [...prev, id]);
@@ -156,10 +164,13 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
   }, [role, activeTab, navItems, setActiveTab]);
 
   return (
-    <div className="flex h-screen bg-[#FAF9F8] font-sans text-slate-800 overflow-hidden flex-col md:flex-row">
+    <div className="flex h-screen bg-[#F7F3F1] font-sans text-[#242124] overflow-hidden flex-col md:flex-row">
       {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-[#1A1A1A] text-white flex flex-col flex-shrink-0 hidden md:flex">
-        <div className="p-6 overflow-y-auto">
+      <aside className={cn(
+        "w-full bg-[#171518] text-white flex flex-col flex-shrink-0 hidden md:flex transition-[width]",
+        isMultilingualLayout ? "md:w-72 xl:w-80" : "md:w-64"
+      )}>
+        <div className="p-5 overflow-y-auto min-h-0">
           <div className="flex items-center space-x-2 mb-8">
             <div className="w-8 h-8 bg-gradient-to-tr from-rose-400 to-amber-200 rounded-lg"></div>
             <span className="font-bold tracking-tight text-lg">BEAUTY <span className="font-light opacity-60">AI</span></span>
@@ -173,30 +184,30 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
                     <button
                       onClick={() => toggleNav(item.id)}
                       className={cn(
-                        "w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                         (item.subMenu.some(sub => sub.id === activeTab) && !expandedNavs.includes(item.id)) || expandedNavs.includes(item.id) ? "text-white" : "text-white opacity-70 hover:bg-white/5"
+                        "w-full flex items-start justify-between gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-left",
+                         (item.subMenu.some(sub => sub.id === activeTab) && !expandedNavs.includes(item.id)) || expandedNavs.includes(item.id) ? "text-white" : "text-white opacity-70 hover:bg-white/[0.06]"
                       )}
                     >
-                      <div className="flex items-center">
+                      <div className="flex items-start min-w-0">
                         <item.icon className={cn(
-                           "mr-3 h-5 w-5",
+                           "mr-3 mt-0.5 h-5 w-5 shrink-0",
                            (item.subMenu.some(sub => sub.id === activeTab) && !expandedNavs.includes(item.id)) || expandedNavs.includes(item.id) ? "text-white" : "text-white opacity-70"
                         )} />
-                        {item.label}
+                        <span className="min-w-0 whitespace-normal break-words leading-snug">{item.label}</span>
                       </div>
-                      <ChevronDown className={cn("h-4 w-4 transition-transform opacity-70", expandedNavs.includes(item.id) ? "rotate-180" : "rotate-0")} />
+                      <ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform opacity-70 mt-0.5", expandedNavs.includes(item.id) ? "rotate-180" : "rotate-0")} />
                     </button>
                     {expandedNavs.includes(item.id) && (
-                      <div className="mt-1 space-y-1 pl-12 pr-4">
+                      <div className="mt-1 space-y-1 pl-10 pr-2">
                         {item.subMenu.map(subItem => (
                           <button
                             key={subItem.id}
                             onClick={() => setActiveTab(subItem.id)}
                             className={cn(
-                              "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                              "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-normal break-words leading-snug",
                               activeTab === subItem.id
-                                ? "bg-white/10 text-white"
-                                : "text-white opacity-60 hover:text-white hover:bg-white/5"
+                                ? "bg-white/[0.12] text-white"
+                                : "text-white opacity-60 hover:text-white hover:bg-white/[0.06]"
                             )}
                           >
                             {subItem.label}
@@ -209,17 +220,17 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
                   <button
                     onClick={() => setActiveTab(item.id)}
                     className={cn(
-                      "w-full flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                      "w-full flex items-start px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-left",
                       activeTab === item.id
-                        ? "bg-white/10 text-white"
-                        : "text-white opacity-70 hover:bg-white/5"
+                        ? "bg-white/[0.12] text-white"
+                        : "text-white opacity-70 hover:bg-white/[0.06]"
                     )}
                   >
                     <item.icon className={cn(
-                      "mr-3 h-5 w-5",
+                      "mr-3 mt-0.5 h-5 w-5 shrink-0",
                       activeTab === item.id ? "text-white" : "text-white opacity-70"
                     )} />
-                    {item.label}
+                    <span className="min-w-0 whitespace-normal break-words leading-snug">{item.label}</span>
                   </button>
                 )}
               </div>
@@ -229,10 +240,10 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
 
         <div className="mt-auto p-6 border-t border-white/5">
            {/* Role Switcher Demo */}
-          <div className="bg-white/5 rounded-xl p-4 mb-4">
+          <div className="bg-white/[0.06] rounded-xl p-4 mb-4">
              <p className="text-xs opacity-50 mb-1 uppercase tracking-widest font-semibold flex items-center justify-between">角色切换 (Demo)</p>
              <Select value={role} onValueChange={(val) => setRole(val as Role)}>
-              <SelectTrigger className="w-full bg-transparent border-white/20 text-white hover:bg-white/10 text-xs h-8 mt-2">
+              <SelectTrigger className="w-full bg-transparent border-white/20 text-white hover:bg-white/[0.12] text-xs min-h-8 h-auto mt-2 text-left">
                 <SelectValue placeholder="选择角色" />
               </SelectTrigger>
               <SelectContent>
@@ -244,26 +255,26 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
               </SelectContent>
             </Select>
           </div>
-          
-          <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+
+          <div className="bg-white/[0.06] rounded-xl p-4 border border-white/10">
             <p className="text-[10px] opacity-40 uppercase tracking-widest font-bold flex justify-between items-center">
               当前登录用户
               <button className="hover:opacity-100 transition-opacity"><LogOut className="h-3 w-3" /></button>
             </p>
             <p className="text-sm font-medium text-amber-200 mt-1">
-              {role === 'Super Admin' ? '系统管理员' : 
-               role === 'HQ Trainer' ? 'Sarah Lee' : 
-               role === 'Regional Manager' ? 'Budi Santoso' : 
-               role === 'Regional Training Manager' ? 'Fitriani' : 
-               role === 'Regional Trainer' ? 'Nurul Huda' : 
+              {role === 'Super Admin' ? '系统管理员' :
+               role === 'HQ Trainer' ? 'Sarah Lee' :
+               role === 'Regional Manager' ? 'Budi Santoso' :
+               role === 'Regional Training Manager' ? 'Fitriani' :
+               role === 'Regional Trainer' ? 'Nurul Huda' :
                'Ahmad Maulana'}
             </p>
             <p className="text-[10px] opacity-40 uppercase mt-1">
-              {role === 'Super Admin' ? 'Lumina 后台' : 
-               role === 'HQ Trainer' ? '全球总部' : 
-               role === 'Regional Manager' ? '大区管理' : 
-               role === 'Regional Training Manager' ? '大区培训' : 
-               role === 'Regional Trainer' ? '南区' : 
+              {role === 'Super Admin' ? 'Lumina Admin' :
+               role === 'HQ Trainer' ? '全球总部' :
+               role === 'Regional Manager' ? '大区管理' :
+               role === 'Regional Training Manager' ? '大区培训' :
+               role === 'Regional Trainer' ? '南区' :
                '门店'}
             </p>
           </div>
@@ -273,16 +284,33 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-full min-w-0">
         {/* Header (Role Bar) */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 shadow-sm shrink-0 z-10 transition-colors">
-          <div className="flex items-center space-x-4">
-             <h1 className="text-lg font-semibold text-slate-900">{role === 'Super Admin' ? '系统运行概览' : role === 'HQ Trainer' ? '全国培训总览' : role === 'Regional Manager' ? '大区业务看板' : (role === 'Regional Training Manager' || role === 'Regional Trainer') ? '大区培训看板' : '门店考评看板'}</h1>
-             <span className="text-slate-300 hidden md:block">|</span>
-             <span className="text-xs font-medium text-slate-500 hidden md:block">BEAUTY AI</span>
+        <header className="min-h-16 bg-white border-b border-[#E5DED8] flex flex-wrap items-center justify-between gap-3 px-4 py-3 shadow-sm shrink-0 z-10 transition-colors md:px-8">
+          <div className="flex min-w-0 flex-1 items-center gap-4">
+             <h1 className="min-w-0 text-lg font-semibold leading-snug text-[#1F1C1F] break-words">{role === 'Super Admin' ? '系统运行概览' : role === 'HQ Trainer' ? '全国培训总览' : role === 'Regional Manager' ? '大区业务看板' : (role === 'Regional Training Manager' || role === 'Regional Trainer') ? '大区培训看板' : '门店考评看板'}</h1>
+             <span className="text-[#C9C1C4] hidden md:block">|</span>
+             <span className="text-xs font-medium text-[#766F73] hidden md:block">BEAUTY AI</span>
           </div>
-          <div className="flex items-center space-x-6 ml-auto">
+          <div className="flex min-w-0 flex-wrap items-center justify-end gap-3 ml-auto">
+             <div className="flex items-center gap-2">
+               <span className="hidden xl:block text-[10px] font-bold uppercase tracking-wider text-[#9A9396]">语言</span>
+               <select
+                 data-i18n-skip="true"
+                 aria-label="Language"
+                 value={language}
+                 onChange={(event) => setLanguage(event.target.value as typeof language)}
+                 className={cn(
+                   "min-h-8 rounded-lg border border-[#E5DED8] bg-[#F8F5F3] px-2.5 py-1.5 text-xs font-medium text-[#3F3A3D] outline-none transition-colors focus:border-rose-400 focus:ring-2 focus:ring-rose-500/15",
+                   isMultilingualLayout ? "w-[176px]" : "w-[138px]"
+                 )}
+               >
+                 <option value="zh">{languageOptionLabels[language].zh}</option>
+                 <option value="en">{languageOptionLabels[language].en}</option>
+                 <option value="id">{languageOptionLabels[language].id}</option>
+               </select>
+             </div>
              <div className="relative group/notification-note">
                <span className="absolute -right-3 -top-2 z-20 h-4 min-w-4 rounded-full bg-blue-950 px-1 text-[9px] font-bold leading-4 text-white text-center shadow-sm backdrop-blur-sm">注</span>
-               <button className="text-slate-400 hover:text-slate-600 transition-colors relative">
+               <button className="text-[#9A9396] hover:text-[#5D565A] transition-colors relative">
                  <Bell className="h-5 w-5" />
                  <span className="absolute top-0 right-0 block h-2 border-2 border-white w-2 rounded-full bg-rose-500" />
                </button>
@@ -291,30 +319,30 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
                </div>
              </div>
              <div className="text-right hidden md:block">
-               <p className="text-sm font-semibold text-slate-800">
-                 {role === 'Super Admin' ? 'Admin' : 
-                  role === 'HQ Trainer' ? 'Sarah Lee' : 
-                  role === 'Regional Manager' ? 'Budi Santoso' : 
-                  role === 'Regional Training Manager' ? 'Fitriani' : 
-                  role === 'Regional Trainer' ? 'Nurul Huda' : 
+               <p className="text-sm font-semibold text-[#242124]">
+                 {role === 'Super Admin' ? 'Admin' :
+                  role === 'HQ Trainer' ? 'Sarah Lee' :
+                  role === 'Regional Manager' ? 'Budi Santoso' :
+                  role === 'Regional Training Manager' ? 'Fitriani' :
+                  role === 'Regional Trainer' ? 'Nurul Huda' :
                   'Ahmad Maulana'}
                </p>
-               <p className="text-[10px] text-slate-400 font-medium tracking-wide">
-                 {role === 'Super Admin' ? 'SYSTEM ADMIN' : 
-                  role === 'HQ Trainer' ? 'HQ TRAINER' : 
-                  role === 'Regional Manager' ? 'REGIONAL MANAGER' : 
-                  role === 'Regional Training Manager' ? 'REGIONAL TRAINING MANAGER' : 
-                  role === 'Regional Trainer' ? 'REGIONAL TRAINER' : 
+               <p className="text-[10px] text-[#9A9396] font-medium tracking-wide">
+                 {role === 'Super Admin' ? 'SYSTEM ADMIN' :
+                  role === 'HQ Trainer' ? 'HQ TRAINER' :
+                  role === 'Regional Manager' ? 'REGIONAL MANAGER' :
+                  role === 'Regional Training Manager' ? 'REGIONAL TRAINING MANAGER' :
+                  role === 'Regional Trainer' ? 'REGIONAL TRAINER' :
                   'STORE MANAGER'}
                </p>
              </div>
              <div className="w-10 h-10 rounded-full bg-slate-200 border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
                 <div className="w-full h-full bg-rose-100 flex items-center justify-center text-rose-600 font-bold text-sm">
-                 {role === 'Super Admin' ? 'SA' : 
-                  role === 'HQ Trainer' ? 'SL' : 
-                  role === 'Regional Manager' ? 'BS' : 
-                  role === 'Regional Training Manager' ? 'FI' : 
-                  role === 'Regional Trainer' ? 'NH' : 
+                 {role === 'Super Admin' ? 'SA' :
+                  role === 'HQ Trainer' ? 'SL' :
+                  role === 'Regional Manager' ? 'BS' :
+                  role === 'Regional Training Manager' ? 'FI' :
+                  role === 'Regional Trainer' ? 'NH' :
                   'AM'}
                </div>
              </div>

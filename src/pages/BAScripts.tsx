@@ -3,6 +3,7 @@ import { Plus, Trash2, FileText, CheckCircle, Save, Settings, MessageSquare, Ale
 import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
+import { aiActionTone } from '../lib/visualTones';
 
 interface ScriptStep {
   id: string;
@@ -163,60 +164,61 @@ export function BAScripts() {
   };
 
   return (
-    <div className="flex h-full bg-[#FAF9F8] overflow-hidden pt-2 rounded-xl border border-slate-200">
+    <div className="flex h-full bg-[#F7F3F1] overflow-hidden pt-2 rounded-xl border border-[#E5DED8]">
       {/* Left Sidebar */}
-      <div className="w-80 bg-white border-r border-slate-200 flex flex-col shrink-0">
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between z-10 bg-white">
-          <h2 className="font-bold text-slate-800 tracking-tight">场景剧本 ({scripts.length})</h2>
-          <button 
+      <div className="w-80 bg-white border-r border-[#E5DED8] flex flex-col shrink-0">
+        <div className="p-4 border-b border-[#E9E4DF] flex items-center justify-between z-10 bg-white">
+          <h2 className="font-bold text-[#242124] tracking-tight">场景剧本 ({scripts.length})</h2>
+          <button
             onClick={handleAddNew}
-            className="flex items-center justify-center p-1.5 rounded-md bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors"
+            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg bg-rose-600 px-3 text-xs font-bold text-white shadow-sm transition-colors hover:bg-rose-700"
           >
-            <Plus className="h-5 w-5" />
+            <Plus className="h-4 w-4" />
+            <span>新建</span>
           </button>
         </div>
-        
+
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {scripts.map(script => (
-            <div 
+            <div
               key={script.id}
               onClick={() => setSelectedId(script.id)}
               className={`group flex flex-col p-3 rounded-xl border-2 transition-all cursor-pointer ${
-                selectedId === script.id 
-                  ? 'border-rose-600 bg-rose-50/50 shadow-sm' 
-                  : 'border-transparent bg-slate-50 hover:bg-slate-100 hover:border-slate-200'
+                selectedId === script.id
+                  ? 'border-rose-600 bg-rose-50/50 shadow-sm'
+                  : 'border-transparent bg-[#F8F5F3] hover:bg-[#F1ECE8] hover:border-[#E5DED8]'
               }`}
             >
               <div className="flex justify-between items-start">
                 <div className="flex items-start space-x-3 w-full">
-                  <div className={`p-2 rounded-lg shrink-0 mt-0.5 ${selectedId === script.id ? 'bg-rose-100 text-rose-600' : 'bg-white text-slate-400'}`}>
+                  <div className={`p-2 rounded-lg shrink-0 mt-0.5 ${selectedId === script.id ? 'bg-rose-100 text-rose-600' : 'bg-white text-[#9A9396]'}`}>
                     <FileText className="h-5 w-5" />
                   </div>
                   <div className="min-w-0 pr-6 w-full">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className={`font-bold text-sm truncate ${selectedId === script.id ? 'text-rose-900' : 'text-slate-800'}`}>
+                      <h3 data-i18n-skip="true" className={`font-bold text-sm truncate ${selectedId === script.id ? 'text-rose-900' : 'text-[#242124]'}`}>
                         {script.name}
                       </h3>
                       {script.scope && script.scope !== 'HQ' && (
-                        <Badge variant="secondary" className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border-none px-1.5 py-0 h-4 text-[9px] font-normal tracking-widest leading-none flex items-center shrink-0">{script.scope}</Badge>
+                        <Badge variant="secondary" className="bg-rose-50 text-rose-600 hover:bg-rose-100 border-none px-1.5 py-0 h-4 text-[9px] font-normal tracking-widest leading-none flex items-center shrink-0">{script.scope}</Badge>
                       )}
                     </div>
-                    <p className={`text-xs mt-1 line-clamp-2 ${selectedId === script.id ? 'text-rose-700/70' : 'text-slate-500'}`}>
+                    <p data-i18n-skip="true" className={`text-xs mt-1 line-clamp-2 ${selectedId === script.id ? 'text-rose-700/70' : 'text-[#766F73]'}`}>
                        {script.description}
                     </p>
                   </div>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={(e) => handleDelete(script.id, e)}
-                className={`absolute right-4 top-4 p-1.5 rounded-md text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 ${selectedId === script.id ? 'opacity-100' : ''}`}
+                className={`absolute right-4 top-4 p-1.5 rounded-md text-[#9A9396] hover:bg-red-50 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 ${selectedId === script.id ? 'opacity-100' : ''}`}
               >
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
           ))}
           {scripts.length === 0 && (
-            <div className="text-center py-10 text-slate-400 text-sm">
+            <div className="text-center py-10 text-[#9A9396] text-sm">
               暂无场景剧本，请点击右上角添加
             </div>
           )}
@@ -224,9 +226,9 @@ export function BAScripts() {
       </div>
 
       {/* Right Content */}
-      <div className="flex-1 bg-[#FAF9F8] flex flex-col relative overflow-hidden">
+      <div className="flex-1 bg-[#F7F3F1] flex flex-col relative overflow-hidden">
         {showToast && (
-          <div className={`absolute top-4 left-1/2 -translate-x-1/2 z-50 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2 animate-in fade-in slide-in-from-top-4 ${toastTone === 'warning' ? 'bg-amber-500' : 'bg-emerald-600'}`}>
+          <div className={`absolute top-4 left-1/2 -translate-x-1/2 z-50 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2 animate-in fade-in slide-in-from-top-4 ${toastTone === 'warning' ? 'bg-[#B9822B]' : 'bg-[#3B8F72]'}`}>
             {toastTone === 'warning' ? <AlertCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
             <span className="text-sm font-bold">{toastMessage}</span>
           </div>
@@ -234,12 +236,12 @@ export function BAScripts() {
 
         {selectedScript ? (
           <>
-            <div className="p-6 border-b border-slate-200 bg-white flex items-center justify-between shrink-0">
+            <div className="p-6 border-b border-[#E5DED8] bg-white flex items-center justify-between shrink-0">
               <div>
-                <h1 className="text-xl font-bold text-slate-800">编辑剧本：{selectedScript.name}</h1>
-                <p className="text-xs text-slate-500 mt-1">配置剧情背景与考核指导节点</p>
+                <h1 className="text-xl font-bold text-[#242124]">编辑剧本：{selectedScript.name}</h1>
+                <p className="text-xs text-[#766F73] mt-1">配置剧情背景与考核指导节点</p>
               </div>
-              <button 
+              <button
                 onClick={handleSave}
                 className="flex items-center space-x-2 px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg shadow-sm font-bold text-sm transition-colors"
               >
@@ -250,47 +252,47 @@ export function BAScripts() {
 
             <div className="flex-1 overflow-y-auto p-6 md:p-8">
               <div className="max-w-4xl mx-auto space-y-6">
-                
+
                 {/* General Info */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                  <h3 className="text-sm font-bold text-slate-800 mb-5 flex items-center">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#E9E4DF]">
+                  <h3 className="text-sm font-bold text-[#242124] mb-5 flex items-center">
                     <Settings className="h-4 w-4 mr-2 text-rose-500" />
                     剧本基础信息
                   </h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-2">剧本名称</label>
-                      <input 
-                        type="text" 
+                      <label className="block text-xs font-bold text-[#766F73] mb-2">剧本名称</label>
+                      <input
+                        type="text"
                         value={selectedScript.name}
                         onChange={(e) => handleUpdate('name', e.target.value)}
-                        className="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-shadow font-medium"
+                        className="w-full px-4 py-2 border border-[#E5DED8] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-shadow font-medium"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-2">场景介绍</label>
-                      <textarea 
+                      <label className="block text-xs font-bold text-[#766F73] mb-2">场景介绍</label>
+                      <textarea
                         value={selectedScript.description}
                         onChange={(e) => handleUpdate('description', e.target.value)}
                         rows={3}
-                        className="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-shadow resize-none"
+                        className="w-full px-4 py-2 border border-[#E5DED8] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-shadow resize-none"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Scenario Image */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                  <h3 className="text-sm font-bold text-slate-800 mb-5 flex items-center">
-                    <ImageIcon className="h-4 w-4 mr-2 text-emerald-500" />
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#E9E4DF]">
+                  <h3 className="text-sm font-bold text-[#242124] mb-5 flex items-center">
+                    <ImageIcon className="h-4 w-4 mr-2 text-[#3B8F72]" />
                     场景配图
                   </h3>
-                  <div className="flex border border-slate-200 rounded-xl overflow-hidden bg-slate-50/50">
-                    <div className="w-48 h-48 bg-slate-100 flex items-center justify-center shrink-0 border-r border-slate-200 relative overflow-hidden">
+                  <div className="flex border border-[#E5DED8] rounded-xl overflow-hidden bg-[#F8F5F3]/50">
+                    <div className="w-48 h-48 bg-slate-100 flex items-center justify-center shrink-0 border-r border-[#E5DED8] relative overflow-hidden">
                       {selectedScript.imageUrl ? (
                         <img src={selectedScript.imageUrl} alt="Scenario" className="w-full h-full object-cover" />
                       ) : (
-                        <div className="text-center text-slate-400 p-4">
+                        <div className="text-center text-[#9A9396] p-4">
                           <ImageIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
                           <span className="text-xs">暂无配图</span>
                         </div>
@@ -298,8 +300,8 @@ export function BAScripts() {
                     </div>
                     <div className="flex-1 p-6 flex flex-col justify-center space-y-4">
                       <div>
-                        <p className="text-sm font-medium text-slate-700">可以上传一张图，来生动展示这个场景</p>
-                        <ul className="text-xs text-slate-500 mt-2 space-y-1 list-disc pl-4">
+                        <p className="text-sm font-medium text-[#3F3A3D]">可以上传一张图，来生动展示这个场景</p>
+                        <ul className="text-xs text-[#766F73] mt-2 space-y-1 list-disc pl-4">
                           <li>建议尺寸：800x800 px，比例 1:1</li>
                           <li>支持的格式：JPG, PNG, WebP</li>
                           <li>大小限制：不得超过 2MB</li>
@@ -307,10 +309,10 @@ export function BAScripts() {
                       </div>
                       <div className="flex items-center space-x-3 pt-2">
                         <Button variant="outline" size="sm" className="h-9 relative overflow-hidden">
-                          <Upload className="h-4 w-4 mr-1.5 text-slate-500" />
+                          <Upload className="h-4 w-4 mr-1.5 text-[#766F73]" />
                           <span>上传图片</span>
-                          <input 
-                            type="file" 
+                          <input
+                            type="file"
                             className="absolute inset-0 opacity-0 cursor-pointer"
                             accept="image/png, image/jpeg, image/webp"
                             onChange={(e) => {
@@ -327,7 +329,7 @@ export function BAScripts() {
                           <Button
                             variant="secondary"
                             size="sm"
-                            className="h-9 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 border-none relative overflow-hidden"
+                            className={`h-9 relative overflow-hidden ${aiActionTone.buttonClass}`}
                             disabled={!selectedScript.name || !selectedScript.description}
                             onClick={() => {
                               // Dummy AI generation
@@ -335,7 +337,7 @@ export function BAScripts() {
                               showFeedback('已生成场景配图', 'success', 2000);
                             }}
                           >
-                            <Wand2 className="h-4 w-4 mr-1.5" />
+                            <Wand2 className={`h-4 w-4 mr-1.5 ${aiActionTone.iconClass}`} />
                             <span>AI 一键生成配图</span>
                           </Button>
                           <div className="absolute left-0 bottom-full mb-2 hidden group-hover/image-note:block z-50 w-80 rounded-lg bg-blue-950/95 px-3 py-2 text-xs leading-relaxed text-white shadow-xl backdrop-blur-sm">
@@ -344,22 +346,22 @@ export function BAScripts() {
                         </div>
                       </div>
                       {(!selectedScript.name || !selectedScript.description) && (
-                        <p className="text-[10px] text-amber-600">完善“剧本名称”和“场景介绍”后，可使用 AI 配图。</p>
+                        <p className="text-[10px] text-[#B9822B]">完善“剧本名称”和“场景介绍”后，可使用 AI 配图。</p>
                       )}
                     </div>
                   </div>
                 </div>
 
                 {/* Steps */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#E9E4DF]">
                   <div className="flex items-center justify-between mb-5">
-                    <h3 className="text-sm font-bold text-slate-800 flex items-center">
-                      <MessageSquare className="h-4 w-4 mr-2 text-indigo-500" />
+                    <h3 className="text-sm font-bold text-[#242124] flex items-center">
+                      <MessageSquare className="h-4 w-4 mr-2 text-rose-500" />
                       剧本步骤与提示节点
                     </h3>
                     <div className="flex items-center gap-2">
-                      <Button onClick={handleGenerateScriptSteps} variant="secondary" size="sm" className="h-8 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:text-indigo-800 border-none shadow-sm">
-                        <Wand2 className="h-4 w-4 mr-1" />
+                      <Button onClick={handleGenerateScriptSteps} variant="secondary" size="sm" className={`h-8 ${aiActionTone.buttonClass}`}>
+                        <Wand2 className={`h-4 w-4 mr-1 ${aiActionTone.iconClass}`} />
                         AI 一键生成剧本
                       </Button>
                       <Button onClick={handleAddStep} variant="outline" size="sm" className="h-8 shadow-sm">
@@ -368,47 +370,47 @@ export function BAScripts() {
                       </Button>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-4">
                     {selectedScript.steps.map((step, index) => (
-                      <div key={step.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 relative group">
-                        <div className="absolute left-4 top-4 bg-indigo-100 text-indigo-700 font-bold text-xs h-6 w-6 flex items-center justify-center rounded-md">
+                      <div key={step.id} className="p-4 rounded-xl border border-[#E5DED8] bg-[#F8F5F3]/50 relative group">
+                        <div className="absolute left-4 top-4 bg-rose-100 text-rose-700 font-bold text-xs h-6 w-6 flex items-center justify-center rounded-md">
                           {index + 1}
                         </div>
                         <div className="pl-10 space-y-3">
                           <div>
-                            <label className="block text-xs font-bold text-slate-500 mb-1">步骤描述</label>
-                            <input 
-                              type="text" 
+                            <label className="block text-xs font-bold text-[#766F73] mb-1">步骤描述</label>
+                            <input
+                              type="text"
                               value={step.description}
                               onChange={(e) => handleUpdateStep(step.id, 'description', e.target.value)}
-                              className="w-full px-3 py-1.5 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white"
+                              className="w-full px-3 py-1.5 border border-[#E5DED8] rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 bg-white"
                             />
                           </div>
                           <div>
-                            <label className="block text-xs font-bold text-slate-500 mb-1 flex items-center">
-                              <AlertCircle className="h-3 w-3 mr-1 text-amber-500" />
+                            <label className="block text-xs font-bold text-[#766F73] mb-1 flex items-center">
+                              <AlertCircle className="h-3 w-3 mr-1 text-[#B9822B]" />
                               回答提示 (选填，给BA的指引，不填则由AI自动判定)
                             </label>
-                            <textarea 
+                            <textarea
                               value={step.hint}
                               onChange={(e) => handleUpdateStep(step.id, 'hint', e.target.value)}
                               rows={2}
-                              className="w-full px-3 py-1.5 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white resize-none"
+                              className="w-full px-3 py-1.5 border border-[#E5DED8] rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#B9822B]/20 focus:border-[#B9822B] bg-white resize-none"
                               placeholder="例如：需提到核心成分神经酰胺..."
                             />
                           </div>
                         </div>
-                        <button 
+                        <button
                           onClick={() => handleRemoveStep(step.id)}
-                          className="absolute right-4 top-4 p-1 rounded-md text-slate-400 hover:bg-red-50 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all focus:opacity-100"
+                          className="absolute right-4 top-4 p-1 rounded-md text-[#9A9396] hover:bg-red-50 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all focus:opacity-100"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                     ))}
                     {selectedScript.steps.length === 0 && (
-                      <div className="text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-slate-500 text-sm">
+                      <div className="text-center py-6 bg-[#F8F5F3] rounded-xl border border-dashed border-[#E5DED8] text-[#766F73] text-sm">
                         暂无剧本步骤，请点击右上角新增
                       </div>
                     )}
@@ -419,9 +421,9 @@ export function BAScripts() {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
+          <div className="flex-1 flex flex-col items-center justify-center text-[#9A9396]">
             <FileText className="h-16 w-16 mb-4 opacity-20" />
-            <p className="font-medium text-slate-500">在左侧选择或创建一个剧本</p>
+            <p className="font-medium text-[#766F73]">在左侧选择或创建一个剧本</p>
           </div>
         )}
       </div>

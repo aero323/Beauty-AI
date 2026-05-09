@@ -20,7 +20,7 @@ import { ExamGenerate } from './pages/ExamGenerate';
 import { ExamBank } from './pages/ExamBank';
 import { ExamHomework } from './pages/ExamHomework';
 import { ExamManage } from './pages/ExamManage';
-import { ExamTaskManage } from './pages/ExamTaskManage';
+import { ExamTaskManage, INITIAL_EXAM_TASKS, type ExamTask } from './pages/ExamTaskManage';
 import { StudyTaskManage } from './pages/StudyTaskManage';
 import { PracticeTaskManage } from './pages/PracticeTaskManage';
 import { StoreArchive } from './pages/StoreArchive';
@@ -42,6 +42,7 @@ export default function App() {
   const [courseTask, setCourseTask] = useState<CourseTask | null>(null);
   const [courseEditorReturnTab, setCourseEditorReturnTab] = useState<string | null>(null);
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
+  const [examTasks, setExamTasks] = useState<ExamTask[]>(INITIAL_EXAM_TASKS);
 
   const startGeneration = () => {
     setCourseEditorReturnTab(null);
@@ -80,13 +81,40 @@ export default function App() {
     }
   };
 
+  const formatPublishTime = (date: Date) => {
+    const pad = (value: number) => String(value).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  };
+
+  const handleExamPublished = (exam: { id: string; title: string }) => {
+    setExamTasks(prev => {
+      const taskId = `published-${exam.id}`;
+      if (prev.some(task => task.id === taskId)) {
+        return prev;
+      }
+
+      return [
+        {
+          id: taskId,
+          title: exam.title,
+          status: '待开始',
+          publishTime: formatPublishTime(new Date()),
+          targetCount: 1200,
+          submittedCount: 0,
+          aiGraded: false,
+        },
+        ...prev,
+      ];
+    });
+  };
+
   const renderContent = () => {
     if (activeTab === 'dashboard') {
       switch (role) {
         case 'Super Admin':
           return <SADashboard />;
         case 'HQ Trainer':
-          return <HTDashboard />;
+          return <HTDashboard onNavigate={setActiveTab} />;
         case 'Regional Training Manager':
           return <RMDashboard />;
         case 'Regional Trainer':
@@ -114,9 +142,9 @@ export default function App() {
     }
     if (activeTab === 'courses') {
       return (
-        <CourseCreation 
-          courseTask={courseTask} 
-          startGeneration={startGeneration} 
+        <CourseCreation
+          courseTask={courseTask}
+          startGeneration={startGeneration}
           resetTask={resetCourseTask}
           onExitEditor={courseEditorReturnTab ? exitCourseEditor : undefined}
         />
@@ -150,10 +178,21 @@ export default function App() {
       return <ExamHomework />;
     }
     if (activeTab === 'exam_manage') {
-      return <ExamManage />;
+      return (
+        <ExamManage
+          onExamPublished={handleExamPublished}
+          onGoToExamTasks={() => setActiveTab('exam_task_manage')}
+        />
+      );
     }
     if (activeTab === 'exam_task_manage') {
-      return <ExamTaskManage isReadOnly={role === 'Regional Manager' || role === 'Regional Training Manager' || role === 'Regional Trainer'} />;
+      return (
+        <ExamTaskManage
+          isReadOnly={role === 'Regional Manager' || role === 'Regional Training Manager' || role === 'Regional Trainer'}
+          tasks={examTasks}
+          onWithdrawTask={(taskId) => setExamTasks(prev => prev.filter(task => task.id !== taskId))}
+        />
+      );
     }
     if (activeTab === 'study_task_manage') {
       return <StudyTaskManage isReadOnly={role === 'Regional Manager'} userRole={role} />;
@@ -167,7 +206,7 @@ export default function App() {
     if (activeTab === 'personnel_archive') {
       return <PersonnelArchive userRole={role} />;
     }
-    
+
     // Placeholder for other tabs
     return (
       <div className="flex items-center justify-center h-[60vh] border-2 border-dashed border-gray-200 rounded-xl">
@@ -189,24 +228,24 @@ export default function App() {
       {(courseTask?.status === 'generating' || showSuccessBanner) && (
         <div className="fixed top-4 right-4 z-50 animate-in fade-in slide-in-from-top-5">
           {courseTask?.status === 'generating' ? (
-            <div className="bg-[#1A1A1A] text-white px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3 w-80 border border-white/10">
-              <Loader2 className="h-5 w-5 text-indigo-400 font-bold animate-spin shrink-0" />
+            <div className="bg-[#171518] text-white px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3 w-80 border border-white/10">
+              <Loader2 className="h-5 w-5 text-[#8F98FF] font-bold animate-spin shrink-0" />
               <div className="flex-1">
                 <div className="text-sm font-bold">AI 课件生成中...</div>
                 <div className="text-[10px] text-white/50 mt-0.5">请稍候，您可离开此页面</div>
-                <Progress value={courseTask.progress} className="h-1 mt-2 bg-white/10" indicatorClassName="bg-indigo-500" />
+                <Progress value={courseTask.progress} className="h-1 mt-2 bg-white/[0.12]" indicatorClassName="bg-[#8F98FF]" />
               </div>
             </div>
           ) : showSuccessBanner ? (
-            <div className="bg-emerald-600 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center justify-between w-80 border border-emerald-500">
+            <div className="bg-[#3B8F72] text-white px-4 py-3 rounded-xl shadow-2xl flex items-center justify-between w-80 border border-[#78B29F]">
               <div className="flex items-center space-x-3">
                 <CheckCircle className="h-5 w-5 shrink-0" />
                 <div>
                   <div className="text-sm font-bold">课件生成完成！</div>
-                  <div className="text-[10px] text-emerald-200 mt-0.5">您的课件「产品线全景」已就绪</div>
+                  <div className="text-[10px] text-[#CDE8DD] mt-0.5">您的课件「产品线全景」已就绪</div>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => { setActiveTab('courses'); setShowSuccessBanner(false); }}
                 className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shrink-0"
               >

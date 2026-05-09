@@ -70,9 +70,9 @@ export function KnowledgeGraph() {
 
   const handleSaveEdit = () => {
     if (!editingChunk) return;
-    setChunks(prev => prev.map(c => 
-      c.id === editingChunk.id 
-        ? { ...c, content: editContent, tags: editTagsStr.split(',').map(s => s.trim()).filter(s => s) } 
+    setChunks(prev => prev.map(c =>
+      c.id === editingChunk.id
+        ? { ...c, content: editContent, tags: editTagsStr.split(',').map(s => s.trim()).filter(s => s) }
         : c
     ));
     setEditingChunk(null);
@@ -89,7 +89,7 @@ export function KnowledgeGraph() {
   const handleParse = () => {
     setIsParsing(true);
     setParseProgress(0);
-    
+
     // Simulate parsing progress
     const interval = setInterval(() => {
       setParseProgress(prev => {
@@ -109,32 +109,32 @@ export function KnowledgeGraph() {
   return (
     <div className="space-y-6">
       {/* Header section with buttons */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-[#E9E4DF]">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center">
-            <Database className="h-6 w-6 mr-3 text-indigo-600" />
+          <h1 className="text-2xl font-bold tracking-tight text-[#1F1C1F] flex items-center">
+            <Database className="h-6 w-6 mr-3 text-rose-600" />
             企业知识图谱
           </h1>
-          <p className="text-sm text-slate-500 mt-1 flex items-center">
+          <p className="text-sm text-[#766F73] mt-1 flex items-center">
             <Clock className="h-4 w-4 mr-1.5 opacity-70" />
             最近同步时间：{lastSyncTime}
           </p>
         </div>
-        
+
         <div className="flex items-center space-x-3 w-full md:w-auto">
-          <button 
+          <button
             onClick={handleSync}
             disabled={isSyncing || isParsing}
-            className={`flex-1 md:flex-none items-center justify-center space-x-2 px-6 py-2.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-indigo-600 rounded-xl font-bold text-sm transition-all shadow-sm disabled:opacity-50 flex`}
+            className={`flex-1 md:flex-none items-center justify-center space-x-2 px-6 py-2.5 bg-white border border-[#E5DED8] text-[#3F3A3D] hover:bg-[#F8F5F3] hover:text-rose-600 rounded-xl font-bold text-sm transition-all shadow-sm disabled:opacity-50 flex`}
           >
-            <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin text-indigo-600' : ''}`} />
+            <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin text-rose-600' : ''}`} />
             <span>{isSyncing ? '正在拉取...' : '拉取同步'}</span>
           </button>
-          
-          <button 
+
+          <button
             onClick={handleParse}
             disabled={isSyncing || isParsing}
-            className={`flex-1 md:flex-none items-center justify-center space-x-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm transition-all shadow-sm flex disabled:opacity-50`}
+            className={`flex-1 md:flex-none items-center justify-center space-x-2 px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-sm transition-all shadow-sm flex disabled:opacity-50`}
           >
             {isParsing ? (
               <RefreshCw className="h-4 w-4 animate-spin" />
@@ -147,13 +147,13 @@ export function KnowledgeGraph() {
       </div>
 
       {isParsing && (
-        <Card className="border-indigo-100 bg-indigo-50/30">
+        <Card className="border-rose-100 bg-rose-50/30">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between mb-2">
-               <span className="text-sm font-bold text-indigo-800">正在知识切片与入库...</span>
-               <span className="text-sm font-bold text-indigo-600">{parseProgress}%</span>
+               <span className="text-sm font-bold text-rose-800">正在知识切片与入库...</span>
+               <span className="text-sm font-bold text-rose-600">{parseProgress}%</span>
             </div>
-            <Progress value={parseProgress} className="h-2 bg-indigo-100" indicatorClassName="bg-indigo-600" />
+            <Progress value={parseProgress} className="h-2 bg-rose-100" indicatorClassName="bg-rose-600" />
           </CardContent>
         </Card>
       )}
@@ -165,14 +165,14 @@ export function KnowledgeGraph() {
             <CardTitle className="text-lg">已解析知识切片 ({chunks.length})</CardTitle>
             <div className="flex items-center space-x-2 w-full md:w-auto">
                <div className="relative flex-1 md:w-64">
-                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                 <input 
-                   type="text" 
-                   placeholder="搜索内容或标签..." 
-                   className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-shadow"
+                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9A9396]" />
+                 <input
+                   type="text"
+                   placeholder="搜索内容或标签..."
+                   className="w-full pl-9 pr-4 py-2 border border-[#E5DED8] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-shadow"
                  />
                </div>
-               <button className="p-2 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-50 transition-colors">
+               <button className="p-2 border border-[#E5DED8] rounded-lg text-[#766F73] hover:bg-[#F8F5F3] transition-colors">
                  <Filter className="h-4 w-4" />
                </button>
             </div>
@@ -180,8 +180,8 @@ export function KnowledgeGraph() {
         </CardHeader>
         <CardContent className="p-6">
            <div className="overflow-x-auto">
-             <table className="w-full text-left text-sm text-slate-600">
-               <thead className="text-xs text-slate-500 bg-slate-50/80 uppercase font-bold border-b border-slate-100">
+             <table className="w-full text-left text-sm text-[#5D565A]">
+               <thead className="text-xs text-[#766F73] bg-[#F8F5F3]/80 uppercase font-bold border-b border-[#E9E4DF]">
                  <tr>
                    <th className="px-4 py-3 rounded-tl-lg">序号</th>
                    <th className="px-4 py-3">知识标签</th>
@@ -194,38 +194,38 @@ export function KnowledgeGraph() {
                </thead>
                <tbody className="divide-y divide-slate-100">
                  {chunks.map((chunk, index) => (
-                   <tr key={chunk.id} className="hover:bg-slate-50/50 transition-colors group">
-                     <td className="px-4 py-4 font-medium text-slate-400">{index + 1}</td>
+                   <tr key={chunk.id} className="hover:bg-[#F8F5F3]/50 transition-colors group">
+                     <td className="px-4 py-4 font-medium text-[#9A9396]">{index + 1}</td>
                      <td className="px-4 py-4">
                        <div className="flex flex-wrap gap-1">
                          {chunk.tags.map(tag => (
-                           <Badge key={tag} variant="secondary" className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-medium">
+                           <Badge key={tag} variant="secondary" className="bg-rose-50 text-rose-700 hover:bg-rose-100 font-medium">
                              {tag}
                            </Badge>
                          ))}
                        </div>
                      </td>
                      <td className="px-4 py-4">
-                       <p className="line-clamp-2 text-slate-700 leading-relaxed font-medium">
+                       <p className="line-clamp-2 text-[#3F3A3D] leading-relaxed font-medium">
                          {chunk.content}
                        </p>
                      </td>
                      <td className="px-4 py-4">
-                       <div className="flex items-center space-x-2 text-slate-600">
-                         <FileText className="h-4 w-4 text-slate-400 shrink-0" />
+                       <div className="flex items-center space-x-2 text-[#5D565A]">
+                         <FileText className="h-4 w-4 text-[#9A9396] shrink-0" />
                          <span className="truncate max-w-[150px]" title={chunk.sourceFile}>{chunk.sourceFile}</span>
                        </div>
                      </td>
-                     <td className="px-4 py-4 whitespace-nowrap text-xs text-slate-500">
+                     <td className="px-4 py-4 whitespace-nowrap text-xs text-[#766F73]">
                        {chunk.time}
                      </td>
                      <td className="px-4 py-4">
                        {chunk.status === 'parsed' ? (
-                         <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">
+                         <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-[#DCEFE7] text-[#2F735C]">
                            已解析
                          </span>
                        ) : chunk.status === 'pending' ? (
-                         <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">
+                         <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-[#F7E6C8] text-[#8B621F]">
                            待解析
                          </span>
                        ) : (
@@ -236,13 +236,13 @@ export function KnowledgeGraph() {
                      </td>
                      <td className="px-4 py-4 text-right">
                        <div className="flex items-center justify-end space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                         <button className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="查看详情">
+                         <button className="p-1.5 text-[#9A9396] hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors" title="查看详情">
                            <Eye className="h-4 w-4" />
                          </button>
-                         <button onClick={() => openEditModal(chunk)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="编辑">
+                         <button onClick={() => openEditModal(chunk)} className="p-1.5 text-[#9A9396] hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="编辑">
                            <Edit className="h-4 w-4" />
                          </button>
-                         <button className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="删除">
+                         <button className="p-1.5 text-[#9A9396] hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="删除">
                            <Trash2 className="h-4 w-4" />
                          </button>
                        </div>
@@ -262,19 +262,19 @@ export function KnowledgeGraph() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <label className="text-sm font-medium text-slate-700">标签 (以逗号分隔)</label>
-              <input 
-                type="text" 
-                value={editTagsStr} 
+              <label className="text-sm font-medium text-[#3F3A3D]">标签 (以逗号分隔)</label>
+              <input
+                type="text"
+                value={editTagsStr}
                 onChange={e => setEditTagsStr(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 border border-[#E5DED8] rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
               />
             </div>
             <div className="grid gap-2">
-              <label className="text-sm font-medium text-slate-700">知识切片详情</label>
-              <Textarea 
+              <label className="text-sm font-medium text-[#3F3A3D]">知识切片详情</label>
+              <Textarea
                 rows={6}
-                value={editContent} 
+                value={editContent}
                 onChange={e => setEditContent(e.target.value)}
                 className="w-full resize-none"
               />
@@ -284,7 +284,7 @@ export function KnowledgeGraph() {
             <Button variant="outline" onClick={() => setEditingChunk(null)}>
               取消
             </Button>
-            <Button onClick={handleSaveEdit} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+            <Button onClick={handleSaveEdit} className="bg-rose-600 hover:bg-rose-700 text-white">
               发布知识
             </Button>
           </DialogFooter>
