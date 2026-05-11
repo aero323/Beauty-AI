@@ -1,10 +1,19 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Users, Server, Cpu, Activity, ShieldCheck, Database, HardDrive, Network } from 'lucide-react';
+import { AppDownloadButton } from '../components/AppDownloadButton';
 
 export function SADashboard() {
   return (
     <div className="space-y-6 flex-1 flex flex-col pt-2">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wider text-[#9A9396]">Dashboard</p>
+          <h2 className="text-xl font-bold text-[#242124]">系统运行概览</h2>
+        </div>
+        <AppDownloadButton />
+      </div>
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="rounded-2xl shadow-sm border border-[#E9E4DF] overflow-hidden">
           <CardHeader className="p-5 pb-0">

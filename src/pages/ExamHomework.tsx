@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BookOpen, ClipboardList, Database, Save, Search, PlusCircle, CheckCircle, Trash2 } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -16,10 +16,30 @@ const BANK = [
   { id: 'b4', content: '冬季护肤最重要的步骤是？', tags: ['基础', '冬季'] },
 ];
 
-export function ExamHomework() {
+interface ExamHomeworkProps {
+  selectedCourseTitle?: string;
+}
+
+export function ExamHomework({ selectedCourseTitle }: ExamHomeworkProps) {
   const [selectedCourseId, setSelectedCourseId] = useState<string>(COURSES[0].id);
   const [courses, setCourses] = useState(COURSES);
   const [showToast, setShowToast] = useState(false);
+
+  useEffect(() => {
+    if (!selectedCourseTitle) return;
+    const matched = courses.find(course => course.title === selectedCourseTitle);
+    if (matched) {
+      setSelectedCourseId(matched.id);
+      return;
+    }
+
+    const customId = `custom-${selectedCourseTitle.replace(/\s+/g, '-').replace(/[^\w\u4e00-\u9fa5-]/g, '')}`;
+    setCourses(prev => prev.some(course => course.id === customId)
+      ? prev
+      : [{ id: customId, title: selectedCourseTitle, date: '-', questionIds: [] }, ...prev]
+    );
+    setSelectedCourseId(customId);
+  }, [selectedCourseTitle]);
 
   const selectedCourse = courses.find(c => c.id === selectedCourseId);
   const linkedQuestions = BANK.filter(q => selectedCourse?.questionIds.includes(q.id));
@@ -51,7 +71,7 @@ export function ExamHomework() {
       {/* Left Sidebar */}
       <div className="w-80 bg-white border-r border-[#E5DED8] flex flex-col shrink-0">
         <div className="p-4 border-b border-[#E9E4DF] flex items-center justify-between z-10 bg-white">
-          <h2 className="font-bold text-[#242124] tracking-tight">课件与作业关联</h2>
+          <h2 className="font-bold text-[#242124] tracking-tight">课件与附加题关联</h2>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -97,8 +117,8 @@ export function ExamHomework() {
           <>
             <div className="p-6 border-b border-[#E5DED8] bg-white flex items-center justify-between shrink-0">
               <div>
-                <h1 className="text-xl font-bold text-[#242124]">配置课件伴随作业：{selectedCourse.title}</h1>
-                <p className="text-xs text-[#766F73] mt-1">学员学习完此课件后，将在APP自动推送已关联的作业题</p>
+                <h1 className="text-xl font-bold text-[#242124]">配置课件附加题：{selectedCourse.title}</h1>
+                <p className="text-xs text-[#766F73] mt-1">学员学习完此课件后，将在APP自动推送已关联的附加题</p>
               </div>
               <button
                 onClick={handleSave}
@@ -167,7 +187,7 @@ export function ExamHomework() {
                           <button
                             onClick={() => handleLink(q.id)}
                             className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-md transition-colors shrink-0 flex items-center shadow-sm border border-rose-100"
-                            title="添加到作业"
+                            title="添加到附加题"
                           >
                             <PlusCircle className="h-4 w-4 mr-1" /> 添加
                           </button>
@@ -191,7 +211,7 @@ export function ExamHomework() {
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-[#9A9396]">
             <BookOpen className="h-16 w-16 mb-4 opacity-20" />
-            <p className="font-medium text-[#766F73]">在左侧选择一个课件查看其伴随作业</p>
+            <p className="font-medium text-[#766F73]">在左侧选择一个课件查看其附加题</p>
           </div>
         )}
       </div>

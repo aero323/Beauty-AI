@@ -4,6 +4,7 @@ import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
 import { aiActionTone } from '../lib/visualTones';
+import { EffectiveStatusBadge, type EffectiveStatus } from '../components/EffectiveStatusBadge';
 
 interface ScriptStep {
   id: string;
@@ -18,6 +19,7 @@ interface ScriptScenario {
   steps: ScriptStep[];
   imageUrl?: string;
   scope?: string;
+  effectiveStatus: EffectiveStatus;
 }
 
 const RT_INITIAL_SCRIPTS: ScriptScenario[] = [
@@ -26,6 +28,7 @@ const RT_INITIAL_SCRIPTS: ScriptScenario[] = [
     name: '区域性：雨季应对防晕妆',
     description: '针对印尼等地区雨季高湿度容易晕妆的情况，给出针对性的防水防汗保湿建议。',
     scope: '雅加达区',
+    effectiveStatus: 'active',
     steps: [
       { id: 's1', description: '询问顾客平时是否容易脱妆或感觉粘腻', hint: '切入热带地区痛点' },
       { id: 's2', description: '推荐含有强效定妆成分和防水配方的产品', hint: '突出持妆防汗脱落' },
@@ -37,6 +40,7 @@ const RT_INITIAL_SCRIPTS: ScriptScenario[] = [
     name: '重点商圈：雅加达外派高管快速破冰',
     description: '针对雅加达高端商超内的门店，高管/外企人员时间紧凑，如何在短时间内吸引注意并建立信任。',
     scope: '雅加达区',
+    effectiveStatus: 'active',
     steps: [
       { id: 's1', description: '用简单的英文或礼貌尊称快速破冰并赞美搭配', hint: '需专业干练，避免过度推销感' },
       { id: 's2', description: '一句话点出抗老/熬夜修护明星产品的核心优势', hint: '强调产品效率与即时效果' },
@@ -62,7 +66,7 @@ export function RTBAScripts() {
   };
 
   const handleUpdate = (field: keyof ScriptScenario, value: any) => {
-    setScripts(prev => prev.map(s => s.id === selectedId ? { ...s, [field]: value } : s));
+    setScripts(prev => prev.map(s => s.id === selectedId ? { ...s, [field]: value, effectiveStatus: 'pending' } : s));
   };
 
   const handleUpdateStep = (stepId: string, field: keyof ScriptStep, value: string) => {
@@ -70,6 +74,7 @@ export function RTBAScripts() {
       if (s.id !== selectedId) return s;
       return {
         ...s,
+        effectiveStatus: 'pending',
         steps: s.steps.map(st => st.id === stepId ? { ...st, [field]: value } : st)
       };
     }));
@@ -93,6 +98,7 @@ export function RTBAScripts() {
       id: Date.now().toString(),
       name: '新区域场景剧本',
       description: '请描述该区域特色场景的主要背景与目的...',
+      effectiveStatus: 'pending',
       steps: [
         { id: Date.now().toString(), description: '步骤 1', hint: '' }
       ]
@@ -113,6 +119,7 @@ export function RTBAScripts() {
   };
 
   const handleSave = () => {
+    setScripts(prev => prev.map(s => s.id === selectedId ? { ...s, effectiveStatus: 'active' } : s));
     showFeedback('区域剧本已保存', 'success', 3000);
   };
 
@@ -241,13 +248,16 @@ export function RTBAScripts() {
                 <h1 className="text-xl font-bold text-[#242124]">编辑区域剧本：{selectedScript.name}</h1>
                 <p className="text-xs text-[#766F73] mt-1">配置剧情背景与区域适用的考核指导节点</p>
               </div>
-              <button
-                onClick={handleSave}
-                className="flex items-center space-x-2 px-5 py-2 bg-[#B9822B] hover:bg-[#A67327] text-white rounded-lg shadow-sm font-bold text-sm transition-colors"
-              >
-                <Save className="h-4 w-4" />
-                <span>保存区域剧本</span>
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleSave}
+                  className="flex items-center space-x-2 px-5 py-2 bg-[#B9822B] hover:bg-[#A67327] text-white rounded-lg shadow-sm font-bold text-sm transition-colors"
+                >
+                  <Save className="h-4 w-4" />
+                  <span>保存区域剧本</span>
+                </button>
+                <EffectiveStatusBadge status={selectedScript.effectiveStatus} />
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 md:p-8">

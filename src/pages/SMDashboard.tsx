@@ -5,6 +5,7 @@ import { Badge } from '../components/ui/badge';
 import { Progress } from '../components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { brandTone, getProgressTone, getScoreTone } from '../lib/visualTones';
+import { AppDownloadButton } from '../components/AppDownloadButton';
 
 export function SMDashboard() {
   const [selectedStaff, setSelectedStaff] = useState<string | null>(null);
@@ -27,7 +28,10 @@ export function SMDashboard() {
               <p className="text-xs text-[#766F73]">Jakarta South District</p>
             </div>
          </div>
-         <Badge className="bg-rose-100 text-rose-700 hover:bg-rose-100 border-none px-3 py-1 text-xs">门店排名预警: 倒数第一</Badge>
+         <div className="flex items-center gap-2">
+           <AppDownloadButton compact />
+           <Badge className="bg-rose-100 text-rose-700 hover:bg-rose-100 border-none px-3 py-1 text-xs">门店排名预警: 倒数第一</Badge>
+         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">

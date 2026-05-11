@@ -40,7 +40,7 @@ interface NavItem {
 
 export function Layout({ children, role, setRole, activeTab, setActiveTab }: LayoutProps) {
   const [expandedNavs, setExpandedNavs] = useState<string[]>(['course_group']);
-  const { language, setLanguage } = useI18n();
+  const { language, setLanguage, t } = useI18n();
   const isMultilingualLayout = language !== 'zh';
   const languageOptionLabels = {
     zh: { zh: '中文', en: '英文', id: '印尼语' },
@@ -75,10 +75,10 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
             { id: 'ba_scripts', label: '场景剧本' },
             { id: 'ba_quotes', label: '金句库' }
           ] },
-          { id: 'exam_group', label: '作业考试', icon: ClipboardList, subMenu: [
+          { id: 'exam_group', label: '题目与考试', icon: ClipboardList, subMenu: [
             { id: 'exam_generate', label: '生成题目' },
             { id: 'exam_bank', label: '题库管理' },
-            { id: 'exam_homework', label: '作业管理' },
+            { id: 'exam_homework', label: '关联附加题管理' },
             { id: 'exam_manage', label: '考试组卷' }
           ] },
           { id: 'tasks_group', label: '周期任务', icon: FolderOpen, subMenu: [
@@ -170,9 +170,15 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
         isMultilingualLayout ? "md:w-72 xl:w-80" : "md:w-64"
       )}>
         <div className="p-5 overflow-y-auto min-h-0">
-          <div className="flex items-center space-x-2 mb-8">
-            <div className="w-8 h-8 bg-gradient-to-tr from-rose-400 to-amber-200 rounded-lg"></div>
-            <span className="font-bold tracking-tight text-lg">BEAUTY <span className="font-light opacity-60">AI</span></span>
+          <div className="mb-6">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-tr from-rose-400 to-amber-200 rounded-lg"></div>
+              <span className="font-bold tracking-tight text-lg">SalesBoost <span className="font-light opacity-60">AI</span></span>
+            </div>
+            <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">{t('服务客户')}</p>
+              <p data-i18n-skip="true" className="mt-0.5 text-sm font-bold leading-snug text-white">Hebe Beauty</p>
+            </div>
           </div>
 
           <nav className="space-y-1">
@@ -198,20 +204,45 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
                     </button>
                     {expandedNavs.includes(item.id) && (
                       <div className="mt-1 space-y-1 pl-10 pr-2">
-                        {item.subMenu.map(subItem => (
-                          <button
-                            key={subItem.id}
-                            onClick={() => setActiveTab(subItem.id)}
-                            className={cn(
-                              "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-normal break-words leading-snug",
-                              activeTab === subItem.id
-                                ? "bg-white/[0.12] text-white"
-                                : "text-white opacity-60 hover:text-white hover:bg-white/[0.06]"
-                            )}
-                          >
-                            {subItem.label}
-                          </button>
-                        ))}
+                        {item.subMenu.map(subItem => {
+                          const isAdditionalQuestionNote = subItem.id === 'exam_homework';
+                          const subMenuButton = (
+                            <button
+                              onClick={() => setActiveTab(subItem.id)}
+                              className={cn(
+                                "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-normal break-words leading-snug",
+                                activeTab === subItem.id
+                                  ? "bg-white/[0.12] text-white"
+                                  : "text-white opacity-60 hover:text-white hover:bg-white/[0.06]"
+                              )}
+                            >
+                              {subItem.label}
+                            </button>
+                          );
+
+                          if (!isAdditionalQuestionNote) {
+                            return (
+                              <React.Fragment key={subItem.id}>
+                                {subMenuButton}
+                              </React.Fragment>
+                            );
+                          }
+
+                          return (
+                            <div key={subItem.id} className="relative group/additional-question-note">
+                              <span data-i18n-skip="true" className="absolute -right-1 -top-2 z-20 h-4 min-w-4 rounded-full bg-blue-950 px-1 text-[9px] font-bold leading-4 text-white text-center shadow-sm backdrop-blur-sm">
+                                注
+                              </span>
+                              {subMenuButton}
+                              <div
+                                data-i18n-skip="true"
+                                className="absolute left-0 top-full mt-2 hidden group-hover/additional-question-note:block z-50 w-64 rounded-lg bg-blue-950/95 px-3 py-2 text-xs leading-relaxed text-white shadow-xl backdrop-blur-sm"
+                              >
+                                给研发：附加题视为和课件捆绑在一起展示的部分，所有 APP 和导出课件展示后面都需要附加上关联的附加题。
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </>
@@ -289,7 +320,7 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
           <div className="flex min-w-0 flex-1 items-center gap-4">
              <h1 className="min-w-0 text-lg font-semibold leading-snug text-[#1F1C1F] break-words">{role === 'Super Admin' ? '系统运行概览' : role === 'HQ Trainer' ? '全国培训总览' : role === 'Regional Manager' ? '大区业务看板' : (role === 'Regional Training Manager' || role === 'Regional Trainer') ? '大区培训看板' : '门店考评看板'}</h1>
              <span className="text-[#C9C1C4] hidden md:block">|</span>
-             <span className="text-xs font-medium text-[#766F73] hidden md:block">BEAUTY AI</span>
+             <span className="text-xs font-medium text-[#766F73] hidden md:block">SalesBoost AI</span>
           </div>
           <div className="flex min-w-0 flex-wrap items-center justify-end gap-3 ml-auto">
              <div className="flex items-center gap-2">

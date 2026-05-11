@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
-import { Plus, Trash2, Upload, User, FileText, Tag, Image as ImageIcon, Save, CheckCircle, MessageSquare } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Plus, Trash2, Upload, User, FileText, Tag, Image as ImageIcon, Save, CheckCircle, MessageSquare, Bot, Send, RotateCcw, Wand2 } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Dialog, DialogContent, DialogTitle } from '../components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { EffectiveStatusBadge, type EffectiveStatus } from '../components/EffectiveStatusBadge';
+import { aiActionTone } from '../lib/visualTones';
 
 type AvatarLanguage = '中文' | '英文' | '印尼语';
 
@@ -16,11 +20,173 @@ interface Avatar {
   language: AvatarLanguage;
   voice: string;
   avatarUrl: string;
-  videoUrl: string;
+  imageUrl: string;
   tags: string[];
   prompt: string;
   flow: string;
+  effectiveStatus: EffectiveStatus;
 }
+
+type PreviewRole = 'assistant' | 'user';
+
+interface PreviewMessage {
+  id: string;
+  role: PreviewRole;
+  text: string;
+}
+
+type ScenarioScript = (typeof MOCK_SCENARIO_SCRIPTS)[number];
+
+const TOPIC_KEYS = ['防晒', '祛痘', '底妆'] as const;
+type TopicKey = typeof TOPIC_KEYS[number] | '通用';
+
+const containsAny = (text: string, keywords: string[]) => keywords.some(keyword => text.includes(keyword));
+
+const detectTopic = (avatar: Avatar, script: ScenarioScript | null): TopicKey => {
+  const source = `${avatar.prompt} ${avatar.flow} ${script?.title ?? ''} ${script?.description ?? ''}`;
+  if (containsAny(source, ['防晒', 'sunscreen', 'sun care', 'sun-care'])) return '防晒';
+  if (containsAny(source, ['祛痘', '油痘', '痘', 'acne'])) return '祛痘';
+  if (containsAny(source, ['底妆', '粉底', '搓泥', 'makeup', 'foundation', 'pilling'])) return '底妆';
+  return '通用';
+};
+
+const getOpeningLine = (avatar: Avatar, topic: TopicKey) => {
+  const copy: Record<AvatarLanguage, Record<TopicKey, string>> = {
+    中文: {
+      防晒: '你好，我最近想找一款不油、不搓泥的防晒，最好适合通勤。',
+      祛痘: '你好，我是油痘肌，想找一款能稳住状态的产品。',
+      底妆: '你好，我想看看这款会不会和我的底妆冲突。',
+      通用: '你好，我想先看看这款适不适合我。',
+    },
+    英文: {
+      防晒: 'Hi, I am looking for a sunscreen that feels light and will not pill under makeup.',
+      祛痘: 'Hi, I have oily acne-prone skin and want something that keeps my skin stable.',
+      底妆: 'Hi, I want to see whether this will work with my makeup.',
+      通用: 'Hi, I want to see whether this is a good fit for me.',
+    },
+    印尼语: {
+      防晒: 'Halo, saya sedang cari sunscreen yang ringan, tidak lengket, dan tidak bikin makeup bergeser.',
+      祛痘: 'Halo, saya punya kulit berminyak dan berjerawat, jadi saya cari produk yang bisa bantu menenangkan kulit.',
+      底妆: 'Halo, saya mau lihat apakah produk ini cocok dipakai bareng makeup saya.',
+      通用: 'Halo, saya ingin lihat apakah produk ini cocok untuk saya.',
+    },
+  };
+
+  return copy[avatar.language][topic];
+};
+
+const getReplyLine = (avatar: Avatar, topic: TopicKey, input: string) => {
+  const text = input.toLowerCase();
+  const wantsSample = containsAny(text, ['试用', '小样', '试涂', 'sample', 'try', 'coba']);
+  const worriesOil = containsAny(text, ['油', '油腻', 'oily', 'greasy', 'lengket']);
+  const worriesMakeup = containsAny(text, ['搓泥', '底妆', 'makeup', 'foundation', 'pilling']);
+  const worriesPrice = containsAny(text, ['价格', '预算', '贵', 'price', 'budget', 'mahal']);
+
+  const replyMap: Record<AvatarLanguage, Record<'sample' | 'oil' | 'makeup' | 'price' | 'fallback', Record<TopicKey, string>>> = {
+    中文: {
+      sample: {
+        防晒: '可以先试一下吗？我想看看上脸的感觉。',
+        祛痘: '可以先试一点吗？我想看看会不会刺激。',
+        底妆: '可以先试一下吗？我想看看会不会起皮。',
+        通用: '可以先试一下吗？我想感受一下质地。',
+      },
+      oil: {
+        防晒: '我最担心的就是太油，麻烦帮我挑轻一点的。',
+        祛痘: '我最担心的是闷痘或者太厚重。',
+        底妆: '我最担心它会不会又油又搓泥。',
+        通用: '我比较在意清爽度，太油的我会犹豫。',
+      },
+      makeup: {
+        防晒: '我平时会带妆，所以特别在意会不会搓泥。',
+        祛痘: '我也会化妆，太厚的话会影响妆面。',
+        底妆: '我平时底妆比较重，最怕叠加之后不服帖。',
+        通用: '我会考虑和我平时的妆容搭不搭。',
+      },
+      price: {
+        防晒: '如果价格太高，我可能会先再想想。',
+        祛痘: '如果太贵的话，我可能会先选基础款。',
+        底妆: '如果价格超出预算，我会考虑更平价的替代。',
+        通用: '如果价格太高，我可能会再比较一下。',
+      },
+      fallback: {
+        防晒: '听起来不错，不过我还想再确认一下使用感。',
+        祛痘: '听起来可以，不过我还是想确认一下适不适合我。',
+        底妆: '听起来不错，不过我还想确认一下和底妆的兼容性。',
+        通用: '听起来不错，不过我还想再确认一下细节。',
+      },
+    },
+    英文: {
+      sample: {
+        防晒: 'Could I try a small amount first? I want to feel the texture.',
+        祛痘: 'Could I try a little first? I want to see whether it feels too strong.',
+        底妆: 'Could I try it first? I want to see whether it pills.',
+        通用: 'Could I try a little first? I want to feel the texture.',
+      },
+      oil: {
+        防晒: 'My biggest concern is that it feels too oily.',
+        祛痘: 'My biggest concern is that it feels too heavy or may clog my skin.',
+        底妆: 'My biggest concern is whether it becomes oily or pills.',
+        通用: 'I care a lot about how lightweight it feels.',
+      },
+      makeup: {
+        防晒: 'I wear makeup every day, so I care a lot about compatibility.',
+        祛痘: 'I also wear makeup, so I need something that will not affect the finish.',
+        底妆: 'I wear a fuller base, so I really care about layering.',
+        通用: 'I need something that works with my usual makeup routine.',
+      },
+      price: {
+        防晒: 'If it is too expensive, I may need to think about it first.',
+        祛痘: 'If it is too expensive, I may start with a basic option.',
+        底妆: 'If it goes over budget, I will consider a cheaper alternative.',
+        通用: 'If it is too expensive, I may compare a few more options.',
+      },
+      fallback: {
+        防晒: 'That sounds good, but I still want to confirm the feel.',
+        祛痘: 'That sounds good, but I still want to confirm whether it suits me.',
+        底妆: 'That sounds good, but I still want to confirm the makeup compatibility.',
+        通用: 'That sounds good, but I still want to confirm a few details.',
+      },
+    },
+    印尼语: {
+      sample: {
+        防晒: 'Boleh saya coba sedikit dulu? Saya ingin rasakan teksturnya.',
+        祛痘: 'Boleh saya coba sedikit dulu? Saya ingin lihat apakah cocok untuk kulit saya.',
+        底妆: 'Boleh saya coba dulu? Saya ingin lihat apakah hasilnya pilling.',
+        通用: 'Boleh saya coba sedikit dulu? Saya ingin rasakan teksturnya.',
+      },
+      oil: {
+        防晒: 'Yang paling saya khawatirkan itu terasa terlalu berminyak.',
+        祛痘: 'Yang paling saya khawatirkan itu terlalu berat atau menyumbat kulit.',
+        底妆: 'Yang paling saya khawatirkan itu jadi berminyak atau pilling.',
+        通用: 'Saya paling peduli apakah teksturnya terasa ringan.',
+      },
+      makeup: {
+        防晒: 'Saya pakai makeup setiap hari, jadi saya peduli apakah cocok dipakai bareng makeup.',
+        祛痘: 'Saya juga pakai makeup, jadi saya butuh yang tidak mengganggu hasil akhirnya.',
+        底妆: 'Saya pakai base yang cukup tebal, jadi saya peduli soal layering.',
+        通用: 'Saya butuh produk yang cocok dengan rutinitas makeup saya.',
+      },
+      price: {
+        防晒: 'Kalau terlalu mahal, saya mungkin perlu pertimbangkan dulu.',
+        祛痘: 'Kalau terlalu mahal, saya mungkin mulai dari opsi yang lebih basic.',
+        底妆: 'Kalau lewat budget, saya akan cari alternatif yang lebih murah.',
+        通用: 'Kalau terlalu mahal, saya mungkin bandingkan beberapa opsi lagi.',
+      },
+      fallback: {
+        防晒: 'Kedengarannya bagus, tapi saya masih ingin cek feel-nya.',
+        祛痘: 'Kedengarannya bagus, tapi saya masih ingin cek apakah cocok untuk saya.',
+        底妆: 'Kedengarannya bagus, tapi saya masih ingin cek kecocokan dengan makeup.',
+        通用: 'Kedengarannya bagus, tapi saya masih ingin cek beberapa detail.',
+      },
+    },
+  };
+
+  if (wantsSample) return replyMap[avatar.language].sample[topic];
+  if (worriesOil) return replyMap[avatar.language].oil[topic];
+  if (worriesMakeup) return replyMap[avatar.language].makeup[topic];
+  if (worriesPrice) return replyMap[avatar.language].price[topic];
+  return replyMap[avatar.language].fallback[topic];
+};
 
 const INITIAL_AVATARS: Avatar[] = [
   {
@@ -29,10 +195,11 @@ const INITIAL_AVATARS: Avatar[] = [
     language: '印尼语',
     voice: AVATAR_VOICE_OPTIONS['印尼语'][0],
     avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lily&backgroundColor=ffdfbf',
-    videoUrl: '',
+    imageUrl: '',
     tags: ['25-30岁', '混干皮', '女性', '通勤防晒需求'],
     prompt: '你叫莉莉，是一名在雅加达CBD工作的白领。你平时工作很忙，经常对着电脑，皮肤容易干燥并且有肤色不均的问题。你现在想寻找一款既能保湿又能防晒，并且上妆不搓泥的妆前/防晒产品。你的态度比较直接，看重产品的效率和实际效果。',
-    flow: '1. 进店询问有没有适合干皮的防晒推荐。\n2. 对BA推荐的产品提出质疑（比如“会不会很油？”或“跟我的粉底会不会搓泥？”）。\n3. 询问有没有小样可以试用，或者要求试涂在手上。\n4. 根据BA的解答专业度决定是否购买。'
+    flow: '1. 进店询问有没有适合干皮的防晒推荐。\n2. 对BA推荐的产品提出质疑（比如“会不会很油？”或“跟我的粉底会不会搓泥？”）。\n3. 询问有没有小样可以试用，或者要求试涂在手上。\n4. 根据BA的解答专业度决定是否购买。',
+    effectiveStatus: 'active'
   },
   {
     id: '2',
@@ -40,10 +207,11 @@ const INITIAL_AVATARS: Avatar[] = [
     language: '印尼语',
     voice: AVATAR_VOICE_OPTIONS['印尼语'][1],
     avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Yaya&backgroundColor=c0aede',
-    videoUrl: '',
+    imageUrl: '',
     tags: ['18-22岁', '油痘肌', '女性', '预算有限'],
     prompt: '你是小雅，一名在读的大学生。你的皮肤是油痘肌，经常长痘痘和闭口，非常苦恼。你每月的护肤预算有限。你希望BA能推荐一些平价但有效祛痘、控油的产品。如果产品太贵，你会犹豫。',
-    flow: '1. 在祛痘产品区徘徊，表现出不知所措。\n2. 告诉BA自己的痘痘问题，并强调自己是学生，可能买不起太贵的套盒。\n3. 询问除了护肤品，有没有什么日常护理的建议。\n4. 如果推荐的产品在预算内且听起来合理，会考虑购买单品。'
+    flow: '1. 在祛痘产品区徘徊，表现出不知所措。\n2. 告诉BA自己的痘痘问题，并强调自己是学生，可能买不起太贵的套盒。\n3. 询问除了护肤品，有没有什么日常护理的建议。\n4. 如果推荐的产品在预算内且听起来合理，会考虑购买单品。',
+    effectiveStatus: 'active'
   }
 ];
 
@@ -67,19 +235,28 @@ export function BAAvatars() {
   const [selectedId, setSelectedId] = useState<string>(INITIAL_AVATARS[0].id);
   const [tagInput, setTagInput] = useState('');
   const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('保存成功');
   const [flowMode, setFlowMode] = useState<'custom' | 'existing'>('custom');
   const [selectedScriptId, setSelectedScriptId] = useState(MOCK_SCENARIO_SCRIPTS[0].id);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewInput, setPreviewInput] = useState('');
+  const [previewMessages, setPreviewMessages] = useState<PreviewMessage[]>([]);
+  const [previewTyping, setPreviewTyping] = useState(false);
+  const replyTimerRef = useRef<number | null>(null);
 
   const selectedAvatar = avatars.find(a => a.id === selectedId) || avatars[0];
+  const selectedScript = flowMode === 'existing'
+    ? MOCK_SCENARIO_SCRIPTS.find(item => item.id === selectedScriptId) ?? MOCK_SCENARIO_SCRIPTS[0]
+    : null;
 
   const handleUpdate = (field: keyof Avatar, value: any) => {
-    setAvatars(prev => prev.map(a => a.id === selectedId ? { ...a, [field]: value } : a));
+    setAvatars(prev => prev.map(a => a.id === selectedId ? { ...a, [field]: value, effectiveStatus: 'pending' } : a));
   };
 
   const handleLanguageChange = (language: AvatarLanguage) => {
     setAvatars(prev => prev.map(a => (
       a.id === selectedId
-        ? { ...a, language, voice: AVATAR_VOICE_OPTIONS[language][0] }
+        ? { ...a, language, voice: AVATAR_VOICE_OPTIONS[language][0], effectiveStatus: 'pending' }
         : a
     )));
   };
@@ -113,10 +290,11 @@ export function BAAvatars() {
       language: '印尼语',
       voice: AVATAR_VOICE_OPTIONS['印尼语'][0],
       avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${Date.now()}&backgroundColor=e2e8f0`,
-      videoUrl: '',
+      imageUrl: '',
       tags: ['新标签'],
       prompt: '在这里输入数字人的人格设定...',
-      flow: '1. ...\n2. ...\n3. ...'
+      flow: '1. ...\n2. ...\n3. ...',
+      effectiveStatus: 'pending'
     };
     setAvatars([newAvatar, ...avatars]);
     setSelectedId(newAvatar.id);
@@ -134,9 +312,87 @@ export function BAAvatars() {
   };
 
   const handleSave = () => {
+    setAvatars(prev => prev.map(a => a.id === selectedId ? { ...a, effectiveStatus: 'active' } : a));
+    setToastMessage('保存成功');
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
   };
+
+  const handleGenerateAvatarImage = () => {
+    const seed = encodeURIComponent(`${selectedAvatar.name}-${selectedAvatar.language}-${selectedAvatar.voice}`);
+    const imageUrl = `https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=900&q=80&sig=${seed}`;
+    handleUpdate('imageUrl', imageUrl);
+    setToastMessage('已生成配图');
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 2200);
+  };
+
+  const buildPreviewMessages = (avatar: Avatar, script: ScenarioScript | null): PreviewMessage[] => {
+    const topic = detectTopic(avatar, script);
+    return [
+      {
+        id: `${avatar.id}-opening`,
+        role: 'assistant',
+        text: getOpeningLine(avatar, topic),
+      },
+    ];
+  };
+
+  const resetPreviewConversation = () => {
+    if (replyTimerRef.current) {
+      window.clearTimeout(replyTimerRef.current);
+      replyTimerRef.current = null;
+    }
+    setPreviewMessages(buildPreviewMessages(selectedAvatar, selectedScript));
+    setPreviewInput('');
+    setPreviewTyping(false);
+  };
+
+  const sendPreviewMessage = () => {
+    const text = previewInput.trim();
+    if (!text) return;
+
+    const avatar = selectedAvatar;
+    const script = selectedScript;
+    const topic = detectTopic(avatar, script);
+    const reply = getReplyLine(avatar, topic, text);
+    const userMessage: PreviewMessage = {
+      id: `${Date.now()}-user`,
+      role: 'user',
+      text,
+    };
+
+    if (replyTimerRef.current) {
+      window.clearTimeout(replyTimerRef.current);
+    }
+
+    setPreviewMessages(prev => [...prev, userMessage]);
+    setPreviewInput('');
+    setPreviewTyping(true);
+
+    replyTimerRef.current = window.setTimeout(() => {
+      setPreviewMessages(prev => [...prev, {
+        id: `${Date.now()}-assistant`,
+        role: 'assistant',
+        text: reply,
+      }]);
+      setPreviewTyping(false);
+      replyTimerRef.current = null;
+    }, 650);
+  };
+
+  useEffect(() => {
+    if (!previewOpen) return;
+    resetPreviewConversation();
+  }, [previewOpen, selectedAvatar.id, selectedAvatar.language, selectedAvatar.voice, flowMode, selectedScriptId]);
+
+  useEffect(() => {
+    return () => {
+      if (replyTimerRef.current) {
+        window.clearTimeout(replyTimerRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="flex h-full bg-[#F7F3F1] overflow-hidden pt-2 rounded-xl border border-[#E5DED8]">
@@ -201,7 +457,7 @@ export function BAAvatars() {
         {showToast && (
           <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-[#3B8F72] text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2 animate-in fade-in slide-in-from-top-4">
             <CheckCircle className="h-4 w-4" />
-            <span className="text-sm font-bold">保存成功</span>
+            <span className="text-sm font-bold">{toastMessage}</span>
           </div>
         )}
 
@@ -212,13 +468,24 @@ export function BAAvatars() {
                 <h1 className="text-xl font-bold text-[#242124]">编辑数字人：{selectedAvatar.name}</h1>
                 <p className="text-xs text-[#766F73] mt-1">配置角色外观、人格设定及互动流程以用于 BA 陪练</p>
               </div>
-              <button
-                onClick={handleSave}
-                className="flex items-center space-x-2 px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg shadow-sm font-bold text-sm transition-colors"
-              >
-                <Save className="h-4 w-4" />
-                <span>保存配置</span>
-              </button>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setPreviewOpen(true)}
+                  className="border-[#E5DED8] bg-white text-[#3F3A3D] hover:bg-[#F8F5F3]"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  <span>对话预览</span>
+                </Button>
+                <button
+                  onClick={handleSave}
+                  className="flex items-center space-x-2 px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg shadow-sm font-bold text-sm transition-colors"
+                >
+                  <Save className="h-4 w-4" />
+                  <span>保存配置</span>
+                </button>
+                <EffectiveStatusBadge status={selectedAvatar.effectiveStatus} />
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 md:p-8">
@@ -246,10 +513,22 @@ export function BAAvatars() {
 
                     {/* COVER IMAGE UPLOAD */}
                     <div className="col-span-1 md:col-span-2">
-                       <label className="block text-xs font-bold text-[#766F73] mb-2">上传大图</label>
-                       <div className="h-40 rounded-xl border-2 border-dashed border-[#E5DED8] bg-[#F8F5F3] hover:bg-[#F1ECE8] transition-colors cursor-pointer flex flex-col items-center justify-center text-[#9A9396] group">
-                          {selectedAvatar.videoUrl ? (
-                            <div className="text-rose-600 font-bold text-sm">✓ 已上传大图</div>
+                       <div className="flex items-center justify-between mb-2">
+                         <label className="block text-xs font-bold text-[#766F73]">上传大图</label>
+                         <Button
+                           type="button"
+                           variant="secondary"
+                           size="sm"
+                           className={`h-7 ${aiActionTone.buttonClass}`}
+                           onClick={handleGenerateAvatarImage}
+                         >
+                           <Wand2 className={`h-4 w-4 mr-1 ${aiActionTone.iconClass}`} />
+                           <span>AI 一键生成配图</span>
+                         </Button>
+                       </div>
+                       <div className="relative h-40 overflow-hidden rounded-xl border-2 border-dashed border-[#E5DED8] bg-[#F8F5F3] hover:bg-[#F1ECE8] transition-colors cursor-pointer flex flex-col items-center justify-center text-[#9A9396] group">
+                          {selectedAvatar.imageUrl ? (
+                            <img src={selectedAvatar.imageUrl} alt="Generated cover" className="absolute inset-0 h-full w-full object-cover" />
                           ) : (
                             <>
                               <ImageIcon className="h-8 w-8 mb-2 group-hover:text-rose-500 transition-colors" />
@@ -406,6 +685,165 @@ export function BAAvatars() {
             <p className="font-medium text-[#766F73]">在左侧选择或创建一个数字人顾客</p>
           </div>
         )}
+
+        <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+          <DialogContent className="sm:max-w-[1120px] h-[85vh] p-0 overflow-hidden bg-[#FCFAF8]">
+            <div className="flex h-full flex-col">
+              <div className="flex items-center justify-between border-b border-[#E5DED8] bg-white px-6 py-4">
+                <DialogTitle className="text-lg font-bold text-[#242124]">对话预览</DialogTitle>
+              </div>
+
+              <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.9fr)]">
+                <div className="flex min-h-0 flex-col border-r border-[#E5DED8] bg-[#FDFBFA]">
+                  <div className="flex items-center justify-between border-b border-[#E5DED8] bg-white px-6 py-3">
+                    <div className="text-xs font-bold uppercase tracking-wider text-[#9A9396]">聊天记录</div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={resetPreviewConversation}
+                      className="border-[#E5DED8] bg-white text-[#3F3A3D] hover:bg-[#F8F5F3]"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                      <span>重置对话</span>
+                    </Button>
+                  </div>
+
+                  <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+                    <div className="space-y-4">
+                      {previewMessages.map(message => (
+                        <div
+                          key={message.id}
+                          className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div className={`flex max-w-[85%] items-end gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                            <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${message.role === 'user' ? 'bg-rose-600 text-white' : 'bg-white text-rose-600 border border-[#E5DED8]'}`}>
+                              {message.role === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+                            </div>
+                            <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${message.role === 'user' ? 'bg-rose-600 text-white rounded-br-md' : 'border border-[#E5DED8] bg-white text-[#242124] rounded-bl-md'}`}>
+                              <p data-i18n-skip="true" className="whitespace-pre-wrap">
+                                {message.text}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {previewTyping && (
+                        <div className="flex justify-start">
+                          <div className="flex items-end gap-3">
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-rose-600 border border-[#E5DED8]">
+                              <Bot className="h-4 w-4" />
+                            </div>
+                            <div className="rounded-2xl rounded-bl-md border border-[#E5DED8] bg-white px-4 py-3 shadow-sm">
+                              <div className="flex items-center gap-1.5">
+                                <span className="h-2 w-2 rounded-full bg-[#C9C1C4] animate-bounce [animation-delay:-0.2s]" />
+                                <span className="h-2 w-2 rounded-full bg-[#C9C1C4] animate-bounce [animation-delay:-0.1s]" />
+                                <span className="h-2 w-2 rounded-full bg-[#C9C1C4] animate-bounce" />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="border-t border-[#E5DED8] bg-white p-4">
+                    <div className="flex items-end gap-3">
+                      <textarea
+                        value={previewInput}
+                        onChange={(e) => setPreviewInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            sendPreviewMessage();
+                          }
+                        }}
+                        placeholder="输入消息..."
+                        className="min-h-[56px] flex-1 resize-none rounded-lg border border-[#E5DED8] bg-white px-3 py-2 text-sm leading-relaxed outline-none transition-colors placeholder:text-[#9A9396] focus:border-rose-500 focus:ring-2 focus:ring-rose-500/15"
+                      />
+                      <Button
+                        onClick={sendPreviewMessage}
+                        className="h-10 bg-rose-600 px-4 text-white hover:bg-rose-700"
+                      >
+                        <Send className="h-4 w-4" />
+                        <span>发送</span>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="min-h-0 overflow-y-auto bg-[#F8F5F3] px-5 py-5">
+                  <div className="space-y-5">
+                    <div className="flex items-center gap-3 border-b border-[#E5DED8] pb-4">
+                      <img
+                        src={selectedAvatar.avatarUrl}
+                        alt={selectedAvatar.name}
+                        className="h-14 w-14 rounded-full object-cover shadow-sm"
+                      />
+                      <div className="min-w-0">
+                        <div data-i18n-skip="true" className="truncate text-sm font-bold text-[#242124]">
+                          {selectedAvatar.name}
+                        </div>
+                        <div className="truncate text-xs text-[#766F73]">
+                          {selectedAvatar.language} · {selectedAvatar.voice}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="mb-2 text-[11px] font-bold uppercase tracking-wider text-[#9A9396]">
+                        当前剧本
+                      </div>
+                      <div className="rounded-xl border border-[#E5DED8] bg-white p-3">
+                        <div data-i18n-skip="true" className="text-sm font-bold text-[#242124]">
+                          {selectedScript?.title ?? '自定义大纲'}
+                        </div>
+                        <p data-i18n-skip="true" className="mt-1 text-xs leading-relaxed text-[#766F73]">
+                          {selectedScript?.description ?? '使用当前数字人对话流程进行预览'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="mb-2 text-[11px] font-bold uppercase tracking-wider text-[#9A9396]">
+                        人格设定 Prompt
+                      </div>
+                      <div data-i18n-skip="true" className="rounded-xl border border-[#E5DED8] bg-white p-3 text-xs leading-relaxed text-[#5D565A] max-h-40 overflow-y-auto whitespace-pre-line">
+                        {selectedAvatar.prompt}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="mb-2 text-[11px] font-bold uppercase tracking-wider text-[#9A9396]">
+                        对话流程与剧本大纲
+                      </div>
+                      <div data-i18n-skip="true" className="rounded-xl border border-[#E5DED8] bg-white p-3 text-xs leading-relaxed text-[#5D565A] max-h-40 overflow-y-auto whitespace-pre-line">
+                        {selectedAvatar.flow}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="mb-2 text-[11px] font-bold uppercase tracking-wider text-[#9A9396]">
+                        标签
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedAvatar.tags.map(tag => (
+                          <span
+                            key={tag}
+                            data-i18n-skip="true"
+                            className="inline-flex items-center rounded-full border border-rose-100 bg-rose-50 px-3 py-1 text-xs font-bold text-rose-600"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

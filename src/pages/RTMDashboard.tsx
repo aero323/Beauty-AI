@@ -149,7 +149,7 @@ export function RTMDashboard() {
           </Card>
         </div>
 
-        {/* Col 2: 区域作业与考试监控 (Tasks & Exams) */}
+        {/* Col 2: 区域附加题与考试监控 (Additional Questions & Exams) */}
         <div className="flex flex-col">
            <Card className="rounded-2xl border border-[#E9E4DF] shadow-sm overflow-hidden flex-1 flex flex-col bg-white">
             <CardHeader className="p-4 border-b border-slate-50 bg-[#F8F5F3]/50 flex flex-row items-center justify-between">

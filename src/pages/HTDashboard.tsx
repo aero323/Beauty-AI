@@ -6,6 +6,7 @@ import { Progress } from '../components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { brandTone, getProgressTone, getScoreTone, getTaskStatusBadgeClass } from '../lib/visualTones';
+import { AppDownloadButton } from '../components/AppDownloadButton';
 
 interface HTDashboardProps {
   onNavigate?: (tab: string) => void;
@@ -26,6 +27,8 @@ const getTaskProgressText = (task: any) => {
 };
 
 const VISIBLE_ONGOING_TASK_COUNT = 4;
+const HQ_ACTIVE_BA_COUNT = 1428;
+const HQ_INACTIVE_BA_COUNT = 12;
 
 const HQ_STAFF_PROFILES = {
   Siti: {
@@ -251,15 +254,26 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
   return (
     <div className="space-y-6 flex-1 flex flex-col pt-2">
       {/* Top KPIs - Auto Stats */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wider text-[#9A9396]">Dashboard</p>
+          <h2 className="text-xl font-bold text-[#242124]">全国培训概览</h2>
+        </div>
+        <AppDownloadButton />
+      </div>
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="rounded-2xl shadow-sm border border-[#E9E4DF] overflow-hidden bg-white">
           <CardHeader className="p-4 pb-0 flex flex-row items-center justify-between">
-            <CardTitle className="text-xs font-bold text-[#766F73] uppercase tracking-widest">全国注册 BA 总数</CardTitle>
+            <CardTitle className="text-xs font-bold text-[#766F73] uppercase tracking-widest">全国当前已激活BA数</CardTitle>
             <Users className="h-4 w-4 text-rose-400" />
           </CardHeader>
           <CardContent className="p-4 pt-2">
             <div className="flex items-end justify-between leading-none">
-              <span className="text-3xl font-bold text-[#242124]">1,428</span>
+              <div>
+                <span className="text-3xl font-bold text-[#242124]">{HQ_ACTIVE_BA_COUNT.toLocaleString('en-US')}</span>
+                <p className="mt-1 text-[10px] font-medium text-[#9A9396]">（{HQ_INACTIVE_BA_COUNT} 人未激活）</p>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -398,7 +412,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
           </Card>
         </div>
 
-        {/* Col 2: 全国作业与考试监控 (Tasks & Exams) */}
+        {/* Col 2: 全国附加题与考试监控 (Additional Questions & Exams) */}
         <div className="flex flex-col">
            <Card className="rounded-2xl border border-[#E9E4DF] shadow-sm overflow-hidden flex-1 flex flex-col bg-white">
             <CardHeader className="p-4 border-b border-slate-50 bg-[#F8F5F3]/50 flex flex-row items-center justify-between">

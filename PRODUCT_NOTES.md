@@ -1,4 +1,4 @@
-# Beauty AI 管理后台产品笔记
+# SalesBoost AI 管理后台产品笔记
 
 ## 学习积分与大区排名
 

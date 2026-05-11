@@ -4,6 +4,8 @@ import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
 import { aiActionTone } from '../lib/visualTones';
+import { EffectiveStatusBadge, type EffectiveStatus } from '../components/EffectiveStatusBadge';
+import { ConversationPlaygroundDialog, type PlaygroundMessage } from '../components/ConversationPlaygroundDialog';
 
 interface ScriptStep {
   id: string;
@@ -18,6 +20,7 @@ interface ScriptScenario {
   steps: ScriptStep[];
   imageUrl?: string;
   scope?: string;
+  effectiveStatus: EffectiveStatus;
 }
 
 const INITIAL_SCRIPTS: ScriptScenario[] = [
@@ -26,6 +29,7 @@ const INITIAL_SCRIPTS: ScriptScenario[] = [
     name: '干敏皮防晒推荐',
     description: '指导BA如何接待干敏皮顾客，通过挖掘需求推荐合适的防晒产品及其主要成分。',
     scope: 'HQ',
+    effectiveStatus: 'active',
     steps: [
       { id: 's1', description: '询问顾客的日常护肤痛点和防晒需求', hint: '注意关注防晒产品的滋润度和温和性' },
       { id: 's2', description: '介绍Barrier Shield系列或物理类温和防晒', hint: '' },
@@ -37,6 +41,7 @@ const INITIAL_SCRIPTS: ScriptScenario[] = [
     name: '处理缺货抱怨',
     description: '顾客想要的热门产品缺货，BA需要安抚情绪并推荐合理的替代方案或引导预定。',
     scope: 'HQ',
+    effectiveStatus: 'active',
     steps: [
       { id: 's1', description: '诚恳地向顾客道歉并表示理解', hint: '保持态度友好，不要推卸责任' },
       { id: 's2', description: '说明缺货原因并给出大概的到货时间', hint: '' },
@@ -51,8 +56,22 @@ export function BAScripts() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('剧本已保存');
   const [toastTone, setToastTone] = useState<'success' | 'warning'>('success');
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const selectedScript = scripts.find(s => s.id === selectedId) || scripts[0];
+  const previewScript = selectedScript
+    ? {
+        id: selectedScript.id,
+        title: selectedScript.name,
+        description: selectedScript.description,
+        outline: selectedScript.steps.map(step => `${step.description}${step.hint ? `（${step.hint}）` : ''}`).join('\n')
+      }
+    : {
+        id: 'custom-flow',
+        title: '自定义大纲',
+        description: selectedScript?.description ?? '使用当前剧本流程进行预览',
+        outline: selectedScript?.steps.map(step => `${step.description}${step.hint ? `（${step.hint}）` : ''}`).join('\n') ?? ''
+      };
 
   const showFeedback = (message: string, tone: 'success' | 'warning' = 'success', duration = 2500) => {
     setToastMessage(message);
@@ -62,7 +81,7 @@ export function BAScripts() {
   };
 
   const handleUpdate = (field: keyof ScriptScenario, value: any) => {
-    setScripts(prev => prev.map(s => s.id === selectedId ? { ...s, [field]: value } : s));
+    setScripts(prev => prev.map(s => s.id === selectedId ? { ...s, [field]: value, effectiveStatus: 'pending' } : s));
   };
 
   const handleUpdateStep = (stepId: string, field: keyof ScriptStep, value: string) => {
@@ -70,6 +89,7 @@ export function BAScripts() {
       if (s.id !== selectedId) return s;
       return {
         ...s,
+        effectiveStatus: 'pending',
         steps: s.steps.map(st => st.id === stepId ? { ...st, [field]: value } : st)
       };
     }));
@@ -93,6 +113,7 @@ export function BAScripts() {
       id: Date.now().toString(),
       name: '新场景剧本',
       description: '请描述该场景的主要背景与目的...',
+      effectiveStatus: 'pending',
       steps: [
         { id: Date.now().toString(), description: '步骤 1', hint: '' }
       ]
@@ -113,8 +134,97 @@ export function BAScripts() {
   };
 
   const handleSave = () => {
+    setScripts(prev => prev.map(s => s.id === selectedId ? { ...s, effectiveStatus: 'active' } : s));
     showFeedback('剧本已保存', 'success', 3000);
   };
+
+  const buildPreviewMessages = (script: ScriptScenario): PlaygroundMessage[] => [
+    {
+      id: `${script.id}-opening`,
+      role: 'assistant',
+      text: `欢迎进入剧本预览。我会按「${script.name}」这个场景扮演顾客，你可以直接输入 BA 的示范回应。`,
+    },
+  ];
+
+  const generatePreviewReply = (input: string) => {
+    const text = input.toLowerCase();
+    const matchedStep = selectedScript.steps.find(step =>
+      text.includes(step.description.toLowerCase().slice(0, 4))
+      || text.includes('价格')
+      || text.includes('预算')
+      || text.includes('试用')
+      || text.includes('异议')
+      || text.includes('油')
+      || text.includes('搓泥')
+    );
+
+    if (text.includes('价格') || text.includes('预算')) {
+      return `可以先从价值和体验讲起。这个剧本里更适合先回应顾客顾虑，再给出更稳的方案，必要时补充试用或替代选择。`;
+    }
+
+    if (text.includes('试用') || text.includes('小样')) {
+      return `可以顺着顾客的试用意愿推进，先确认肤感和实际需求，再结合当前剧本的步骤引导试涂或体验。`;
+    }
+
+    if (text.includes('油') || text.includes('搓泥') || text.includes('闷痘')) {
+      return `可以重点解释质地、适用肤质和使用顺序，先打消顾客对油腻、搓泥或闷痘的担心。`;
+    }
+
+    if (matchedStep) {
+      return `可以按第 ${selectedScript.steps.indexOf(matchedStep) + 1} 步的节奏回应：${matchedStep.description}。对应提示可以写成「${matchedStep.hint || '先围绕当前顾客需求展开，再推进下一步'}」。`;
+    }
+
+    return `建议先呼应顾客问题，再回到这个剧本的核心主线：${selectedScript.description.slice(0, 36)}${selectedScript.description.length > 36 ? '...' : ''}`;
+  };
+
+  const previewInitialMessages = buildPreviewMessages({
+    id: previewScript.id,
+    name: previewScript.title,
+    description: previewScript.description,
+    steps: selectedScript?.steps ?? [],
+    effectiveStatus: selectedScript?.effectiveStatus ?? 'pending',
+  });
+
+  const previewRightPane = (
+    <div className="space-y-5">
+      <div className="flex items-center gap-3 border-b border-[#E5DED8] pb-4">
+        <div className="min-w-0">
+          <div data-i18n-skip="true" className="truncate text-sm font-bold text-[#242124]">
+            {selectedScript.name}
+          </div>
+          <div data-i18n-skip="true" className="mt-1 truncate text-xs text-[#766F73]">
+            {selectedScript.description}
+          </div>
+        </div>
+        <div className="ml-auto shrink-0">
+          <EffectiveStatusBadge status={selectedScript.effectiveStatus} />
+        </div>
+      </div>
+
+      <div>
+        <div className="mb-2 text-[11px] font-bold uppercase tracking-wider text-[#9A9396]">
+          剧本步骤
+        </div>
+        <div className="space-y-3">
+          {selectedScript.steps.map((step, index) => (
+            <div key={step.id} className="rounded-xl border border-[#E5DED8] bg-white p-3">
+              <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#C47D2A]">
+                步骤 {index + 1}
+              </div>
+              <div data-i18n-skip="true" className="text-sm font-bold text-[#242124]">
+                {step.description}
+              </div>
+              {step.hint ? (
+                <div data-i18n-skip="true" className="mt-1 text-xs leading-relaxed text-[#766F73]">
+                  {step.hint}
+                </div>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 
   const handleGenerateScriptSteps = () => {
     const scriptName = selectedScript.name.trim();
@@ -241,13 +351,24 @@ export function BAScripts() {
                 <h1 className="text-xl font-bold text-[#242124]">编辑剧本：{selectedScript.name}</h1>
                 <p className="text-xs text-[#766F73] mt-1">配置剧情背景与考核指导节点</p>
               </div>
-              <button
-                onClick={handleSave}
-                className="flex items-center space-x-2 px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg shadow-sm font-bold text-sm transition-colors"
-              >
-                <Save className="h-4 w-4" />
-                <span>保存剧本</span>
-              </button>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setPreviewOpen(true)}
+                  className="border-[#E5DED8] bg-white text-[#3F3A3D] hover:bg-[#F8F5F3]"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  <span>预览效果</span>
+                </Button>
+                <button
+                  onClick={handleSave}
+                  className="flex items-center space-x-2 px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg shadow-sm font-bold text-sm transition-colors"
+                >
+                  <Save className="h-4 w-4" />
+                  <span>保存剧本</span>
+                </button>
+                <EffectiveStatusBadge status={selectedScript.effectiveStatus} />
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 md:p-8">
@@ -426,6 +547,17 @@ export function BAScripts() {
             <p className="font-medium text-[#766F73]">在左侧选择或创建一个剧本</p>
           </div>
         )}
+
+        <ConversationPlaygroundDialog
+          open={previewOpen}
+          onOpenChange={setPreviewOpen}
+          title="剧本预览"
+          subtitle="输入顾客问题，查看当前剧本下的 BA 示范回应"
+          seedKey={selectedScript.id}
+          initialMessages={previewInitialMessages}
+          generateReply={generatePreviewReply}
+          rightPane={previewRightPane}
+        />
       </div>
     </div>
   );

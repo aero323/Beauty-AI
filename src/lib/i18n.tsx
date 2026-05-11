@@ -23,10 +23,14 @@ const en: Dictionary = {
   '数字人顾客': 'Digital Customers',
   '场景剧本': 'Scenario Scripts',
   '金句库': 'Quote Library',
-  '作业考试': 'Assignments & Exams',
+  '题目与考试': 'Questions & Exams',
   '生成题目': 'Generate Questions',
   '题库管理': 'Question Bank',
-  '作业管理': 'Assignment Management',
+  '附加题': 'Additional Questions',
+  '附加题管理': 'Additional Questions',
+  '关联附加题管理': 'Linked Additional Questions',
+  '当前课件': 'Current Course',
+  '课件与附加题关联': 'Course & Additional Questions Linkage',
   '考试组卷': 'Exam Assembly',
   '周期任务': 'Recurring Tasks',
   '周期任务监控': 'Task Monitoring',
@@ -65,6 +69,7 @@ const en: Dictionary = {
   '区域培训师主管 (RTM)': 'Regional Training Manager (RTM)',
   '区域培训师 (RT)': 'Regional Trainer (RT)',
   '当前登录用户': 'Current User',
+  '服务客户': 'Client',
   '系统管理员': 'System Admin',
   '全球总部': 'Global HQ',
   '大区管理': 'Regional Management',
@@ -72,6 +77,9 @@ const en: Dictionary = {
   '南区': 'South Region',
   '门店': 'Store',
   '语言': 'Language',
+  '下载APP': 'Download App',
+  '移动端 APP 下载': 'Mobile App Download',
+  'BA 可在移动端查看课件、附加题、考试和陪练任务。': 'BAs can view courses, additional questions, exams, and practice tasks on mobile.',
   '中文': 'Chinese',
   '英文': 'English',
   '印尼语': 'Indonesian',
@@ -137,7 +145,6 @@ const en: Dictionary = {
   '上传产品知识，一键生成课件、AI讲解与题目': 'Upload product knowledge to generate courses, AI narration, and questions',
   '开始智能生成': 'Start AI Generation',
   '一键生成题目': 'Generate Questions',
-  'AI 一键生成配图': 'AI Generate Image',
   'AI 一键生成区域配图': 'AI Generate Regional Image',
   'AI 一键生成剧本': 'AI Generate Script',
   'AI 一键生成金句': 'AI Generate Quotes',
@@ -159,15 +166,17 @@ const en: Dictionary = {
   '拖拽 PDF 、DOC、PPTX文件至此或点击上传': 'Drag PDF, DOC, or PPTX files here, or click to upload',
   '拖拽 PDF、DOC、PPTX文件至此或点击上传，AI 将自动分析提取内容并出题': 'Drag PDF, DOC, or PPTX files here, or click to upload. AI will extract content and generate questions.',
   '附加生成指令 (可选)': 'Additional Generation Instructions (Optional)',
-  '同步生成课后作业题 (10题)': 'Also Generate Homework Questions (10)',
+  '同步生成课后附加题 (10题)': 'Also Generate Additional Questions (10)',
   '选择讲解角色：': 'Presenter Voice:',
   '清爽帅哥': 'Fresh Male Presenter',
   '美容姐姐': 'Beauty Presenter',
-  '课件与作业关联': 'Course & Assignment Linkage',
   '题库可关联题目': 'Question Bank Items',
   '已关联此课件的题目': 'Questions Linked to This Course',
-  '配置课件伴随作业': 'Configure Course Assignment',
-  '学员学习完此课件后，将在APP自动推送已关联的作业题': 'After learners complete this course, linked homework questions will be pushed in the app.',
+  '配置课件附加题': 'Configure Course Additional Questions',
+  '学员学习完此课件后，将在APP自动推送已关联的附加题': 'After learners complete this course, linked additional questions will be pushed in the app.',
+  '生成的附加题将进入题库；可以在附加题管理中查看': 'Generated additional questions will enter the question bank and can be viewed in Additional Questions.',
+  '添加到附加题': 'Add to Additional Questions',
+  '在左侧选择一个课件查看其附加题': 'Select a course on the left to view its additional questions.',
   '考试试卷列表': 'Exam Paper List',
   '统一管理通过生成、录入的考核试题': 'Manage all generated and manually entered assessment questions',
   '搜索题目、标签或来源...': 'Search questions, tags, or sources...',
@@ -319,10 +328,30 @@ const en: Dictionary = {
   '更换头像': 'Change Avatar',
   '上传大图': 'Upload Large Image',
   '已上传大图': 'Large Image Uploaded',
+  'AI 一键生成配图': 'AI Generate Cover',
+  '预览效果': 'Preview',
+  '剧本预览': 'Script Preview',
+  '金句预览': 'Quote Preview',
+  '金句跟读预览': 'Quote Read-Aloud Preview',
+  '模拟学员 APP 端听原音、按住跟读和查看进度的练习界面': 'Simulates the learner app interface for listening, holding to read aloud, and checking progress',
+  '重置预览': 'Reset Preview',
+  '金句数': 'Quotes',
+  '示例评分': 'Sample Score',
+  '跟读次数': 'Read-Alouds',
+  '金句跟读队列': 'Quote Read-Aloud Queue',
+  '请先为这个产品添加一条适合跟读的销售金句。': 'Add a sales quote suitable for read-aloud practice first.',
+  '学员将在 APP 中听原音并按住跟读。': 'Learners will listen to the original audio and hold to read aloud in the app.',
   '点击上传或拖拽大图至此': 'Click or drag a large image here',
   '建议上传横版人物大图，用于学员端角色封面': 'Upload a landscape character image for the learner-side role cover',
   '数字人设置': 'Digital Human Settings',
   '数字人名称': 'Digital Customer Name',
+  '对话预览': 'Dialogue Preview',
+  '聊天记录': 'Chat History',
+  '重置对话': 'Reset Chat',
+  '输入消息...': 'Enter a message...',
+  '发送': 'Send',
+  '当前剧本': 'Current Script',
+  '使用当前数字人对话流程进行预览': 'Preview using the current digital customer dialogue flow',
   '暂无数字人顾客，请点击右上角添加': 'No digital customers yet. Click the top-right button to add one',
   '在左侧选择或创建一个数字人顾客': 'Select or create a digital customer on the left',
   '配置角色外观、人格设定及互动流程以用于 BA 陪练': 'Configure the role appearance, persona, and interaction flow for BA practice',
@@ -359,6 +388,8 @@ const en: Dictionary = {
   '学习中': 'Learning',
   '练习中': 'Practicing',
   '未开始': 'Not Started',
+  '待生效': 'Pending',
+  '已生效': 'Active',
   '已交卷': 'Submitted',
   '正在答题': 'Answering',
   '尚未进入': 'Not Entered',
@@ -395,7 +426,6 @@ const en: Dictionary = {
   '包含的课件内容': 'Included Course Content',
   '门课件': 'courses',
   '整体完成率': 'Overall Completion',
-  '预览': 'Preview',
   '学员明细': 'Learner Details',
   '考生明细': 'Candidate Details',
   '考生考卷列表': 'Candidate Papers',
@@ -485,6 +515,7 @@ const en: Dictionary = {
   '历次考试记录': 'Exam History',
   '近期任务情况': 'Recent Task Status',
   '全国注册 BA 总数': 'Total Registered BAs',
+  '全国当前已激活BA数': 'National Active BA Count',
   '本月课件学习次数': 'Course Views This Month',
   '本月平均任务完成率': 'Average Task Completion This Month',
   '本月全国练习总次数': 'National Practice Attempts This Month',
@@ -618,10 +649,14 @@ const id: Dictionary = {
   '数字人顾客': 'Pelanggan Digital',
   '场景剧本': 'Skrip Skenario',
   '金句库': 'Pustaka Kutipan',
-  '作业考试': 'Tugas & Ujian',
+  '题目与考试': 'Soal & Ujian',
   '生成题目': 'Buat Soal',
   '题库管理': 'Bank Soal',
-  '作业管理': 'Manajemen Tugas',
+  '附加题': 'Soal Tambahan',
+  '附加题管理': 'Manajemen Soal Tambahan',
+  '关联附加题管理': 'Manajemen Soal Tambahan Terkait',
+  '当前课件': 'Kursus Saat Ini',
+  '课件与附加题关联': 'Keterkaitan Kursus & Soal Tambahan',
   '考试组卷': 'Susun Ujian',
   '周期任务': 'Tugas Berkala',
   '周期任务监控': 'Monitoring Tugas',
@@ -660,6 +695,7 @@ const id: Dictionary = {
   '区域培训师主管 (RTM)': 'Manajer Pelatihan Regional (RTM)',
   '区域培训师 (RT)': 'Trainer Regional (RT)',
   '当前登录用户': 'Pengguna Saat Ini',
+  '服务客户': 'Klien',
   '系统管理员': 'Admin Sistem',
   '全球总部': 'Kantor Pusat Global',
   '大区管理': 'Manajemen Regional',
@@ -667,6 +703,9 @@ const id: Dictionary = {
   '南区': 'Wilayah Selatan',
   '门店': 'Toko',
   '语言': 'Bahasa',
+  '下载APP': 'Unduh App',
+  '移动端 APP 下载': 'Unduh App Mobile',
+  'BA 可在移动端查看课件、附加题、考试和陪练任务。': 'BA dapat melihat kursus, soal tambahan, ujian, dan latihan di mobile.',
   '中文': 'Mandarin',
   '英文': 'Inggris',
   '印尼语': 'Indonesia',
@@ -733,7 +772,6 @@ const id: Dictionary = {
   '上传产品知识，一键生成课件、AI讲解与题目': 'Unggah pengetahuan produk untuk membuat kursus, narasi AI, dan soal',
   '开始智能生成': 'Mulai Buat AI',
   '一键生成题目': 'Buat Soal',
-  'AI 一键生成配图': 'AI Buat Gambar',
   'AI 一键生成区域配图': 'AI Buat Gambar Regional',
   'AI 一键生成剧本': 'AI Buat Skrip',
   'AI 一键生成金句': 'AI Buat Kutipan',
@@ -755,15 +793,17 @@ const id: Dictionary = {
   '拖拽 PDF 、DOC、PPTX文件至此或点击上传': 'Tarik file PDF, DOC, atau PPTX ke sini, atau klik untuk unggah',
   '拖拽 PDF、DOC、PPTX文件至此或点击上传，AI 将自动分析提取内容并出题': 'Tarik PDF, DOC, atau PPTX ke sini, atau klik untuk unggah. AI akan menganalisis dan membuat soal.',
   '附加生成指令 (可选)': 'Instruksi Tambahan (Opsional)',
-  '同步生成课后作业题 (10题)': 'Buat Soal Tugas Sekaligus (10)',
+  '同步生成课后附加题 (10题)': 'Buat Soal Tambahan Sekaligus (10)',
   '选择讲解角色：': 'Pilih Presenter:',
   '清爽帅哥': 'Presenter Pria Fresh',
   '美容姐姐': 'Presenter Beauty',
-  '课件与作业关联': 'Relasi Kursus & Tugas',
   '题库可关联题目': 'Soal dari Bank Soal',
   '已关联此课件的题目': 'Soal Terkait Kursus Ini',
-  '配置课件伴随作业': 'Konfigurasi Tugas Pendamping Kursus',
-  '学员学习完此课件后，将在APP自动推送已关联的作业题': 'Setelah peserta menyelesaikan kursus, soal terkait akan otomatis dikirim di aplikasi.',
+  '配置课件附加题': 'Konfigurasi Soal Tambahan Kursus',
+  '学员学习完此课件后，将在APP自动推送已关联的附加题': 'Setelah peserta menyelesaikan kursus, soal tambahan terkait akan otomatis dikirim di aplikasi.',
+  '生成的附加题将进入题库；可以在附加题管理中查看': 'Soal tambahan yang dibuat akan masuk ke bank soal dan dapat dilihat di Manajemen Soal Tambahan.',
+  '添加到附加题': 'Tambahkan ke Soal Tambahan',
+  '在左侧选择一个课件查看其附加题': 'Pilih kursus di kiri untuk melihat soal tambahannya.',
   '考试试卷列表': 'Daftar Paket Ujian',
   '统一管理通过生成、录入的考核试题': 'Kelola semua soal ujian hasil pembuatan dan input manual',
   '搜索题目、标签或来源...': 'Cari soal, tag, atau sumber...',
@@ -915,10 +955,30 @@ const id: Dictionary = {
   '更换头像': 'Ganti Avatar',
   '上传大图': 'Unggah Gambar Besar',
   '已上传大图': 'Gambar Besar Diunggah',
+  'AI 一键生成配图': 'AI Buat Gambar',
+  '预览效果': 'Pratinjau',
+  '剧本预览': 'Pratinjau Skrip',
+  '金句预览': 'Pratinjau Kutipan',
+  '金句跟读预览': 'Pratinjau Baca Kutipan',
+  '模拟学员 APP 端听原音、按住跟读和查看进度的练习界面': 'Mensimulasikan tampilan app peserta untuk mendengar audio, tahan untuk membaca, dan melihat progres',
+  '重置预览': 'Reset Pratinjau',
+  '金句数': 'Jumlah Kutipan',
+  '示例评分': 'Skor Contoh',
+  '跟读次数': 'Jumlah Baca',
+  '金句跟读队列': 'Antrean Baca Kutipan',
+  '请先为这个产品添加一条适合跟读的销售金句。': 'Tambahkan kutipan penjualan yang cocok untuk latihan baca terlebih dahulu.',
+  '学员将在 APP 中听原音并按住跟读。': 'Peserta akan mendengar audio asli dan tahan untuk membaca di app.',
   '点击上传或拖拽大图至此': 'Klik atau tarik gambar besar ke sini',
   '建议上传横版人物大图，用于学员端角色封面': 'Unggah gambar karakter landscape untuk cover role peserta',
   '数字人设置': 'Pengaturan Digital Human',
   '数字人名称': 'Nama Pelanggan Digital',
+  '对话预览': 'Pratinjau Percakapan',
+  '聊天记录': 'Riwayat Chat',
+  '重置对话': 'Reset Chat',
+  '输入消息...': 'Masukkan pesan...',
+  '发送': 'Kirim',
+  '当前剧本': 'Skrip Saat Ini',
+  '使用当前数字人对话流程进行预览': 'Pratinjau menggunakan alur percakapan pelanggan digital saat ini',
   '暂无数字人顾客，请点击右上角添加': 'Belum ada pelanggan digital. Klik tombol kanan atas untuk menambah',
   '在左侧选择或创建一个数字人顾客': 'Pilih atau buat pelanggan digital di sisi kiri',
   '配置角色外观、人格设定及互动流程以用于 BA 陪练': 'Konfigurasi tampilan role, persona, dan alur interaksi untuk latihan BA',
@@ -955,6 +1015,8 @@ const id: Dictionary = {
   '学习中': 'Sedang Belajar',
   '练习中': 'Sedang Latihan',
   '未开始': 'Belum Mulai',
+  '待生效': 'Menunggu Berlaku',
+  '已生效': 'Sudah Berlaku',
   '已交卷': 'Sudah Mengumpulkan',
   '正在答题': 'Sedang Menjawab',
   '尚未进入': 'Belum Masuk',
@@ -991,7 +1053,6 @@ const id: Dictionary = {
   '包含的课件内容': 'Materi Kursus',
   '门课件': 'kursus',
   '整体完成率': 'Tingkat Selesai Keseluruhan',
-  '预览': 'Pratinjau',
   '学员明细': 'Detail Peserta',
   '考生明细': 'Detail Peserta Ujian',
   '考生考卷列表': 'Daftar Lembar Jawaban Peserta',
@@ -1081,6 +1142,7 @@ const id: Dictionary = {
   '历次考试记录': 'Riwayat Ujian',
   '近期任务情况': 'Status Tugas Terkini',
   '全国注册 BA 总数': 'Total BA Terdaftar Nasional',
+  '全国当前已激活BA数': 'Jumlah BA Aktif Nasional',
   '本月课件学习次数': 'Jumlah Belajar Kursus Bulan Ini',
   '本月平均任务完成率': 'Rata-rata Penyelesaian Tugas Bulan Ini',
   '本月全国练习总次数': 'Total Latihan Nasional Bulan Ini',
@@ -1211,6 +1273,15 @@ const dictionaries: Record<Language, Dictionary> = {
   id,
 };
 
+const translationToSource = Object.values(dictionaries).reduce<Dictionary>((reverse, dictionary) => {
+  Object.entries(dictionary).forEach(([source, translated]) => {
+    if (translated && !reverse[translated]) {
+      reverse[translated] = source;
+    }
+  });
+  return reverse;
+}, {});
+
 const textNodeOriginals = new WeakMap<Text, string>();
 const attrOriginals = new WeakMap<Element, Partial<Record<string, string>>>();
 const supportedAttributes = ['placeholder', 'title', 'aria-label', 'alt'] as const;
@@ -1225,6 +1296,21 @@ const preserveSpacing = (source: string, translated: string) => {
   const leading = source.match(/^\s*/)?.[0] ?? '';
   const trailing = source.match(/\s*$/)?.[0] ?? '';
   return `${leading}${translated}${trailing}`;
+};
+
+const restoreSourceText = (input: string) => {
+  const trimmed = input.trim();
+  if (!trimmed) return input;
+  const source = translationToSource[trimmed];
+  return source ? preserveSpacing(input, source) : input;
+};
+
+const getTextNodeSource = (current: string, remembered?: string) => {
+  const restoredCurrent = restoreSourceText(current);
+  if (hasCjk(restoredCurrent.trim())) {
+    return restoredCurrent;
+  }
+  return remembered ? restoreSourceText(remembered) : restoredCurrent;
 };
 
 const translateTemplate = (text: string, language: Language) => {
@@ -1263,6 +1349,7 @@ const translateTemplate = (text: string, language: Language) => {
     [/^(\d+) 人$/, (m) => language === 'id' ? `${m[1]} orang` : `${m[1]} people`],
     [/^(\d+) 份$/, (m) => language === 'id' ? `${m[1]} lembar` : `${m[1]} papers`],
     [/^([\d.]+) 分$/, (m) => language === 'id' ? `${m[1]} poin` : `${m[1]} pts`],
+    [/^（(\d+) 人未激活）$/, (m) => language === 'id' ? `（${m[1]} orang belum aktif）` : `(${m[1]} people inactive)`],
     [/^入职: (.+)$/, (m) => language === 'id' ? `Bergabung: ${m[1]}` : `Joined: ${m[1]}`],
     [/^预计 (\d+) mins$/, (m) => language === 'id' ? `Estimasi ${m[1]} menit` : `Est. ${m[1]} mins`],
     [/^答题进度 \((.+)\)$/, (m) => language === 'id' ? `Progres jawaban (${m[1]})` : `Answering progress (${m[1]})`],
@@ -1298,7 +1385,7 @@ const translateTemplate = (text: string, language: Language) => {
     [/^编辑区域剧本：(.+)$/, (m) => language === 'id' ? `Edit Skrip Regional: ${m[1]}` : `Edit Regional Script: ${m[1]}`],
     [/^编辑产品：(.+)$/, (m) => language === 'id' ? `Edit Produk: ${m[1]}` : `Edit Product: ${m[1]}`],
     [/^发布考试：(.+)$/, (m) => language === 'id' ? `Terbitkan Ujian: ${m[1]}` : `Publish Exam: ${m[1]}`],
-    [/^配置课件伴随作业：(.+)$/, (m) => language === 'id' ? `Konfigurasi Tugas Kursus: ${m[1]}` : `Configure Course Assignment: ${m[1]}`],
+    [/^配置课件附加题：(.+)$/, (m) => language === 'id' ? `Konfigurasi Soal Tambahan Kursus: ${m[1]}` : `Configure Course Additional Questions: ${m[1]}`],
     [/^(.+) - 实时监控$/, (m) => language === 'id' ? `${m[1]} - Monitor Real-time` : `${m[1]} - Live Monitoring`],
     [/^(.+) - 完成明细$/, (m) => language === 'id' ? `${m[1]} - Detail Selesai` : `${m[1]} - Completion Details`],
     [/^(.+) - 完整考卷与成绩单$/, (m) => language === 'id' ? `${m[1]} - Lembar Ujian Lengkap & Transkrip Nilai` : `${m[1]} - Full Paper & Score Sheet`],
@@ -1314,19 +1401,20 @@ const translateTemplate = (text: string, language: Language) => {
 };
 
 export const translateText = (input: string, language: Language) => {
-  if (language === 'zh') return input;
+  const sourceInput = restoreSourceText(input);
+  if (language === 'zh') return sourceInput;
 
   const dictionary = dictionaries[language];
-  const trimmed = input.trim();
-  if (!trimmed) return input;
+  const trimmed = sourceInput.trim();
+  if (!trimmed) return sourceInput;
 
   const exact = dictionary[trimmed];
-  if (exact) return preserveSpacing(input, exact);
+  if (exact) return preserveSpacing(sourceInput, exact);
 
   const templated = translateTemplate(trimmed, language);
-  if (templated) return preserveSpacing(input, templated);
+  if (templated) return preserveSpacing(sourceInput, templated);
 
-  if (!hasCjk(trimmed)) return input;
+  if (!hasCjk(trimmed)) return sourceInput;
 
   let translated = trimmed;
   const keys = Object.keys(dictionary).filter(key => key.length > 2).sort((a, b) => b.length - a.length);
@@ -1336,7 +1424,7 @@ export const translateText = (input: string, language: Language) => {
     }
   }
 
-  return preserveSpacing(input, translated);
+  return preserveSpacing(sourceInput, translated);
 };
 
 const shouldSkipTextNode = (node: Text) => {
@@ -1353,11 +1441,12 @@ const translateTextNode = (node: Text, language: Language) => {
   const current = node.nodeValue ?? '';
   if (!current.trim()) return;
 
-  if (!textNodeOriginals.has(node)) {
-    textNodeOriginals.set(node, current);
+  const previousOriginal = textNodeOriginals.get(node);
+  const original = getTextNodeSource(current, previousOriginal);
+  if (previousOriginal !== original) {
+    textNodeOriginals.set(node, original);
   }
 
-  const original = textNodeOriginals.get(node) ?? current;
   const next = translateText(original, language);
   if (node.nodeValue !== next) {
     node.nodeValue = next;
@@ -1374,12 +1463,12 @@ const translateElementAttributes = (element: Element, language: Language) => {
     const current = element.getAttribute(attr);
     if (!current) continue;
 
-    if (!originals[attr]) {
-      originals[attr] = current;
+    const original = getTextNodeSource(current, originals[attr]);
+    if (originals[attr] !== original) {
+      originals[attr] = original;
       changed = true;
     }
 
-    const original = originals[attr] ?? current;
     const next = translateText(original, language);
     if (current !== next) {
       element.setAttribute(attr, next);
@@ -1428,7 +1517,6 @@ function TranslationRuntime({ language }: { language: Language }) {
           });
           if (mutation.type === 'characterData' && mutation.target.nodeType === Node.TEXT_NODE) {
             const textNode = mutation.target as Text;
-            textNodeOriginals.set(textNode, textNode.nodeValue ?? '');
             translateTextNode(textNode, language);
           }
         }
@@ -1450,12 +1538,12 @@ function TranslationRuntime({ language }: { language: Language }) {
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState<Language>(() => {
-    const stored = window.localStorage.getItem('beauty-ai-language') as Language | null;
+    const stored = window.localStorage.getItem('salesboost-ai-language') as Language | null;
     return stored && ['zh', 'en', 'id'].includes(stored) ? stored : 'zh';
   });
 
   useEffect(() => {
-    window.localStorage.setItem('beauty-ai-language', language);
+    window.localStorage.setItem('salesboost-ai-language', language);
   }, [language]);
 
   const value = useMemo<I18nContextValue>(() => ({

@@ -66,9 +66,10 @@ const ALL_TAGS = ['全部', '区域专供', '实操手法', '本月重点', '问
 
 interface RTCourseManagementProps {
   onOpenCourse?: (courseTitle: string) => void;
+  onOpenHomework?: (courseTitle: string) => void;
 }
 
-export function RTCourseManagement({ onOpenCourse }: RTCourseManagementProps) {
+export function RTCourseManagement({ onOpenCourse, onOpenHomework }: RTCourseManagementProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState('全部');
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
@@ -79,8 +80,12 @@ export function RTCourseManagement({ onOpenCourse }: RTCourseManagementProps) {
     onOpenCourse?.(course.title);
   };
 
+  const handleOpenHomework = (course: Course) => {
+    onOpenHomework?.(course.title);
+  };
+
   const handleCopyLink = (course: Course) => {
-    const textToCopy = `【BEAUTY AI 区域课件】${course.title}\n链接：https://beauty-ai.com/course/rt/${course.id}`;
+    const textToCopy = `【SalesBoost AI 区域课件】${course.title}\n链接：https://salesboost-ai.com/course/rt/${course.id}`;
     navigator.clipboard.writeText(textToCopy);
     setCopiedId(course.id);
     setTimeout(() => setCopiedId(null), 2000);
@@ -199,18 +204,29 @@ export function RTCourseManagement({ onOpenCourse }: RTCourseManagementProps) {
 
               {/* Hover Actions */}
               <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-[2px] gap-3">
-                <button
-                  type="button"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    handleCopyLink(course);
-                  }}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-full shadow-lg hover:scale-105 transition-all"
-                >
-                  {copiedId === course.id ? <CheckCircle2 className="h-4 w-4" /> : <Link className="h-4 w-4" />}
-                  {copiedId === course.id ? '已复制链接' : '生成链接'}
-                </button>
                 <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleCopyLink(course);
+                    }}
+                    className="flex flex-col items-center justify-center w-8 h-8 rounded-full bg-white/20 text-white hover:bg-white/40 hover:scale-110 transition-all select-none group/btn relative"
+                  >
+                    {copiedId === course.id ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Link className="h-3.5 w-3.5" />}
+                    <span className="absolute -bottom-5 text-[9px] font-bold text-white opacity-0 group-hover/btn:opacity-100 drop-shadow-md">{copiedId === course.id ? '已复制链接' : '生成链接'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleOpenCourse(course);
+                    }}
+                    className="flex flex-col items-center justify-center w-11 h-11 rounded-full bg-white/30 text-white hover:bg-white/50 hover:scale-110 transition-all select-none group/btn relative shadow-lg"
+                  >
+                    <CalendarCheck className="h-4 w-4" />
+                    <span className="absolute -bottom-5 text-[9px] font-bold text-white opacity-0 group-hover/btn:opacity-100 drop-shadow-md">任务</span>
+                  </button>
                   <button
                     type="button"
                     onClick={(event) => {
@@ -224,11 +240,14 @@ export function RTCourseManagement({ onOpenCourse }: RTCourseManagementProps) {
                   </button>
                   <button
                     type="button"
-                    onClick={(event) => event.stopPropagation()}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleOpenHomework(course);
+                    }}
                     className="flex flex-col items-center justify-center w-8 h-8 rounded-full bg-white/20 text-white hover:bg-white/40 hover:scale-110 transition-all select-none group/btn relative"
                   >
                     <CalendarCheck className="h-3.5 w-3.5" />
-                    <span className="absolute -bottom-5 text-[9px] font-bold text-white opacity-0 group-hover/btn:opacity-100 drop-shadow-md">任务</span>
+                    <span className="absolute -bottom-5 text-[9px] font-bold text-white opacity-0 group-hover/btn:opacity-100 drop-shadow-md">附加题</span>
                   </button>
                   <button
                     type="button"

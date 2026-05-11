@@ -4,7 +4,7 @@ import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { UploadCloud, FileText, CheckCircle, RefreshCcw, Eye, PlayCircle, PlusCircle, ArrowLeft, Edit, Link, Settings, Download, Sun, Info, Send, Wand2 } from 'lucide-react';
+import { UploadCloud, FileText, CheckCircle, RefreshCcw, Eye, PlayCircle, PlusCircle, ArrowLeft, Edit, Link, Settings, Download, Sun, Info, Send, Wand2, ClipboardList } from 'lucide-react';
 import { Progress } from '../components/ui/progress';
 import { aiActionTone } from '../lib/visualTones';
 
@@ -19,9 +19,10 @@ interface CourseCreationProps {
   startGeneration?: () => void;
   resetTask?: () => void;
   onExitEditor?: () => void;
+  onOpenHomework?: (courseTitle: string) => void;
 }
 
-export function CourseCreation({ courseTask, startGeneration, resetTask, onExitEditor }: CourseCreationProps) {
+export function CourseCreation({ courseTask, startGeneration, resetTask, onExitEditor, onOpenHomework }: CourseCreationProps) {
   const [localStep, setLocalStep] = useState(1);
   const step = courseTask ? (courseTask.status === 'generating' ? 2 : 3) : localStep;
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -88,7 +89,32 @@ export function CourseCreation({ courseTask, startGeneration, resetTask, onExitE
 
             <div className="w-px h-6 bg-slate-200 mx-2" />
 
-            <Button variant="outline" size="sm" className="h-8 text-xs font-bold border-[#E5DED8]"><Edit className="w-4 h-4 mr-1.5" /> 课件编辑</Button>
+            <div className="relative group/course-edit-note">
+              <span className="absolute -right-1 -top-2 z-10 h-4 min-w-4 rounded-full bg-blue-950 px-1 text-[9px] font-bold leading-4 text-white text-center shadow-sm backdrop-blur-sm">
+                注
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled
+                className="h-8 text-xs font-bold border-[#E5DED8] bg-[#F8F5F3] text-[#9A9396] cursor-not-allowed"
+              >
+                <Edit className="w-4 h-4 mr-1.5" /> 课件编辑
+              </Button>
+              <div
+                data-i18n-skip="true"
+                className="absolute left-1/2 bottom-full mb-2 hidden -translate-x-1/2 group-hover/course-edit-note:block z-50 w-80 rounded-lg bg-blue-950/95 px-3 py-2 text-xs leading-relaxed text-white shadow-xl backdrop-blur-sm"
+              >
+                研发备注：一期按钮置灰，然后单独做一个课件列表可编辑的给亚男类角色。
+              </div>
+            </div>
+            <Button
+              size="sm"
+              className="h-8 text-xs font-bold border-[#E5DED8] bg-[#F8F5F3] text-[#766F73] hover:bg-[#F1ECE8]"
+              onClick={() => onOpenHomework?.(editorTitle)}
+            >
+              <ClipboardList className="w-4 h-4 mr-1.5" /> 关联附加题管理
+            </Button>
             <Button size="sm" className="h-8 text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white"><Link className="w-4 h-4 mr-1.5" /> 生成链接</Button>
             <Button size="sm" className="h-8 text-xs font-bold bg-[#3B8F72] hover:bg-[#2F735C] text-white"><Send className="w-4 h-4 mr-1.5" /> 发布</Button>
           </div>
@@ -296,12 +322,12 @@ export function CourseCreation({ courseTask, startGeneration, resetTask, onExitE
                   <label className="flex items-center space-x-2 cursor-pointer group/tooltip relative">
                     <input type="checkbox" className="rounded text-rose-600 focus:ring-rose-500" defaultChecked />
                     <span className="text-sm font-medium text-gray-700 flex items-center">
-                      同步生成课后作业题 (10题)
+                      同步生成课后附加题 (10题)
                       <Info className="h-4 w-4 ml-1.5 text-gray-400 hover:text-rose-500" />
                     </span>
                     {/* Tooltip Content */}
                     <div className="absolute left-0 bottom-full mb-2 hidden group-hover/tooltip:block z-50 w-64 bg-gray-800 text-white text-xs rounded-lg p-2 shadow-xl animate-in fade-in slide-in-from-bottom-1">
-                      生成的作业题将进入题库；可以在作业管理中查看作业题
+                      生成的附加题将进入题库；可以在附加题管理中查看
                     </div>
                   </label>
                 </div>

@@ -16,6 +16,7 @@ export function UsersManage() {
   const [users, setUsers] = useState(MOCK_USERS);
   const [importDialog, setImportDialog] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const firstActiveIndex = users.findIndex((user) => user.status === '已激活');
 
   const handleImport = () => {
     setIsImporting(true);
@@ -74,7 +75,7 @@ export function UsersManage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {users.map(user => (
+              {users.map((user, index) => (
                 <tr key={user.id} className="hover:bg-[#F8F5F3]/50 transition-colors">
                   <td className="py-3 px-6 font-medium text-[#242124]">{user.name}</td>
                   <td className="py-3 px-6 text-[#5D565A] text-sm">{user.role}</td>
@@ -83,9 +84,21 @@ export function UsersManage() {
                   </td>
                   <td className="py-3 px-6 text-[#5D565A] text-sm">{user.email}</td>
                   <td className="py-3 px-6">
-                    <Badge variant="outline" className={`${user.status === '已激活' ? 'bg-[#EEF8F4] text-[#3B8F72] border-emerald-200' : 'bg-[#FFF7EA] text-[#B9822B] border-[#E8CCA0]'}`}>
-                      {user.status}
-                    </Badge>
+                    <div className="relative inline-flex items-center overflow-visible group/activation-note">
+                      <Badge variant="outline" className={`${user.status === '已激活' ? 'bg-[#EEF8F4] text-[#3B8F72] border-emerald-200' : 'bg-[#FFF7EA] text-[#B9822B] border-[#E8CCA0]'}`}>
+                        {user.status}
+                      </Badge>
+                      {index === firstActiveIndex && user.status === '已激活' && (
+                        <>
+                          <span className="absolute -right-1 -top-2 z-10 h-4 min-w-4 rounded-full bg-blue-950 px-1 text-[9px] font-bold leading-4 text-white text-center shadow-sm backdrop-blur-sm">
+                            注
+                          </span>
+                          <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block group-hover/activation-note:block z-[80] w-72 rounded-lg bg-blue-950/95 px-3 py-2 text-xs leading-relaxed text-white shadow-xl backdrop-blur-sm">
+                            研发备注：已激活的定义为已下载APP登录。
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </td>
                   <td className="py-3 px-6 text-right">
                      {user.status === '未激活' ? (

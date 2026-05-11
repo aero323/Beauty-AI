@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { AlertTriangle, User, ChevronLeft, Building, BookOpen, PlayCircle, Users, Clock, CalendarCheck, Database, MessageSquare, ArrowRight, ClipboardList, Presentation } from 'lucide-react';
 import { brandTone, getProgressTone, getScoreTone, getTaskStatusBadgeClass } from '../lib/visualTones';
+import { AppDownloadButton } from '../components/AppDownloadButton';
 
 const REGION_ONGOING_TASKS = [
   { id: 'region-task-1', title: '夏季新品区域通关考核', scope: '区域', type: '考试任务', completed: 280, total: 342, progress: 81, deadlineText: '本周五 23:59', isWarning: true, badgeClass: 'border-rose-200 text-rose-600 bg-rose-50' },
@@ -216,8 +217,9 @@ export function RMDashboard() {
 
   return (
     <div className="space-y-6 flex-1 flex flex-col pt-2">
-      <div className="flex justify-between flex-row items-center">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-[#242124]">区域数据</h1>
+        <AppDownloadButton />
       </div>
 
       {/* KPI Cards */}
@@ -338,7 +340,7 @@ export function RMDashboard() {
           </Card>
         </div>
 
-        {/* Col 2: 区域作业与考试监控 (Tasks & Exams) */}
+        {/* Col 2: 区域附加题与考试监控 (Additional Questions & Exams) */}
         <div className="lg:col-span-2 flex flex-col">
            <Card className="rounded-2xl border border-[#E9E4DF] shadow-sm overflow-hidden flex-1 flex flex-col bg-white">
             <CardHeader className="p-4 border-b border-slate-50 bg-[#F8F5F3]/50 flex flex-row items-center justify-between">

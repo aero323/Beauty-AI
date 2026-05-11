@@ -41,8 +41,15 @@ export default function App() {
   // Global Course Generation State
   const [courseTask, setCourseTask] = useState<CourseTask | null>(null);
   const [courseEditorReturnTab, setCourseEditorReturnTab] = useState<string | null>(null);
+  const [homeworkCourseTitle, setHomeworkCourseTitle] = useState<string | null>(null);
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
   const [examTasks, setExamTasks] = useState<ExamTask[]>(INITIAL_EXAM_TASKS);
+
+  React.useEffect(() => {
+    if (activeTab !== 'exam_homework') {
+      setHomeworkCourseTitle(null);
+    }
+  }, [activeTab]);
 
   const startGeneration = () => {
     setCourseEditorReturnTab(null);
@@ -66,6 +73,12 @@ export default function App() {
     setCourseEditorReturnTab('courses_manage');
     setShowSuccessBanner(false);
     setActiveTab('courses');
+  };
+
+  const openCourseHomework = (courseTitle: string) => {
+    setHomeworkCourseTitle(courseTitle);
+    setShowSuccessBanner(false);
+    setActiveTab('exam_homework');
   };
 
   const resetCourseTask = () => {
@@ -147,14 +160,15 @@ export default function App() {
           startGeneration={startGeneration}
           resetTask={resetCourseTask}
           onExitEditor={courseEditorReturnTab ? exitCourseEditor : undefined}
+          onOpenHomework={openCourseHomework}
         />
       );
     }
     if (activeTab === 'courses_manage') {
       if (role === 'Regional Training Manager') {
-        return <RTCourseManagement onOpenCourse={openCourseEditor} />;
+        return <RTCourseManagement onOpenCourse={openCourseEditor} onOpenHomework={openCourseHomework} />;
       }
-      return <CourseManagement onOpenCourse={openCourseEditor} />;
+      return <CourseManagement onOpenCourse={openCourseEditor} onOpenHomework={openCourseHomework} />;
     }
     if (activeTab === 'ba_avatars') {
       return <BAAvatars />;
@@ -175,7 +189,7 @@ export default function App() {
       return <ExamBank />;
     }
     if (activeTab === 'exam_homework') {
-      return <ExamHomework />;
+      return <ExamHomework selectedCourseTitle={homeworkCourseTitle ?? undefined} />;
     }
     if (activeTab === 'exam_manage') {
       return (
