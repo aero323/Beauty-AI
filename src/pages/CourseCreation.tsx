@@ -24,6 +24,7 @@ interface CourseCreationProps {
 
 export function CourseCreation({ courseTask, startGeneration, resetTask, onExitEditor, onOpenHomework }: CourseCreationProps) {
   const [localStep, setLocalStep] = useState(1);
+  const [coursewareMode, setCoursewareMode] = useState<'ai-courseware' | 'script-only'>('ai-courseware');
   const step = courseTask ? (courseTask.status === 'generating' ? 2 : 3) : localStep;
   const [loadingProgress, setLoadingProgress] = useState(0);
   const editorTitle = courseTask?.courseTitle || '产品线全景地图';
@@ -294,16 +295,16 @@ export function CourseCreation({ courseTask, startGeneration, resetTask, onExitE
             <div className="h-20 w-20 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-6">
               <UploadCloud className="h-10 w-10" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-8">拖拽 PDF 、DOC、PPTX文件至此或点击上传</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-8">拖拽 PDF、Word、PPTX 文件至此或点击上传</h3>
 
             <div className="flex space-x-4 mb-8">
               <div className="flex items-center px-4 py-2 bg-gray-50 rounded border border-gray-200 text-sm">
-                <FileText className="h-4 w-4 mr-2 text-red-500" />
-                <span>Lumina_新品精华_培训版.pdf</span>
+                <FileText className="h-4 w-4 mr-2 text-orange-500" />
+                <span>Lumina_新品精华_培训版.pptx</span>
               </div>
               <div className="flex items-center px-4 py-2 bg-gray-50 rounded border border-gray-200 text-sm">
-                <FileText className="h-4 w-4 mr-2 text-red-500" />
-                <span>竞品_Lbrand_精华册.pdf</span>
+                <FileText className="h-4 w-4 mr-2 text-orange-500" />
+                <span>竞品_Lbrand_精华培训.pptx</span>
               </div>
             </div>
 
@@ -356,6 +357,35 @@ export function CourseCreation({ courseTask, startGeneration, resetTask, onExitE
                   <div className="absolute left-24 bottom-full mb-2 hidden group-hover/voice-note:block z-50 w-72 rounded-lg bg-blue-950/95 px-3 py-2 text-xs leading-relaxed text-white shadow-xl backdrop-blur-sm">
                     给研发：把 minimax 支持印尼语的音色列表拿来放这里
                   </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-gray-100 bg-gray-50 p-1">
+                <div className="grid gap-1 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={() => setCoursewareMode('ai-courseware')}
+                    className={`flex h-12 items-center justify-center rounded-lg px-4 text-sm font-bold transition-all ${
+                      coursewareMode === 'ai-courseware'
+                        ? 'bg-white text-rose-600 shadow-sm ring-1 ring-rose-100'
+                        : 'text-gray-600 hover:bg-white/70 hover:text-gray-900'
+                    }`}
+                  >
+                    <Wand2 className="mr-2 h-4 w-4" />
+                    使用AI智能生成课件
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCoursewareMode('script-only')}
+                    className={`flex h-12 items-center justify-center rounded-lg px-4 text-sm font-bold transition-all ${
+                      coursewareMode === 'script-only'
+                        ? 'bg-white text-rose-600 shadow-sm ring-1 ring-rose-100'
+                        : 'text-gray-600 hover:bg-white/70 hover:text-gray-900'
+                    }`}
+                  >
+                    <FileText className="mr-2 h-4 w-4" />
+                    保留原始课件，仅生成讲解
+                  </button>
                 </div>
               </div>
             </div>
