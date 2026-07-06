@@ -4,13 +4,14 @@ import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Plus, Tag, Settings, Link2 } from 'lucide-react';
+import { QUESTION_TAXONOMY } from '../lib/questionBank';
 
-const MOCK_CATEGORIES = [
-  { id: 'cat_1', name: '护肤系列 (Skincare)', count: 42, sub: ['精华', '面霜', '防晒'] },
-  { id: 'cat_2', name: '彩妆系列 (Makeup)', count: 18, sub: ['粉底', '唇膏', '眼影'] },
-  { id: 'cat_3', name: '护发系列 (Haircare)', count: 5, sub: ['洗发水', '发膜'] },
-  { id: 'cat_4', name: '身体护理 (Bodycare)', count: 12, sub: ['身体乳', '沐浴露'] },
-];
+const MOCK_CATEGORIES = QUESTION_TAXONOMY.productLines.map((line, index) => ({
+  id: line.id,
+  name: line.name,
+  count: [42, 18, 5][index] || 0,
+  sub: line.products.map(product => product.name),
+}));
 
 export function CategoryManage() {
   const [categories, setCategories] = useState(MOCK_CATEGORIES);
@@ -30,7 +31,7 @@ export function CategoryManage() {
       <div className="flex items-center justify-between mb-4">
          <div>
             <h2 className="text-xl font-bold text-[#1F1C1F]">全局品类与标签配置</h2>
-            <p className="text-sm text-[#766F73] mt-1">管理业务分类体系，变更将自动同步至知识图谱及所有业务课件内容</p>
+            <p className="text-sm text-[#766F73] mt-1">管理业务分类体系，变更将自动同步至题库、知识图谱及所有业务课件内容</p>
          </div>
       </div>
 
@@ -47,7 +48,7 @@ export function CategoryManage() {
                  {categories.map(cat => (
                    <div key={cat.id} className="flex flex-col p-4 bg-white border border-[#E5DED8] rounded-xl hover:border-rose-200 transition-colors">
                      <div className="flex items-center justify-between mb-3">
-                       <div className="font-bold text-[#242124]">{cat.name}</div>
+                       <div data-i18n-skip="true" className="font-bold text-[#242124]">{cat.name}</div>
                        <div className="flex space-x-2">
                          <div className="flex items-center text-xs text-[#766F73] bg-slate-100 px-2 py-1 rounded font-medium">
                            <Link2 className="h-3 w-3 mr-1" /> 已关联 {cat.count} 项内容
@@ -58,7 +59,7 @@ export function CategoryManage() {
                      </div>
                      <div className="flex flex-wrap gap-2">
                        {cat.sub.map(s => (
-                         <Badge variant="outline" key={s} className="bg-[#F8F5F3] text-[#5D565A] font-normal">
+                         <Badge data-i18n-skip="true" variant="outline" key={s} className="bg-[#F8F5F3] text-[#5D565A] font-normal">
                            {s}
                          </Badge>
                        ))}

@@ -33,6 +33,7 @@ import { KnowledgeGraph } from './pages/KnowledgeGraph';
 import { Role } from './types';
 import { Loader2, CheckCircle } from 'lucide-react';
 import { Progress } from './components/ui/progress';
+import { QuestionBankProvider } from './lib/QuestionBankContext';
 
 export default function App() {
   const [role, setRole] = useState<Role>('HQ Trainer');
@@ -233,7 +234,7 @@ export default function App() {
   };
 
   return (
-    <>
+    <QuestionBankProvider>
       <Layout role={role} setRole={setRole} activeTab={activeTab} setActiveTab={setActiveTab}>
         {renderContent()}
       </Layout>
@@ -269,6 +270,6 @@ export default function App() {
           ) : null}
         </div>
       )}
-    </>
+    </QuestionBankProvider>
   );
 }
