@@ -19,7 +19,7 @@ interface ExamManageProps {
 }
 
 export function ExamManage({ onExamPublished, onGoToExamTasks }: ExamManageProps) {
-  const { questions } = useQuestionBank();
+  const { questions, tags } = useQuestionBank();
   const [exams, setExams] = useState(INITIAL_EXAMS);
   const [selectedExamId, setSelectedExamId] = useState<string>(INITIAL_EXAMS[0].id);
 
@@ -230,7 +230,7 @@ export function ExamManage({ onExamPublished, onGoToExamTasks }: ExamManageProps
                         </div>
                         <div className="mt-2 flex flex-wrap gap-2">
                           <Badge variant="outline" className="text-[10px] bg-white border-emerald-100 text-[#2F735C]">{QUESTION_TYPE_LABELS[q.type]}</Badge>
-                          {getQuestionTagNames(q).map(t => <Badge key={t} data-i18n-skip="true" variant="secondary" className="text-[10px]">{t}</Badge>)}
+                          {getQuestionTagNames(q, tags).map(t => <Badge key={t} data-i18n-skip="true" variant="secondary" className="text-[10px]">{t}</Badge>)}
                         </div>
                       </CardContent>
                     </Card>
@@ -268,7 +268,7 @@ export function ExamManage({ onExamPublished, onGoToExamTasks }: ExamManageProps
                         </div>
                         <div className="mt-2 flex flex-wrap gap-2">
                           <Badge variant="outline" className="text-[10px] bg-white border-rose-100 text-rose-600">{QUESTION_TYPE_LABELS[q.type]}</Badge>
-                          {getQuestionTagNames(q).map(t => <Badge key={t} data-i18n-skip="true" variant="outline" className="text-[10px] bg-[#F8F5F3]">{t}</Badge>)}
+                          {getQuestionTagNames(q, tags).map(t => <Badge key={t} data-i18n-skip="true" variant="outline" className="text-[10px] bg-[#F8F5F3]">{t}</Badge>)}
                         </div>
                       </CardContent>
                     </Card>

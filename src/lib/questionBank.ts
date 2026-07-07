@@ -84,6 +84,9 @@ export const DEFAULT_FILTERS: QuestionFilters = {
   status: 'all',
 };
 
+export const GENERAL_CAPABILITY_LINE_ID = 'general-capability';
+export const MAX_TAGS_PER_QUESTION = 5;
+
 export const QUESTION_TAXONOMY = {
   productLines: [
     {
@@ -110,6 +113,11 @@ export const QUESTION_TAXONOMY = {
         { id: 'silk-hair-mask', name: 'Silk Repair 发膜' },
       ],
     },
+    {
+      id: GENERAL_CAPABILITY_LINE_ID,
+      name: '通用能力',
+      products: [],
+    },
   ] satisfies ProductLine[],
   tags: [
     { id: 'ingredient', name: '成分', group: '知识点' },
@@ -122,6 +130,45 @@ export const QUESTION_TAXONOMY = {
     { id: 'competitor', name: '竞品对比', group: '业务场景' },
     { id: 'barrier-repair', name: '屏障修护', group: '知识点' },
     { id: 'aftercare', name: '术后护理', group: '知识点' },
+    { id: 'service-etiquette', name: '服务礼仪', group: '业务场景' },
+    { id: 'communication-opening', name: '沟通开场', group: '业务场景' },
+    { id: 'color-matching', name: '色彩搭配', group: '知识点' },
+    { id: 'makeup-suggestion', name: '妆容建议', group: '知识点' },
+    { id: 'skin-diagnosis', name: '肤质判断', group: '知识点' },
+    { id: 'objection-handling', name: '异议处理', group: '业务场景' },
+    { id: 'price-objection', name: '价格异议', group: '业务场景' },
+    { id: 'deal-closing', name: '成交转化', group: '业务场景' },
+    { id: 'add-on-selling', name: '连带推荐', group: '业务场景' },
+    { id: 'complaint-handling', name: '投诉处理', group: '业务场景' },
+    { id: 'display-standard', name: '陈列规范', group: '业务场景' },
+    { id: 'member-operation', name: '会员运营', group: '业务场景' },
+    { id: 'gift-recommendation', name: '礼赠推荐', group: '业务场景' },
+    { id: 'campaign-script', name: '活动话术', group: '业务场景' },
+    { id: 'holiday-promotion', name: '节日促销', group: '业务场景' },
+    { id: 'sensitive-skin', name: '敏感肌', group: '知识点' },
+    { id: 'oily-skin', name: '油性肌', group: '知识点' },
+    { id: 'dry-skin', name: '干性肌', group: '知识点' },
+    { id: 'combination-skin', name: '混合肌', group: '知识点' },
+    { id: 'anti-aging', name: '抗老', group: '知识点' },
+    { id: 'brightening', name: '提亮', group: '知识点' },
+    { id: 'moisturizing', name: '保湿', group: '知识点' },
+    { id: 'sun-care', name: '防晒', group: '知识点' },
+    { id: 'cleansing', name: '清洁', group: '知识点' },
+    { id: 'usage-step', name: '使用步骤', group: '知识点' },
+    { id: 'contraindication', name: '禁忌注意', group: '知识点' },
+    { id: 'product-safety', name: '产品安全', group: '知识点' },
+    { id: 'faq', name: '常见问题', group: '知识点' },
+    { id: 'easy-mistake', name: '易错题', group: '知识点' },
+    { id: 'new-hire', name: '新人必考', group: '业务场景' },
+    { id: 'advanced-training', name: '进阶训练', group: '业务场景' },
+    { id: 'review-training', name: '复训题', group: '业务场景' },
+    { id: 'scenario-drill', name: '场景演练', group: '业务场景' },
+    { id: 'customer-need', name: '需求诊断', group: '业务场景' },
+    { id: 'base-makeup', name: '底妆', group: '知识点' },
+    { id: 'lip-makeup', name: '唇妆', group: '知识点' },
+    { id: 'fragrance', name: '香氛', group: '知识点' },
+    { id: 'hair-repair', name: '发丝修护', group: '知识点' },
+    { id: 'scalp-care', name: '头皮护理', group: '知识点' },
   ] satisfies TaxonomyTag[],
 };
 
@@ -234,10 +281,55 @@ export const INITIAL_QUESTIONS: QuestionBankItem[] = [
     sourceFile: '冬季保湿系列培训.pdf',
     status: 'draft',
   },
+  {
+    id: 'b7',
+    type: 'short_answer',
+    stem: '顾客进店后只说“随便看看”时，BA 应如何用服务礼仪开启沟通？',
+    referenceAnswer: '先保持适当距离和微笑问候，避免立即强推产品；用开放式问题了解顾客需求，例如“今天想看看护肤、彩妆还是礼赠方向？”；根据回应再引导体验或提供建议。',
+    scoringRubric: '礼貌问候 2 分；不强推 2 分；开放式提问 3 分；后续引导体验或建议 3 分。',
+    aiGradingHint: '重点看是否体现服务礼仪、需求探索和自然转化。',
+    productLineId: GENERAL_CAPABILITY_LINE_ID,
+    tagIds: ['sales-script', 'basic-knowledge'],
+    customTags: ['服务礼仪', '沟通开场'],
+    difficulty: 'basic',
+    sourceFile: '门店服务礼仪SOP.pdf',
+    status: 'active',
+  },
 ];
 
 export function createQuestionId(prefix = 'q') {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+export function normalizeTagName(name: string) {
+  return name.trim().replace(/\s+/g, ' ');
+}
+
+export function getTagNameKey(name: string) {
+  return normalizeTagName(name).toLocaleLowerCase();
+}
+
+export function createTagIdFromName(name: string) {
+  const normalized = normalizeTagName(name);
+  const asciiSlug = normalized
+    .toLocaleLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  if (asciiSlug) return `tag-${asciiSlug}`;
+
+  const hash = Array.from(normalized).reduce((acc, char) => {
+    return (acc * 31 + char.charCodeAt(0)) % 1000000;
+  }, 7);
+  return `tag-${hash.toString(36)}`;
+}
+
+export function createTaxonomyTag(name: string): TaxonomyTag {
+  return {
+    id: createTagIdFromName(name),
+    name: normalizeTagName(name),
+    group: '知识点',
+  };
 }
 
 export function findProductLine(productLineId?: string) {
@@ -248,13 +340,13 @@ export function findProduct(productLineId?: string, productId?: string) {
   return findProductLine(productLineId)?.products.find(product => product.id === productId);
 }
 
-export function findTag(tagId: string) {
-  return QUESTION_TAXONOMY.tags.find(tag => tag.id === tagId);
+export function findTag(tagId: string, tags: TaxonomyTag[] = QUESTION_TAXONOMY.tags) {
+  return tags.find(tag => tag.id === tagId);
 }
 
-export function getQuestionTagNames(question: QuestionBankItem) {
-  const taxonomyTags = question.tagIds.map(id => findTag(id)?.name).filter(Boolean) as string[];
-  return [...taxonomyTags, ...question.customTags];
+export function getQuestionTagNames(question: QuestionBankItem, tags: TaxonomyTag[] = QUESTION_TAXONOMY.tags) {
+  const taxonomyTags = question.tagIds.map(id => findTag(id, tags)?.name).filter(Boolean) as string[];
+  return mergeTags(taxonomyTags, question.customTags);
 }
 
 export function parseTagInput(input: string) {
@@ -263,6 +355,16 @@ export function parseTagInput(input: string) {
 
 export function mergeTags(existing: string[], next: string[]) {
   return Array.from(new Set([...existing, ...next].map(tag => tag.trim()).filter(Boolean)));
+}
+
+export function limitQuestionTags(question: QuestionBankItem): QuestionBankItem {
+  const tagIds = Array.from(new Set(question.tagIds)).slice(0, MAX_TAGS_PER_QUESTION);
+  const remainingCustomSlots = Math.max(0, MAX_TAGS_PER_QUESTION - tagIds.length);
+  return {
+    ...question,
+    tagIds,
+    customTags: mergeTags([], question.customTags).slice(0, remainingCustomSlots),
+  };
 }
 
 export function getQuestionAnswerText(question: QuestionBankItem) {
@@ -274,7 +376,7 @@ export function getQuestionAnswerText(question: QuestionBankItem) {
   return selectedOptions.map(option => `${option.label}. ${option.text}`).join('、') || '未设置答案';
 }
 
-export function getQuestionSearchText(question: QuestionBankItem) {
+export function getQuestionSearchText(question: QuestionBankItem, tags: TaxonomyTag[] = QUESTION_TAXONOMY.tags) {
   const line = findProductLine(question.productLineId)?.name || '';
   const product = findProduct(question.productLineId, question.productId)?.name || '';
   const optionText = question.options?.map(option => `${option.label}${option.text}`).join(' ') || '';
@@ -289,35 +391,36 @@ export function getQuestionSearchText(question: QuestionBankItem) {
     QUESTION_TYPE_LABELS[question.type],
     DIFFICULTY_LABELS[question.difficulty],
     STATUS_LABELS[question.status],
-    ...getQuestionTagNames(question),
+    ...getQuestionTagNames(question, tags),
   ].filter(Boolean).join(' ').toLowerCase();
 }
 
-export function filterQuestions(questions: QuestionBankItem[], filters: QuestionFilters) {
+export function filterQuestions(questions: QuestionBankItem[], filters: QuestionFilters, tags: TaxonomyTag[] = QUESTION_TAXONOMY.tags) {
   const keyword = filters.keyword.trim().toLowerCase();
+  const selectedTagName = filters.tagId === 'all' ? '' : findTag(filters.tagId, tags)?.name || '';
 
   return questions.filter(question => {
     if (filters.type !== 'all' && question.type !== filters.type) return false;
     if (filters.productLineId !== 'all' && question.productLineId !== filters.productLineId) return false;
     if (filters.productId !== 'all' && question.productId !== filters.productId) return false;
-    if (filters.tagId !== 'all' && !question.tagIds.includes(filters.tagId) && !question.customTags.includes(filters.tagId)) return false;
+    if (filters.tagId !== 'all' && !question.tagIds.includes(filters.tagId) && !question.customTags.includes(selectedTagName)) return false;
     if (filters.difficulty !== 'all' && question.difficulty !== filters.difficulty) return false;
     if (filters.status !== 'all' && question.status !== filters.status) return false;
-    if (keyword && !getQuestionSearchText(question).includes(keyword)) return false;
+    if (keyword && !getQuestionSearchText(question, tags).includes(keyword)) return false;
     return true;
   });
 }
 
 export function normalizeQuestionForType(question: QuestionBankItem): QuestionBankItem {
   if (question.type === 'short_answer') {
-    return {
+    return limitQuestionTags({
       ...question,
       options: undefined,
       correctOptionIds: undefined,
       referenceAnswer: question.referenceAnswer || '',
       scoringRubric: question.scoringRubric || '',
       aiGradingHint: question.aiGradingHint || '',
-    };
+    });
   }
 
   if (question.type === 'true_false') {
@@ -326,14 +429,14 @@ export function normalizeQuestionForType(question: QuestionBankItem): QuestionBa
       { id: 'false', label: '错误', text: '错误' },
     ];
     const currentAnswer = question.correctOptionIds?.[0];
-    return {
+    return limitQuestionTags({
       ...question,
       options,
       correctOptionIds: currentAnswer === 'false' ? ['false'] : ['true'],
       referenceAnswer: undefined,
       scoringRubric: undefined,
       aiGradingHint: undefined,
-    };
+    });
   }
 
   const fallbackOptions = question.options && question.options.length >= 2
@@ -345,7 +448,7 @@ export function normalizeQuestionForType(question: QuestionBankItem): QuestionBa
       { id: 'd', label: 'D', text: '' },
     ];
 
-  return {
+  return limitQuestionTags({
     ...question,
     options: fallbackOptions,
     correctOptionIds: question.type === 'single_choice'
@@ -354,7 +457,7 @@ export function normalizeQuestionForType(question: QuestionBankItem): QuestionBa
     referenceAnswer: undefined,
     scoringRubric: undefined,
     aiGradingHint: undefined,
-  };
+  });
 }
 
 export function createVariantQuestion(source: QuestionBankItem, index: number): QuestionBankItem {
@@ -367,7 +470,7 @@ export function createVariantQuestion(source: QuestionBankItem, index: number): 
   ];
 
   if (source.type === 'short_answer') {
-    return {
+    return limitQuestionTags({
       ...source,
       id,
       stem: `${source.stem}（${suffixes[index % suffixes.length]}）`,
@@ -377,7 +480,7 @@ export function createVariantQuestion(source: QuestionBankItem, index: number): 
       customTags: inheritedTags,
       status: 'pending_review',
       generatedFromQuestionId: source.id,
-    };
+    });
   }
 
   return normalizeQuestionForType({
@@ -414,6 +517,7 @@ export function createUploadPreviewQuestions(): QuestionBankItem[] {
       ...INITIAL_QUESTIONS[4],
       id: createQuestionId('upload'),
       status: 'pending_review',
+      customTags: mergeTags(INITIAL_QUESTIONS[4].customTags, ['热带气候话术']),
       sourceFile: 'Lumina_新品精华_培训版.pdf',
     },
   ];

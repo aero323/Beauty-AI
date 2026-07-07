@@ -4,13 +4,14 @@ import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Plus, Tag, Settings, Link2 } from 'lucide-react';
-import { QUESTION_TAXONOMY } from '../lib/questionBank';
+import { GENERAL_CAPABILITY_LINE_ID, QUESTION_TAXONOMY } from '../lib/questionBank';
 
 const MOCK_CATEGORIES = QUESTION_TAXONOMY.productLines.map((line, index) => ({
   id: line.id,
   name: line.name,
-  count: [42, 18, 5][index] || 0,
+  count: line.id === GENERAL_CAPABILITY_LINE_ID ? 8 : [42, 18, 5][index] || 0,
   sub: line.products.map(product => product.name),
+  allowSubCategory: line.id !== GENERAL_CAPABILITY_LINE_ID,
 }));
 
 export function CategoryManage() {
@@ -21,7 +22,7 @@ export function CategoryManage() {
     if (!newCat.trim()) return;
     setCategories([
       ...categories,
-      { id: `cat_${Date.now()}`, name: newCat, count: 0, sub: [] }
+      { id: `cat_${Date.now()}`, name: newCat, count: 0, sub: [], allowSubCategory: true }
     ]);
     setNewCat('');
   };
@@ -63,9 +64,15 @@ export function CategoryManage() {
                            {s}
                          </Badge>
                        ))}
-                       <Badge variant="outline" className="border-dashed text-[#9A9396] bg-white hover:border-rose-300 hover:text-rose-600 cursor-pointer">
-                         <Plus className="h-3 w-3 mr-1" /> 增加二级标签
-                       </Badge>
+                       {cat.allowSubCategory ? (
+                         <Badge variant="outline" className="border-dashed text-[#9A9396] bg-white hover:border-rose-300 hover:text-rose-600 cursor-pointer">
+                           <Plus className="h-3 w-3 mr-1" /> 增加二级标签
+                         </Badge>
+                       ) : (
+                         <Badge variant="outline" className="border-dashed bg-white text-[#9A9396]">
+                           标签自定义细分
+                         </Badge>
+                       )}
                      </div>
                    </div>
                  ))}

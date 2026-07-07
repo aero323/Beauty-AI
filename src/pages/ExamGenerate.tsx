@@ -17,7 +17,7 @@ import {
 } from '../lib/questionBank';
 
 export function ExamGenerate() {
-  const { addQuestions } = useQuestionBank();
+  const { addQuestions, tags } = useQuestionBank();
   const [step, setStep] = useState<'upload' | 'generating' | 'preview'>('upload');
   const [progress, setProgress] = useState(0);
   const [showToast, setShowToast] = useState(false);
@@ -164,7 +164,7 @@ export function ExamGenerate() {
                     <span className="text-xs text-[#766F73]">来源: <span data-i18n-skip="true">{question.sourceFile}</span></span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    {getQuestionTagNames(question).map(tag => <Badge key={tag} data-i18n-skip="true" variant="secondary" className="text-xs">{tag}</Badge>)}
+                    {getQuestionTagNames(question, tags).map(tag => <Badge key={tag} data-i18n-skip="true" variant="secondary" className="text-xs">{tag}</Badge>)}
                     <Button onClick={() => removePreviewQuestion(question.id)} variant="ghost" size="sm" className="h-7 text-red-500 hover:bg-red-50">
                       <Trash2 className="h-3.5 w-3.5" />
                       移除

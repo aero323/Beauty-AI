@@ -16,7 +16,7 @@ interface ExamHomeworkProps {
 }
 
 export function ExamHomework({ selectedCourseTitle }: ExamHomeworkProps) {
-  const { questions } = useQuestionBank();
+  const { questions, tags } = useQuestionBank();
   const [selectedCourseId, setSelectedCourseId] = useState<string>(COURSES[0].id);
   const [courses, setCourses] = useState(COURSES);
   const [showToast, setShowToast] = useState(false);
@@ -154,7 +154,7 @@ export function ExamHomework({ selectedCourseTitle }: ExamHomeworkProps) {
                         </div>
                         <div className="mt-2 flex flex-wrap gap-2">
                           <Badge variant="outline" className="text-[10px] bg-white border-emerald-100 text-[#2F735C]">{QUESTION_TYPE_LABELS[q.type]}</Badge>
-                          {getQuestionTagNames(q).map(t => <Badge key={t} data-i18n-skip="true" variant="secondary" className="text-[10px]">{t}</Badge>)}
+                          {getQuestionTagNames(q, tags).map(t => <Badge key={t} data-i18n-skip="true" variant="secondary" className="text-[10px]">{t}</Badge>)}
                         </div>
                       </CardContent>
                     </Card>
@@ -192,7 +192,7 @@ export function ExamHomework({ selectedCourseTitle }: ExamHomeworkProps) {
                         </div>
                         <div className="mt-2 flex flex-wrap gap-2">
                           <Badge variant="outline" className="text-[10px] bg-white border-rose-100 text-rose-600">{QUESTION_TYPE_LABELS[q.type]}</Badge>
-                          {getQuestionTagNames(q).map(t => <Badge key={t} data-i18n-skip="true" variant="outline" className="text-[10px] bg-[#F8F5F3]">{t}</Badge>)}
+                          {getQuestionTagNames(q, tags).map(t => <Badge key={t} data-i18n-skip="true" variant="outline" className="text-[10px] bg-[#F8F5F3]">{t}</Badge>)}
                         </div>
                       </CardContent>
                     </Card>
