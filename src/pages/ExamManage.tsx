@@ -7,6 +7,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/
 import { aiActionTone } from '../lib/visualTones';
 import { useQuestionBank } from '../lib/QuestionBankContext';
 import { getQuestionTagNames, QUESTION_TYPE_LABELS } from '../lib/questionBank';
+import {
+  DEFAULT_EXAM_PROFILE_QUESTIONS,
+  DEFAULT_EXAM_PASS_RULES,
+  DefaultExamProfileQuestion,
+  EXAM_PARTICIPANT_ROLES,
+  EXAM_PASS_SCORE_OPTIONS,
+  ExamPassRule,
+  getExamParticipantRoleName,
+} from '../lib/examPublishSettings';
 
 const INITIAL_EXAMS = [
   { id: 'e1', title: '2023年Q4新品全员考核', status: 'Draft', questionCount: 15, description: '本次考试重点考察Q4新品的核心卖点、适用人群及销售话术。' },
@@ -14,9 +23,11 @@ const INITIAL_EXAMS = [
 ];
 
 interface ExamManageProps {
-  onExamPublished?: (exam: { id: string; title: string }) => void;
+  onExamPublished?: (exam: { id: string; title: string; passRules: ExamPassRule[]; profileQuestions: DefaultExamProfileQuestion[]; questionCount: number }) => void;
   onGoToExamTasks?: () => void;
 }
+
+const createPassRuleId = () => `pass-rule-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 export function ExamManage({ onExamPublished, onGoToExamTasks }: ExamManageProps) {
   const { questions, tags } = useQuestionBank();
@@ -32,6 +43,7 @@ export function ExamManage({ onExamPublished, onGoToExamTasks }: ExamManageProps
   const [publishDialog, setPublishDialog] = useState(false);
   const [publishSuccessDialog, setPublishSuccessDialog] = useState(false);
   const [infoDialog, setInfoDialog] = useState(false);
+  const [passRules, setPassRules] = useState<ExamPassRule[]>(DEFAULT_EXAM_PASS_RULES);
 
   const [editTitle, setEditTitle] = useState('');
   const [editDesc, setEditDesc] = useState('');
@@ -43,6 +55,9 @@ export function ExamManage({ onExamPublished, onGoToExamTasks }: ExamManageProps
   const activeBank = questions.filter(q => q.status === 'active');
   const linkedQuestions = activeBank.filter(q => currentQuestions.includes(q.id));
   const availableQuestions = activeBank.filter(q => !currentQuestions.includes(q.id));
+  const paperQuestionCount = linkedQuestions.length + DEFAULT_EXAM_PROFILE_QUESTIONS.length;
+  const selectedPassRuleRoleIds = passRules.map(rule => rule.roleId);
+  const canAddPassRule = selectedPassRuleRoleIds.length < EXAM_PARTICIPANT_ROLES.length;
 
   const handLink = (qId: string) => {
     setExamQuestions(prev => {
@@ -97,9 +112,44 @@ export function ExamManage({ onExamPublished, onGoToExamTasks }: ExamManageProps
     setTimeout(() => setToast(''), 3000);
   };
 
+  const updatePassRuleRole = (ruleId: string, roleId: string) => {
+    setPassRules(prev => prev.map(rule => rule.id === ruleId
+      ? { ...rule, roleId, roleName: getExamParticipantRoleName(roleId) }
+      : rule
+    ));
+  };
+
+  const updatePassRuleScore = (ruleId: string, score: number) => {
+    setPassRules(prev => prev.map(rule => rule.id === ruleId ? { ...rule, score } : rule));
+  };
+
+  const addPassRule = () => {
+    const nextRole = EXAM_PARTICIPANT_ROLES.find(role => !selectedPassRuleRoleIds.includes(role.id));
+    if (!nextRole) return;
+    setPassRules(prev => [
+      ...prev,
+      {
+        id: createPassRuleId(),
+        roleId: nextRole.id,
+        roleName: nextRole.name,
+        score: 80,
+      },
+    ]);
+  };
+
+  const removePassRule = (ruleId: string) => {
+    setPassRules(prev => prev.length > 1 ? prev.filter(rule => rule.id !== ruleId) : prev);
+  };
+
   const handlePublish = () => {
     if (selectedExam) {
-      onExamPublished?.({ id: selectedExam.id, title: selectedExam.title });
+      onExamPublished?.({
+        id: selectedExam.id,
+        title: selectedExam.title,
+        passRules,
+        profileQuestions: DEFAULT_EXAM_PROFILE_QUESTIONS,
+        questionCount: paperQuestionCount,
+      });
     }
     setExams(prev => prev.map(e => e.id === selectedExamId ? { ...e, status: 'Published' } : e));
     setPublishDialog(false);
@@ -209,8 +259,11 @@ export function ExamManage({ onExamPublished, onGoToExamTasks }: ExamManageProps
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-bold text-[#242124] flex items-center">
                     <ClipboardList className="h-5 w-5 mr-2 text-[#3B8F72]" />
-                    已选题目列表 ({linkedQuestions.length})
+                    已选题目列表 ({paperQuestionCount})
                   </h3>
+                  <Badge variant="outline" className="border-[#DCEFE7] bg-[#EEF8F4] text-[10px] font-bold text-[#2F735C]">
+                    含 {DEFAULT_EXAM_PROFILE_QUESTIONS.length} 道固定信息题
+                  </Badge>
                 </div>
 
                 <div className="space-y-3">
@@ -237,9 +290,35 @@ export function ExamManage({ onExamPublished, onGoToExamTasks }: ExamManageProps
                   ))}
                   {linkedQuestions.length === 0 && (
                     <div className="text-center py-10 border border-dashed border-[#E5DED8] rounded-xl bg-white text-[#9A9396] text-sm">
-                      暂无题目，可点击上方AI组卷或从右侧题库手动添加
+                      暂无业务题，可点击上方AI组卷或从右侧题库手动添加
                     </div>
                   )}
+                  {DEFAULT_EXAM_PROFILE_QUESTIONS.map((profileQuestion, index) => (
+                    <Card key={profileQuestion.id} className="border-[#DCEFE7] bg-[#F6FBF8] shadow-sm relative overflow-hidden">
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#78B29F]"></div>
+                      <CardContent className="p-4 pl-5">
+                        <div className="flex justify-between items-start gap-4">
+                          <div>
+                            <div className="text-sm font-medium text-[#242124]">
+                              <span>{linkedQuestions.length + index + 1}. </span>
+                              <span>{profileQuestion.stem}</span>
+                            </div>
+                            <div className="mt-2 rounded-lg border border-dashed border-[#BFDCCF] bg-white px-3 py-2 text-xs text-[#766F73]">
+                              作答输入框占位：{profileQuestion.placeholder}
+                            </div>
+                          </div>
+                          <Badge variant="outline" className="shrink-0 border-[#BFDCCF] bg-white text-[10px] font-bold text-[#2F735C]">
+                            固定最后题
+                          </Badge>
+                        </div>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <Badge variant="outline" className="text-[10px] bg-white border-[#BFDCCF] text-[#2F735C]">信息填写</Badge>
+                          <Badge variant="secondary" className="text-[10px] bg-white text-[#766F73]">不计分</Badge>
+                          <Badge variant="secondary" className="text-[10px] bg-white text-[#766F73]">发布时自动下发</Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
               </div>
 
@@ -322,7 +401,7 @@ export function ExamManage({ onExamPublished, onGoToExamTasks }: ExamManageProps
         </Dialog>
 
         <Dialog open={publishDialog} onOpenChange={setPublishDialog}>
-          <DialogContent>
+          <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle className="flex items-center">
                 发布考试：{selectedExam?.title}
@@ -342,12 +421,68 @@ export function ExamManage({ onExamPublished, onGoToExamTasks }: ExamManageProps
                 <input type="datetime-local" className="w-full px-3 py-2 border rounded-md text-sm" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#3F3A3D] mb-1">及格分数</label>
-                <input type="number" placeholder="80" className="w-full px-3 py-2 border rounded-md text-sm" />
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <label className="block text-sm font-medium text-[#3F3A3D]">岗位及格分数</label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addPassRule}
+                    disabled={!canAddPassRule}
+                    className="h-8 px-2 text-xs"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    添加条件
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  {passRules.map(rule => (
+                    <div key={rule.id} className="grid grid-cols-[minmax(0,1fr)_116px_32px] items-center gap-2">
+                      <select
+                        value={rule.roleId}
+                        onChange={event => updatePassRuleRole(rule.id, event.target.value)}
+                        className="h-10 min-w-0 rounded-md border border-[#E5DED8] bg-white px-3 text-sm outline-none focus:border-[#3B8F72] focus:ring-2 focus:ring-[#3B8F72]/15"
+                      >
+                        {EXAM_PARTICIPANT_ROLES.map(role => (
+                          <option key={role.id} value={role.id} disabled={selectedPassRuleRoleIds.includes(role.id) && role.id !== rule.roleId}>
+                            {role.name}
+                          </option>
+                        ))}
+                      </select>
+                      <select
+                        value={rule.score}
+                        onChange={event => updatePassRuleScore(rule.id, Number(event.target.value))}
+                        className="h-10 rounded-md border border-[#E5DED8] bg-white px-3 text-sm outline-none focus:border-[#3B8F72] focus:ring-2 focus:ring-[#3B8F72]/15"
+                      >
+                        {EXAM_PASS_SCORE_OPTIONS.map(score => (
+                          <option key={score} value={score}>{score} 分</option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => removePassRule(rule.id)}
+                        disabled={passRules.length === 1}
+                        className="flex h-8 w-8 items-center justify-center rounded-md text-[#9A9396] transition-colors hover:bg-red-50 hover:text-red-500 disabled:pointer-events-none disabled:opacity-30"
+                        title="删除条件"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-[#3F3A3D] mb-1">考试时长 (分钟)</label>
                 <input type="number" placeholder="45" className="w-full px-3 py-2 border rounded-md text-sm" />
+              </div>
+              <div className="rounded-lg border border-[#DCEFE7] bg-[#EEF8F4] px-3 py-2">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm font-bold text-[#2F735C]">随卷信息填写</span>
+                  <span className="text-xs font-bold text-[#2F735C]">共 {paperQuestionCount} 题</span>
+                </div>
+                <p className="mt-1 text-xs leading-relaxed text-[#2F735C]/80">
+                  下发卷子时，系统会默认把“职位名称”和“门店渠道”作为最后两题，要求考生填写；这两题不计分。
+                </p>
               </div>
             </div>
             <div className="flex justify-end mt-6 space-x-3">
@@ -374,6 +509,19 @@ export function ExamManage({ onExamPublished, onGoToExamTasks }: ExamManageProps
               {selectedExam && (
                 <div className="rounded-lg border border-[#DCEFE7] bg-[#EEF8F4] px-3 py-2">
                   <p data-i18n-skip="true" className="text-xs font-bold text-[#2F735C] line-clamp-1">{selectedExam.title}</p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-[#2F735C] ring-1 ring-[#BFDCCF]">
+                      试卷 {paperQuestionCount} 题
+                    </span>
+                    <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-[#2F735C] ring-1 ring-[#BFDCCF]">
+                      固定信息题 {DEFAULT_EXAM_PROFILE_QUESTIONS.length} 道
+                    </span>
+                    {passRules.map(rule => (
+                      <span key={rule.id} data-i18n-skip="true" className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-[#2F735C] ring-1 ring-[#BFDCCF]">
+                        {rule.roleName} {rule.score}分
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

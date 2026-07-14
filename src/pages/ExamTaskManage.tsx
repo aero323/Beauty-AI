@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Progress } from '../components/ui/progress';
-import { Calendar, Users, FileText, CheckCircle, Clock, AlertCircle, BarChart3, Edit, PlayCircle, Search, Eye, AlertTriangle, TrendingUp, HelpCircle, Trophy } from 'lucide-react';
+import { Calendar, Users, FileText, CheckCircle, Clock, AlertCircle, BarChart3, Edit, PlayCircle, Search, Eye, AlertTriangle, TrendingUp, HelpCircle, Trophy, Download } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { getProgressTone, getTaskStatusBadgeClass } from '../lib/visualTones';
+import { DEFAULT_EXAM_PASS_RULES, DEFAULT_EXAM_PROFILE_QUESTIONS, type DefaultExamProfileQuestion, type ExamPassRule } from '../lib/examPublishSettings';
+import { Bar, BarChart as RechartsBarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 type TaskStatus = '待开始' | '考试中' | '考试结束待复核' | '复核结束';
 
@@ -18,6 +20,9 @@ export interface ExamTask {
   submittedCount: number;
   aiGraded: boolean;
   avgScore?: number;
+  passRules?: ExamPassRule[];
+  profileQuestions?: DefaultExamProfileQuestion[];
+  questionCount?: number;
 }
 
 export const INITIAL_EXAM_TASKS: ExamTask[] = [
@@ -28,7 +33,9 @@ export const INITIAL_EXAM_TASKS: ExamTask[] = [
     publishTime: '2023-11-01 10:00',
     targetCount: 1200,
     submittedCount: 0,
-    aiGraded: false
+    aiGraded: false,
+    profileQuestions: DEFAULT_EXAM_PROFILE_QUESTIONS,
+    questionCount: 17,
   },
   {
     id: 't2',
@@ -37,7 +44,9 @@ export const INITIAL_EXAM_TASKS: ExamTask[] = [
     publishTime: '2023-10-15 00:00',
     targetCount: 850,
     submittedCount: 421,
-    aiGraded: false
+    aiGraded: false,
+    profileQuestions: DEFAULT_EXAM_PROFILE_QUESTIONS,
+    questionCount: 22,
   },
   {
     id: 't3',
@@ -46,7 +55,9 @@ export const INITIAL_EXAM_TASKS: ExamTask[] = [
     publishTime: '2023-09-20 09:00',
     targetCount: 500,
     submittedCount: 480,
-    aiGraded: true
+    aiGraded: true,
+    profileQuestions: DEFAULT_EXAM_PROFILE_QUESTIONS,
+    questionCount: 18,
   },
   {
     id: 't4',
@@ -56,7 +67,15 @@ export const INITIAL_EXAM_TASKS: ExamTask[] = [
     targetCount: 1000,
     submittedCount: 980,
     aiGraded: true,
-    avgScore: 88.5
+    avgScore: 88.5,
+    passRules: [
+      { id: 'pass-rule-junior-ba', roleId: 'junior-ba', roleName: '初级 BA', score: 80 },
+      { id: 'pass-rule-senior-ba', roleId: 'senior-ba', roleName: '高级 BA', score: 85 },
+      { id: 'pass-rule-store-manager', roleId: 'store-manager', roleName: '店长', score: 90 },
+      { id: 'pass-rule-regional-trainer', roleId: 'regional-trainer', roleName: '区域培训师', score: 90 },
+    ],
+    profileQuestions: DEFAULT_EXAM_PROFILE_QUESTIONS,
+    questionCount: 20,
   }
 ];
 
@@ -71,11 +90,11 @@ const MOCK_CANDIDATES = [
 ];
 
 const MOCK_REVIEW_CANDIDATES = [
-  { id: 'BA001', name: 'Siti Aminah', store: 'Jakarta Grand Indonesia', aiScore: 85, reviewStatus: '待复核' },
-  { id: 'BA004', name: 'Rizky Pratama', store: 'Bali Beachwalk', aiScore: 92, reviewStatus: '已复核' },
-  { id: 'BA006', name: 'Reza Rahadian', store: 'Medan Centre Point', aiScore: 78, reviewStatus: '待复核' },
-  { id: 'BA007', name: 'Dian Sastrowardoyo', store: 'Makassar Trans Studio', aiScore: 88, reviewStatus: '待复核' },
-  { id: 'BA008', name: 'Maya Sari', store: 'Yogyakarta Hartono Mall', aiScore: 95, reviewStatus: '已复核' },
+  { id: 'BA001', name: 'Siti Aminah', region: '雅加达区', positionName: '初级 BA', store: 'Jakarta Grand Indonesia', storeChannel: '百货', aiScore: 85, reviewStatus: '待复核' },
+  { id: 'BA004', name: 'Rizky Pratama', region: '巴厘岛区', positionName: '店长', store: 'Bali Beachwalk', storeChannel: '购物中心', aiScore: 92, reviewStatus: '已复核' },
+  { id: 'BA006', name: 'Reza Rahadian', region: '棉兰区', positionName: '高级 BA', store: 'Medan Centre Point', storeChannel: '商超', aiScore: 78, reviewStatus: '待复核' },
+  { id: 'BA007', name: 'Dian Sastrowardoyo', region: '望加锡区', positionName: '初级 BA', store: 'Makassar Trans Studio', storeChannel: 'CS', aiScore: 88, reviewStatus: '待复核' },
+  { id: 'BA008', name: 'Maya Sari', region: '日惹区', positionName: '区域培训师', store: 'Yogyakarta Hartono Mall', storeChannel: '线上渠道', aiScore: 95, reviewStatus: '已复核' },
 ];
 
 const MOCK_INSIGHT_DATA = {
@@ -90,6 +109,13 @@ const MOCK_INSIGHT_DATA = {
     { title: '顾客异议处理：大促价格对比', errorRate: 28 },
     { title: '双萃精华核心成分原理解析', errorRate: 22 }
   ],
+  scoreHistogram: [
+    { range: '0-59', count: 18 },
+    { range: '60-69', count: 42 },
+    { range: '70-79', count: 118 },
+    { range: '80-89', count: 422 },
+    { range: '90-100', count: 380 },
+  ],
   topPerformers: [
     { name: 'Siti Aminah', store: 'Jakarta Grand Indonesia', score: 100 },
     { name: 'Rizky Pratama', store: 'Bali Beachwalk', score: 98 },
@@ -103,6 +129,117 @@ interface ExamTaskManageProps {
   onWithdrawTask?: (taskId: string) => void;
 }
 
+type ReviewCandidate = typeof MOCK_REVIEW_CANDIDATES[number];
+
+const normalizePositionName = (value: string) => value.replace(/\s+/g, '').toLowerCase();
+
+const getCandidatePassScore = (task: ExamTask | null, candidate: ReviewCandidate) => {
+  const rules = task?.passRules && task.passRules.length > 0 ? task.passRules : DEFAULT_EXAM_PASS_RULES;
+  const matchedRule = rules.find(rule => normalizePositionName(rule.roleName) === normalizePositionName(candidate.positionName));
+  return matchedRule?.score ?? rules[0]?.score ?? 80;
+};
+
+const isCandidatePassed = (task: ExamTask | null, candidate: ReviewCandidate) => {
+  return candidate.aiScore >= getCandidatePassScore(task, candidate);
+};
+
+const getPositionPassSummaries = (task: ExamTask | null, candidates: ReviewCandidate[]) => {
+  const summaryMap = new Map<string, { positionName: string; passScore: number; total: number; passed: number }>();
+
+  candidates.forEach(candidate => {
+    const passScore = getCandidatePassScore(task, candidate);
+    const key = `${candidate.positionName}-${passScore}`;
+    const current = summaryMap.get(key) || {
+      positionName: candidate.positionName,
+      passScore,
+      total: 0,
+      passed: 0,
+    };
+
+    current.total += 1;
+    if (candidate.aiScore >= passScore) current.passed += 1;
+    summaryMap.set(key, current);
+  });
+
+  return Array.from(summaryMap.values()).map(summary => ({
+    ...summary,
+    passRate: summary.total > 0 ? Math.round((summary.passed / summary.total) * 100) : 0,
+  }));
+};
+
+const escapeExcelCell = (value: string | number) => String(value)
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;');
+
+const createBarText = (value: number, maxValue: number) => {
+  if (maxValue <= 0 || value <= 0) return '';
+  const blocks = Math.max(1, Math.round((value / maxValue) * 24));
+  return '█'.repeat(blocks);
+};
+
+const buildScoreSheetHtml = (task: ExamTask, candidates: ReviewCandidate[]) => {
+  const headers = ['工号', '姓名', '地区', '职位', '门店', '门店渠道', '最终得分', '及格分数', '是否及格', '状态'];
+  const rows = candidates.map(candidate => {
+    const passScore = getCandidatePassScore(task, candidate);
+    return [
+      candidate.id,
+      candidate.name,
+      candidate.region,
+      candidate.positionName,
+      candidate.store,
+      candidate.storeChannel,
+      `${candidate.aiScore} 分`,
+      `${passScore} 分`,
+      candidate.aiScore >= passScore ? '及格' : '未及格',
+      '已评分',
+    ];
+  });
+  const histogramMaxCount = Math.max(...MOCK_INSIGHT_DATA.scoreHistogram.map(item => item.count), 1);
+  const histogramRows = MOCK_INSIGHT_DATA.scoreHistogram.map(item => [
+    item.range,
+    item.count,
+    `${Math.round((item.count / MOCK_INSIGHT_DATA.submitted) * 100)}%`,
+    createBarText(item.count, histogramMaxCount),
+  ]);
+  const positionPassSummaries = getPositionPassSummaries(task, candidates);
+  const positionRows = positionPassSummaries.map(summary => [
+    summary.positionName,
+    `${summary.passScore} 分`,
+    summary.total,
+    summary.passed,
+    `${summary.passRate}%`,
+    createBarText(summary.passRate, 100),
+  ]);
+
+  const renderTable = (tableHeaders: string[], tableRows: Array<Array<string | number>>) => [
+    `<tr>${tableHeaders.map(header => `<th>${escapeExcelCell(header)}</th>`).join('')}</tr>`,
+    ...tableRows.map(row => `<tr>${row.map(cell => `<td>${escapeExcelCell(cell)}</td>`).join('')}</tr>`),
+  ].join('');
+
+  return `
+    <html>
+      <head>
+        <meta charset="UTF-8" />
+        <style>
+          table { border-collapse: collapse; font-family: Arial, sans-serif; }
+          th, td { border: 1px solid #d9d2cc; padding: 8px 10px; text-align: left; }
+          th { background: #f8f5f3; font-weight: 700; }
+        </style>
+      </head>
+      <body>
+        <h3>${escapeExcelCell(task.title)} - 成绩单</h3>
+        <table>${renderTable(headers, rows)}</table>
+        <h3>成绩分布直方图</h3>
+        <table>${renderTable(['分数段', '人数', '占比', '直方图'], histogramRows)}</table>
+        <h3>不同职位通过率</h3>
+        <table>${renderTable(['职位', '及格分数', '参考人数', '及格人数', '通过率', '直方图'], positionRows)}</table>
+      </body>
+    </html>
+  `;
+};
+
 export function ExamTaskManage({ isReadOnly = false, tasks: controlledTasks, onWithdrawTask }: ExamTaskManageProps) {
   const [localTasks, setLocalTasks] = useState<ExamTask[]>(INITIAL_EXAM_TASKS);
   const [activeTab, setActiveTab] = useState<'全部' | TaskStatus>('全部');
@@ -110,6 +247,7 @@ export function ExamTaskManage({ isReadOnly = false, tasks: controlledTasks, onW
   const [reviewingTask, setReviewingTask] = useState<ExamTask | null>(null);
   const [insightTask, setInsightTask] = useState<ExamTask | null>(null);
   const [withdrawTask, setWithdrawTask] = useState<ExamTask | null>(null);
+  const [scoreSearch, setScoreSearch] = useState('');
   const tasks = controlledTasks ?? localTasks;
 
   const getStatusBadge = (status: TaskStatus) => {
@@ -126,6 +264,19 @@ export function ExamTaskManage({ isReadOnly = false, tasks: controlledTasks, onW
   };
 
   const filteredTasks = tasks.filter(t => activeTab === '全部' || t.status === activeTab);
+  const filteredReviewCandidates = MOCK_REVIEW_CANDIDATES.filter(candidate => {
+    const keyword = scoreSearch.trim().toLowerCase();
+    if (!keyword) return true;
+    return [
+      candidate.id,
+      candidate.name,
+      candidate.region,
+      candidate.positionName,
+      candidate.store,
+      candidate.storeChannel,
+    ].some(value => value.toLowerCase().includes(keyword));
+  });
+  const insightPositionPassSummaries = getPositionPassSummaries(insightTask, MOCK_REVIEW_CANDIDATES);
 
   const TABS = ['全部', '待开始', '考试中', '考试结束待复核', '复核结束'] as const;
 
@@ -141,6 +292,22 @@ export function ExamTaskManage({ isReadOnly = false, tasks: controlledTasks, onW
       setMonitoringTask(null);
     }
     setWithdrawTask(null);
+  };
+
+  const handleExportFinishedScores = () => {
+    if (!reviewingTask || reviewingTask.status !== '复核结束') return;
+
+    const html = buildScoreSheetHtml(reviewingTask, MOCK_REVIEW_CANDIDATES);
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const safeTitle = reviewingTask.title.replace(/[\\/:*?"<>|]/g, '_');
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${safeTitle}_成绩单.xls`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const renderWithdrawButton = (task: ExamTask) => {
@@ -202,6 +369,30 @@ export function ExamTaskManage({ isReadOnly = false, tasks: controlledTasks, onW
                 <CardTitle data-i18n-skip="true" className="text-base font-bold text-[#242124] line-clamp-1">
                   {task.title}
                 </CardTitle>
+                {((task.passRules && task.passRules.length > 0) || (task.profileQuestions && task.profileQuestions.length > 0)) && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {task.questionCount && (
+                      <span className="rounded-full bg-[#F8F5F3] px-2 py-0.5 text-[10px] font-bold text-[#766F73] ring-1 ring-[#E5DED8]">
+                        试卷 {task.questionCount} 题
+                      </span>
+                    )}
+                    {task.profileQuestions && task.profileQuestions.length > 0 && (
+                      <span className="rounded-full bg-[#EEF8F4] px-2 py-0.5 text-[10px] font-bold text-[#2F735C] ring-1 ring-[#BFDCCF]">
+                        固定信息题 {task.profileQuestions.length} 道
+                      </span>
+                    )}
+                    {(task.passRules || []).slice(0, 3).map(rule => (
+                      <span key={rule.id} data-i18n-skip="true" className="rounded-full bg-[#EEF8F4] px-2 py-0.5 text-[10px] font-bold text-[#2F735C] ring-1 ring-[#BFDCCF]">
+                        {rule.roleName} {rule.score}分
+                      </span>
+                    ))}
+                    {(task.passRules || []).length > 3 && (
+                      <span className="rounded-full bg-[#F8F5F3] px-2 py-0.5 text-[10px] font-bold text-[#766F73] ring-1 ring-[#E5DED8]">
+                        +{(task.passRules || []).length - 3}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Status specific content section */}
@@ -422,7 +613,7 @@ export function ExamTaskManage({ isReadOnly = false, tasks: controlledTasks, onW
 
       {/* Review Dialog */}
       <Dialog open={!!reviewingTask} onOpenChange={(open) => !open && setReviewingTask(null)}>
-        <DialogContent className="sm:max-w-5xl max-h-[85vh] flex flex-col">
+        <DialogContent className="sm:max-w-6xl max-h-[85vh] flex flex-col">
           <DialogHeader className="border-b border-[#E9E4DF] pb-4 shrink-0">
             <DialogTitle className="flex items-center text-[#242124]">
               {reviewingTask?.status === '复核结束' ? (
@@ -467,9 +658,26 @@ export function ExamTaskManage({ isReadOnly = false, tasks: controlledTasks, onW
             <div className="flex justify-between items-center mb-4 shrink-0">
                <h3 className="text-sm font-bold text-[#242124]">考生考卷列表</h3>
                <div className="flex gap-2">
+                 {reviewingTask?.status === '复核结束' && (
+                   <Button
+                     variant="outline"
+                     size="sm"
+                     onClick={handleExportFinishedScores}
+                     className="h-8 border-[#DCEFE7] bg-[#EEF8F4] text-xs font-bold text-[#2F735C] hover:bg-[#DCEFE7]"
+                   >
+                     <Download className="mr-1.5 h-3.5 w-3.5" />
+                     导出Excel
+                   </Button>
+                 )}
                  <div className="relative">
                    <Search className="w-4 h-4 text-[#9A9396] absolute left-3 top-1/2 -translate-y-1/2" />
-                   <input type="text" placeholder="搜索姓名或工号..." className="pl-9 pr-4 py-1.5 text-sm border border-[#E5DED8] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/20 w-48" />
+                   <input
+                     type="text"
+                     value={scoreSearch}
+                     onChange={event => setScoreSearch(event.target.value)}
+                     placeholder="搜索姓名、工号、地区、职位或门店..."
+                     className="pl-9 pr-4 py-1.5 text-sm border border-[#E5DED8] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/20 w-60"
+                   />
                  </div>
                  {reviewingTask?.status !== '复核结束' && (
                    <select className="px-3 py-1.5 text-sm border border-[#E5DED8] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B9822B]/20 w-40">
@@ -487,37 +695,74 @@ export function ExamTaskManage({ isReadOnly = false, tasks: controlledTasks, onW
                    <tr>
                      <th className="p-3 font-medium text-[#766F73] w-24">工号</th>
                      <th className="p-3 font-medium text-[#766F73] w-32">姓名</th>
-                     <th className="p-3 font-medium text-[#766F73]">门店</th>
+                     {reviewingTask?.status === '复核结束' && (
+                       <th className="p-3 font-medium text-[#766F73] w-28">地区</th>
+                     )}
+                     {reviewingTask?.status === '复核结束' && (
+                       <th className="p-3 font-medium text-[#766F73] w-28">职位</th>
+                     )}
+                     <th className="p-3 font-medium text-[#766F73] min-w-48">门店</th>
+                     {reviewingTask?.status === '复核结束' && (
+                       <th className="p-3 font-medium text-[#766F73] w-28">门店渠道</th>
+                     )}
                      <th className="p-3 font-medium text-[#766F73] w-24">{reviewingTask?.status === '复核结束' ? '最终得分' : 'AI打分'}</th>
-                     <th className="p-3 font-medium text-[#766F73] w-24">状态</th>
+                     {reviewingTask?.status === '复核结束' && (
+                       <th className="p-3 font-medium text-[#766F73] w-24">及格分</th>
+                     )}
+                     <th className="p-3 font-medium text-[#766F73] w-24">{reviewingTask?.status === '复核结束' ? '是否及格' : '状态'}</th>
                      <th className="p-3 font-medium text-[#766F73] w-32 text-right">操作</th>
                    </tr>
                  </thead>
                  <tbody className="divide-y divide-slate-100 bg-white">
-                    {MOCK_REVIEW_CANDIDATES.map((c) => (
-                      <tr key={c.id} className="hover:bg-[#F8F5F3] transition-colors">
-                        <td className="p-3 text-[#766F73] font-mono text-xs">{c.id}</td>
-                        <td className="p-3 font-medium text-[#242124]">{c.name}</td>
-                        <td className="p-3 text-[#5D565A]">{c.store}</td>
-                        <td className="p-3">
-                          <span className={`font-bold ${c.aiScore < 80 ? 'text-red-500' : 'text-[#242124]'}`}>{c.aiScore} 分</span>
-                        </td>
-                        <td className="p-3">
-                          {reviewingTask?.status === '复核结束' ? (
-                            <Badge variant="outline" className="bg-[#EEF8F4] text-[#3B8F72] border-none font-normal">已评分</Badge>
-                          ) : c.reviewStatus === '已复核' ? (
-                            <Badge variant="outline" className="bg-slate-100 text-[#766F73] border-transparent font-normal">已复核</Badge>
-                          ) : (
-                            <Badge variant="outline" className="bg-[#FFF7EA] text-[#B9822B] border-[#E8CCA0] font-bold">待复核</Badge>
+                    {filteredReviewCandidates.map((c) => {
+                      const passScore = getCandidatePassScore(reviewingTask, c);
+                      const passed = isCandidatePassed(reviewingTask, c);
+                      return (
+                        <tr key={c.id} className="hover:bg-[#F8F5F3] transition-colors">
+                          <td className="p-3 text-[#766F73] font-mono text-xs">{c.id}</td>
+                          <td className="p-3 font-medium text-[#242124]">{c.name}</td>
+                          {reviewingTask?.status === '复核结束' && (
+                            <td className="p-3 text-[#5D565A]">{c.region}</td>
                           )}
-                        </td>
-                        <td className="p-3 text-right">
-                          <Button variant="ghost" size="sm" className="h-8 text-rose-600 hover:text-rose-700 hover:bg-rose-50">
-                            <Eye className="w-4 h-4 mr-1.5" /> 查阅原卷
-                          </Button>
+                          {reviewingTask?.status === '复核结束' && (
+                            <td className="p-3 text-[#5D565A]">{c.positionName}</td>
+                          )}
+                          <td className="p-3 text-[#5D565A]">{c.store}</td>
+                          {reviewingTask?.status === '复核结束' && (
+                            <td className="p-3 text-[#5D565A]">{c.storeChannel}</td>
+                          )}
+                          <td className="p-3">
+                            <span className={`font-bold ${passed ? 'text-[#242124]' : 'text-red-500'}`}>{c.aiScore} 分</span>
+                          </td>
+                          {reviewingTask?.status === '复核结束' && (
+                            <td className="p-3 text-[#766F73]">{passScore} 分</td>
+                          )}
+                          <td className="p-3">
+                            {reviewingTask?.status === '复核结束' ? (
+                              <Badge variant="outline" className={`${passed ? 'bg-[#EEF8F4] text-[#3B8F72] border-[#BFDCCF]' : 'bg-red-50 text-red-600 border-red-100'} font-bold`}>
+                                {passed ? '及格' : '未及格'}
+                              </Badge>
+                            ) : c.reviewStatus === '已复核' ? (
+                              <Badge variant="outline" className="bg-slate-100 text-[#766F73] border-transparent font-normal">已复核</Badge>
+                            ) : (
+                              <Badge variant="outline" className="bg-[#FFF7EA] text-[#B9822B] border-[#E8CCA0] font-bold">待复核</Badge>
+                            )}
+                          </td>
+                          <td className="p-3 text-right">
+                            <Button variant="ghost" size="sm" className="h-8 text-rose-600 hover:text-rose-700 hover:bg-rose-50">
+                              <Eye className="w-4 h-4 mr-1.5" /> 查阅原卷
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {filteredReviewCandidates.length === 0 && (
+                      <tr>
+                        <td colSpan={reviewingTask?.status === '复核结束' ? 10 : 6} className="p-8 text-center text-sm text-[#9A9396]">
+                          暂无符合条件的考生成绩
                         </td>
                       </tr>
-                    ))}
+                    )}
                  </tbody>
                </table>
             </div>
@@ -589,6 +834,77 @@ export function ExamTaskManage({ isReadOnly = false, tasks: controlledTasks, onW
                 </CardContent>
               </Card>
             </div>
+
+            <Card className="shrink-0 border-none shadow-sm">
+              <CardHeader className="border-b border-slate-50 p-5 pb-3">
+                <CardTitle className="flex items-center text-sm font-bold text-[#242124]">
+                  <BarChart3 className="mr-2 h-4 w-4 text-[#3B8F72]" />
+                  成绩分布直方图
+                </CardTitle>
+                <CardDescription className="text-xs text-[#766F73]">
+                  按本次考试最终得分区间统计人数
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-5">
+                <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RechartsBarChart data={MOCK_INSIGHT_DATA.scoreHistogram} margin={{ top: 8, right: 20, bottom: 0, left: -8 }}>
+                      <CartesianGrid stroke="#F1ECE8" vertical={false} />
+                      <XAxis dataKey="range" tick={{ fill: '#766F73', fontSize: 12 }} tickLine={false} axisLine={{ stroke: '#E5DED8' }} />
+                      <YAxis tick={{ fill: '#766F73', fontSize: 12 }} tickLine={false} axisLine={false} />
+                      <Tooltip
+                        cursor={{ fill: '#F8F5F3' }}
+                        formatter={(value) => [`${value} 人`, '人数']}
+                        labelFormatter={(label) => `分数段 ${label}`}
+                        contentStyle={{
+                          border: '1px solid #E5DED8',
+                          borderRadius: 8,
+                          boxShadow: '0 8px 24px rgba(31,28,31,0.08)',
+                          fontSize: 12,
+                        }}
+                      />
+                      <Bar dataKey="count" name="人数" fill="#3B8F72" radius={[6, 6, 0, 0]} barSize={54} />
+                    </RechartsBarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shrink-0 border-none shadow-sm">
+              <CardHeader className="border-b border-slate-50 p-5 pb-3">
+                <CardTitle className="flex items-center text-sm font-bold text-[#242124]">
+                  <Users className="mr-2 h-4 w-4 text-[#3B8F72]" />
+                  不同职位通过率
+                </CardTitle>
+                <CardDescription className="text-xs text-[#766F73]">
+                  按考生职位匹配对应及格分数线后统计
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-3 p-5 md:grid-cols-2 xl:grid-cols-4">
+                {insightPositionPassSummaries.map(summary => (
+                  <div key={`${summary.positionName}-${summary.passScore}`} className="rounded-xl border border-[#E9E4DF] bg-[#FCFAF8] p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-bold text-[#242124]">{summary.positionName}</p>
+                        <p className="mt-1 text-xs text-[#766F73]">及格线 {summary.passScore} 分</p>
+                      </div>
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${summary.passRate >= 90 ? 'bg-[#EEF8F4] text-[#2F735C]' : summary.passRate >= 70 ? 'bg-[#FFF7EA] text-[#8B621F]' : 'bg-red-50 text-red-600'}`}>
+                        {summary.passRate}%
+                      </span>
+                    </div>
+                    <Progress
+                      value={summary.passRate}
+                      className="mt-3 h-2 bg-[#F1ECE8]"
+                      indicatorClassName={summary.passRate >= 90 ? 'bg-[#3B8F72]' : summary.passRate >= 70 ? 'bg-[#B9822B]' : 'bg-red-500'}
+                    />
+                    <div className="mt-2 flex justify-between text-[11px] text-[#766F73]">
+                      <span>及格 {summary.passed} 人</span>
+                      <span>参考 {summary.total} 人</span>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
 
             <div className="grid grid-cols-2 gap-6 flex-1 min-h-0">
                {/* Left: Knowledge Gaps */}

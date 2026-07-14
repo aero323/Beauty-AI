@@ -7,6 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/
 import { AlertTriangle, User, ChevronLeft, Building, BookOpen, PlayCircle, Users, Clock, CalendarCheck, Database, MessageSquare, ArrowRight, ClipboardList, Presentation } from 'lucide-react';
 import { brandTone, getProgressTone, getScoreTone, getTaskStatusBadgeClass } from '../lib/visualTones';
 import { AppDownloadButton } from '../components/AppDownloadButton';
+import { MonthlyPointsFormulaTooltip } from '../components/MonthlyPointsFormulaTooltip';
+import { getEmployeeMonthlyPoints, getEmployeeMonthlyPointsFromRate } from '../lib/points';
 
 const REGION_ONGOING_TASKS = [
   { id: 'region-task-1', title: '夏季新品区域通关考核', scope: '区域', type: '考试任务', completed: 280, total: 342, progress: 81, deadlineText: '本周五 23:59', isWarning: true, badgeClass: 'border-rose-200 text-rose-600 bg-rose-50' },
@@ -21,6 +23,11 @@ const getRegionalTaskProgressText = (task: any) => {
   }
   return `${task.completed} / ${task.total} 人已完成`;
 };
+
+const getProfilePointBreakdown = (profile: { taskCompleted: number; examScore: number }) => [
+  { label: '任务完成分', detail: `${profile.taskCompleted} 个任务已完成`, value: `+${profile.taskCompleted * 10}`, tone: 'text-[#3B8F72]' },
+  { label: '考试成绩', detail: '按原始分计入', value: `+${profile.examScore}`, tone: getScoreTone(profile.examScore) },
+];
 
 const VISIBLE_REGION_ONGOING_TASK_COUNT = 3;
 
@@ -496,13 +503,15 @@ export function RMDashboard() {
                                <div className="rounded-lg border border-[#F3C9BC] bg-[#FFF0E8] p-3">
                                  <div className="flex items-start justify-between gap-3">
                                    <div>
-                                     <p className="text-[10px] font-bold uppercase tracking-wider text-[#A85F4B]">当月积分</p>
-                                     <p className="mt-1 text-[10px] leading-relaxed text-[#766F73]">按学习任务、考试成绩、练习达标三项累计</p>
+                                     <p className="text-[10px] font-bold uppercase tracking-wider text-[#A85F4B]">
+                                       <MonthlyPointsFormulaTooltip tooltipClassName="left-0 translate-x-0" />
+                                     </p>
+                                     <p className="mt-1 text-[10px] leading-relaxed text-[#766F73]">任务每完成 1 个计 10 分，考试按原始分计入</p>
                                    </div>
-                                   <span className="text-2xl font-bold text-[#A85F4B]">{selectedStaffProfile.monthlyPoints}</span>
+                                   <span className="text-2xl font-bold text-[#A85F4B]">{getEmployeeMonthlyPoints(selectedStaffProfile.taskCompleted, selectedStaffProfile.examScore)}</span>
                                  </div>
                                  <div className="mt-3 space-y-2 border-t border-[#F3C9BC] pt-2">
-                                   {selectedStaffProfile.pointBreakdown.map((item) => (
+                                   {getProfilePointBreakdown(selectedStaffProfile).map((item) => (
                                      <div key={item.label} className="flex items-center justify-between gap-2 text-[10px]">
                                        <span className="min-w-0 text-[#766F73]">
                                          <span className="font-bold text-[#3F3A3D]">{item.label}</span>
@@ -581,7 +590,7 @@ export function RMDashboard() {
                               <th className="table-rank-cell py-2.5 px-4 font-bold w-16 text-center">Rank</th>
                               <th className="py-2.5 px-4 font-bold min-w-32">员工姓名</th>
                               <th className="py-2.5 px-2 font-bold hidden sm:table-cell w-1/4">所属门店</th>
-                              <th className={`table-compact-cell py-2.5 px-3 font-bold text-center ${brandTone.textClass}`}>当月积分</th>
+                              <th className={`table-compact-cell py-2.5 px-3 font-bold text-center ${brandTone.textClass}`}><MonthlyPointsFormulaTooltip /></th>
                               <th className="table-compact-cell py-2.5 px-3 font-bold text-center">任务完成率</th>
                               <th className="table-compact-cell py-2.5 px-5 font-bold text-right text-[#766F73]">最新考试平均分</th>
                             </tr>
@@ -591,7 +600,7 @@ export function RMDashboard() {
                               <td className="table-rank-cell py-3 px-4 font-bold text-[#B9822B] text-center">1</td>
                               <td className="py-3 px-4 font-bold text-[#242124] group-hover:text-rose-600 transition-colors">Siti</td>
                               <td className="py-3 px-2 text-[10px] text-[#766F73] hidden sm:table-cell">Toko Senayan City</td>
-                              <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>236</td>
+                              <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{getEmployeeMonthlyPoints(REGION_STAFF_PROFILES.Siti.taskCompleted, REGION_STAFF_PROFILES.Siti.examScore)}</td>
                               <td className="py-3 px-3 text-center font-medium text-[#3F3A3D]">100%</td>
                               <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(98)}`}>98</td>
                             </tr>
@@ -599,7 +608,7 @@ export function RMDashboard() {
                               <td className="table-rank-cell py-3 px-4 font-bold text-[#9A9396] text-center">2</td>
                               <td className="py-3 px-4 font-bold text-[#242124] group-hover:text-rose-600 transition-colors">Fitri</td>
                               <td className="py-3 px-2 text-[10px] text-[#766F73] hidden sm:table-cell">Toko Pacific Place</td>
-                              <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>219</td>
+                              <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{getEmployeeMonthlyPoints(REGION_STAFF_PROFILES.Fitri.taskCompleted, REGION_STAFF_PROFILES.Fitri.examScore)}</td>
                               <td className="py-3 px-3 text-center font-medium text-[#3F3A3D]">95%</td>
                               <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(95)}`}>95</td>
                             </tr>
@@ -607,7 +616,7 @@ export function RMDashboard() {
                               <td className="table-rank-cell py-3 px-4 font-bold text-[#8B621F] text-center">3</td>
                               <td className="py-3 px-4 font-bold text-[#242124] group-hover:text-rose-600 transition-colors">Ayu</td>
                               <td className="py-3 px-2 text-[10px] text-[#766F73] hidden sm:table-cell">Toko Gandaria City</td>
-                              <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>203</td>
+                              <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{getEmployeeMonthlyPoints(REGION_STAFF_PROFILES.Ayu.taskCompleted, REGION_STAFF_PROFILES.Ayu.examScore)}</td>
                               <td className="py-3 px-3 text-center font-medium text-[#3F3A3D]">90%</td>
                               <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(91)}`}>91</td>
                             </tr>
@@ -615,7 +624,7 @@ export function RMDashboard() {
                               <td className="table-rank-cell py-3 px-4 font-bold text-[#9A9396] text-center">4</td>
                               <td className="py-3 px-4 font-bold text-[#242124] group-hover:text-rose-600 transition-colors">Maya</td>
                               <td className="py-3 px-2 text-[10px] text-[#766F73] hidden sm:table-cell">Toko Pondok Indah</td>
-                              <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>187</td>
+                              <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{getEmployeeMonthlyPoints(REGION_STAFF_PROFILES.Maya.taskCompleted, REGION_STAFF_PROFILES.Maya.examScore)}</td>
                               <td className="py-3 px-3 text-center font-medium text-[#3F3A3D]">85%</td>
                               <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(86)}`}>86</td>
                             </tr>
@@ -625,7 +634,7 @@ export function RMDashboard() {
                                 Rina
                               </td>
                                 <td className="py-3 px-2 text-[10px] text-[#766F73] hidden sm:table-cell">T. Kelapa Gading</td>
-                              <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>58</td>
+                              <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{getEmployeeMonthlyPoints(REGION_STAFF_PROFILES.Rina.taskCompleted, REGION_STAFF_PROFILES.Rina.examScore)}</td>
                               <td className="py-3 px-3 text-center font-medium text-rose-600">37%</td>
                               <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(52)}`}>52</td>
                             </tr>
@@ -690,7 +699,7 @@ export function RMDashboard() {
                                 <tr>
                                   <th className="p-3 font-bold w-24">工号</th>
                                   <th className="p-3 font-bold min-w-40">姓名</th>
-                                  <th className={`p-3 font-bold w-28 text-center ${brandTone.textClass}`}>当月积分</th>
+                                  <th className={`p-3 font-bold w-28 text-center ${brandTone.textClass}`}><MonthlyPointsFormulaTooltip /></th>
                                   <th className="p-3 font-bold w-28 text-center">任务完成率</th>
                                   <th className="p-3 font-bold w-32 text-right">最近一次考试分数</th>
                                 </tr>
@@ -709,7 +718,7 @@ export function RMDashboard() {
                                           <span className="truncate">{emp.name}</span>
                                         </div>
                                       </td>
-                                      <td className={`p-3 text-center font-bold ${brandTone.textClass}`}>{emp.monthlyPoints}</td>
+                                      <td className={`p-3 text-center font-bold ${brandTone.textClass}`}>{getEmployeeMonthlyPointsFromRate(emp.completionRate, emp.lastExamScore)}</td>
                                       <td className={`p-3 text-center font-bold ${progressTone.textClass}`}>{emp.completionRate}%</td>
                                       <td className={`p-3 text-right font-bold text-base ${getScoreTone(emp.lastExamScore)}`}>{emp.lastExamScore}</td>
                                     </tr>

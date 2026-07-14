@@ -4,6 +4,7 @@ import { Button } from '../components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '../components/ui/dialog';
 import { aiActionTone } from '../lib/visualTones';
 import { EffectiveStatusBadge, type EffectiveStatus } from '../components/EffectiveStatusBadge';
+import { PracticePromptNotice } from '../components/PracticePromptNotice';
 
 interface Quote {
   id: string;
@@ -551,6 +552,7 @@ export function BAQuotes() {
 
             <div className="flex-1 overflow-y-auto p-6 md:p-8">
               <div className="max-w-4xl mx-auto space-y-6">
+                <PracticePromptNotice />
 
                 {/* Product Basic Info */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#E9E4DF]">

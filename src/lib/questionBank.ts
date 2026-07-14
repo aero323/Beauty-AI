@@ -1,6 +1,7 @@
-export type QuestionType = 'single_choice' | 'multiple_choice' | 'true_false' | 'short_answer';
+export type QuestionType = 'single_choice' | 'multiple_choice' | 'true_false' | 'short_answer' | 'dropdown' | 'ordering' | 'checkbox_grid' | 'file_upload';
 export type QuestionDifficulty = 'basic' | 'intermediate' | 'advanced';
 export type QuestionStatus = 'draft' | 'active' | 'archived' | 'pending_review';
+export type QuestionMediaType = 'image' | 'video';
 
 export interface QuestionOption {
   id: string;
@@ -8,15 +9,39 @@ export interface QuestionOption {
   text: string;
 }
 
+export interface QuestionGridAnswer {
+  rowId: string;
+  columnId: string;
+}
+
+export interface QuestionMediaAttachment {
+  id: string;
+  type: QuestionMediaType;
+  name: string;
+  url: string;
+}
+
 export interface Product {
   id: string;
   name: string;
+  brandId?: string;
+  categoryId?: string;
 }
 
 export interface ProductLine {
   id: string;
   name: string;
   products: Product[];
+}
+
+export interface QuestionBrand {
+  id: string;
+  name: string;
+}
+
+export interface ProductCategory {
+  id: string;
+  name: string;
 }
 
 export interface TaxonomyTag {
@@ -31,9 +56,15 @@ export interface QuestionBankItem {
   stem: string;
   options?: QuestionOption[];
   correctOptionIds?: string[];
+  gridRows?: QuestionOption[];
+  gridColumns?: QuestionOption[];
+  gridCorrectAnswers?: QuestionGridAnswer[];
   referenceAnswer?: string;
   scoringRubric?: string;
   aiGradingHint?: string;
+  uploadInstructions?: string;
+  allowedUploadTypes?: QuestionMediaType[];
+  attachments?: QuestionMediaAttachment[];
   productLineId?: string;
   productId?: string;
   tagIds: string[];
@@ -47,8 +78,13 @@ export interface QuestionBankItem {
 export interface QuestionFilters {
   keyword: string;
   type: 'all' | QuestionType;
+  brandId: 'all' | string;
+  brandIds: string[];
   productLineId: 'all' | string;
+  productLineIds: string[];
   productId: 'all' | string;
+  categoryId: 'all' | string;
+  categoryIds: string[];
   tagId: 'all' | string;
   difficulty: 'all' | QuestionDifficulty;
   status: 'all' | QuestionStatus;
@@ -58,7 +94,11 @@ export const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
   single_choice: '单选题',
   multiple_choice: '多选题',
   true_false: '判断题',
-  short_answer: '简答题',
+  short_answer: '段落题',
+  dropdown: '下拉题',
+  ordering: '排序题',
+  checkbox_grid: '复选网格',
+  file_upload: '文件上传',
 };
 
 export const DIFFICULTY_LABELS: Record<QuestionDifficulty, string> = {
@@ -77,8 +117,13 @@ export const STATUS_LABELS: Record<QuestionStatus, string> = {
 export const DEFAULT_FILTERS: QuestionFilters = {
   keyword: '',
   type: 'all',
+  brandId: 'all',
+  brandIds: [],
   productLineId: 'all',
+  productLineIds: [],
   productId: 'all',
+  categoryId: 'all',
+  categoryIds: [],
   tagId: 'all',
   difficulty: 'all',
   status: 'all',
@@ -88,29 +133,51 @@ export const GENERAL_CAPABILITY_LINE_ID = 'general-capability';
 export const MAX_TAGS_PER_QUESTION = 5;
 
 export const QUESTION_TAXONOMY = {
+  brands: [
+    { id: 'you', name: 'Y.O.U' },
+    { id: 'dazzle-me', name: 'Dazzle Me' },
+    { id: 'bnb', name: 'BNB' },
+    { id: 'lavojoy', name: 'Lavojoy' },
+    { id: 'hued', name: 'Hued' },
+    { id: 'glam-fix', name: 'Glam Fix' },
+  ] satisfies QuestionBrand[],
+  categories: [
+    { id: 'foundation', name: '粉底' },
+    { id: 'cushion', name: '气垫' },
+    { id: 'lip-glaze', name: '唇釉' },
+    { id: 'serum', name: '精华' },
+    { id: 'cleanser', name: '洁面' },
+  ] satisfies ProductCategory[],
   productLines: [
     {
       id: 'skincare',
-      name: '护肤系列',
+      name: '护肤品',
       products: [
-        { id: 'lumina-serum', name: 'Lumina 新品精华' },
-        { id: 'barrier-shield', name: 'Barrier Shield 修护系列' },
-        { id: 'winter-moisture', name: '冬季保湿系列' },
+        { id: 'lumina-serum', name: 'Lumina 新品精华', brandId: 'you', categoryId: 'serum' },
+        { id: 'barrier-shield', name: 'Barrier Shield 修护系列', brandId: 'lavojoy', categoryId: 'serum' },
+        { id: 'winter-moisture', name: '冬季保湿系列', brandId: 'bnb', categoryId: 'cleanser' },
       ],
     },
     {
       id: 'makeup',
-      name: '彩妆系列',
+      name: '彩妆',
       products: [
-        { id: 'soft-glow-foundation', name: 'Soft Glow 粉底液' },
-        { id: 'velvet-lip', name: 'Velvet Lip 唇膏' },
+        { id: 'soft-glow-foundation', name: 'Soft Glow 粉底液', brandId: 'dazzle-me', categoryId: 'foundation' },
+        { id: 'velvet-lip', name: 'Velvet Lip 唇膏', brandId: 'hued', categoryId: 'lip-glaze' },
       ],
     },
     {
       id: 'haircare',
-      name: '护发系列',
+      name: '护发',
       products: [
-        { id: 'silk-hair-mask', name: 'Silk Repair 发膜' },
+        { id: 'silk-hair-mask', name: 'Silk Repair 发膜', brandId: 'glam-fix' },
+      ],
+    },
+    {
+      id: 'cosmetics',
+      name: '化妆品',
+      products: [
+        { id: 'general-cosmetics', name: '通用化妆品知识', brandId: 'glam-fix', categoryId: 'cushion' },
       ],
     },
     {
@@ -295,6 +362,89 @@ export const INITIAL_QUESTIONS: QuestionBankItem[] = [
     sourceFile: '门店服务礼仪SOP.pdf',
     status: 'active',
   },
+  {
+    id: 'b8',
+    type: 'dropdown',
+    stem: '顾客表示皮肤换季泛红时，下拉选择最适合优先推荐的护理方向。',
+    options: [
+      { id: 'a', label: 'A', text: '屏障修护' },
+      { id: 'b', label: 'B', text: '高频去角质' },
+      { id: 'c', label: 'C', text: '强效控油' },
+      { id: 'd', label: 'D', text: '浓妆遮盖' },
+    ],
+    correctOptionIds: ['a'],
+    productLineId: 'skincare',
+    productId: 'lumina-serum',
+    tagIds: ['sensitive-skin', 'barrier-repair'],
+    customTags: ['下拉题'],
+    difficulty: 'basic',
+    sourceFile: '敏感肌护理FAQ.pdf',
+    status: 'active',
+  },
+  {
+    id: 'b9',
+    type: 'ordering',
+    stem: '请将基础护肤服务流程按正确顺序排列。',
+    options: [
+      { id: 'a', label: 'A', text: '了解顾客当前肤况和需求' },
+      { id: 'b', label: 'B', text: '清洁后进行基础保湿' },
+      { id: 'c', label: 'C', text: '说明产品使用顺序和注意事项' },
+      { id: 'd', label: 'D', text: '确认顾客是否需要试用或搭配建议' },
+    ],
+    correctOptionIds: ['a', 'b', 'c', 'd'],
+    productLineId: GENERAL_CAPABILITY_LINE_ID,
+    tagIds: ['service-etiquette', 'usage-step'],
+    customTags: ['排序题'],
+    difficulty: 'intermediate',
+    sourceFile: '门店服务礼仪SOP.pdf',
+    status: 'active',
+  },
+  {
+    id: 'b10',
+    type: 'checkbox_grid',
+    stem: '请将护肤成分与对应功效进行匹配。',
+    gridRows: [
+      { id: 'r1', label: '1', text: '维他命B5' },
+      { id: 'r2', label: '2', text: '神经酰胺' },
+      { id: 'r3', label: '3', text: '烟酰胺' },
+    ],
+    gridColumns: [
+      { id: 'c1', label: 'A', text: '舒缓修护' },
+      { id: 'c2', label: 'B', text: '屏障支持' },
+      { id: 'c3', label: 'C', text: '提亮肤色' },
+    ],
+    gridCorrectAnswers: [
+      { rowId: 'r1', columnId: 'c1' },
+      { rowId: 'r2', columnId: 'c2' },
+      { rowId: 'r3', columnId: 'c3' },
+    ],
+    productLineId: 'skincare',
+    productId: 'lumina-serum',
+    tagIds: ['ingredient', 'selling-point'],
+    customTags: ['复选网格'],
+    difficulty: 'advanced',
+    sourceFile: '成分功效对照表.xlsx',
+    status: 'draft',
+  },
+  {
+    id: 'b11',
+    type: 'file_upload',
+    stem: '请上传一段 30 秒以内的视频，演示 BA 如何向顾客介绍 Lumina 新品精华的核心卖点。',
+    uploadInstructions: '支持上传图片或视频；视频需包含问候、卖点说明和试用引导。',
+    allowedUploadTypes: ['image', 'video'],
+    scoringRubric: '问候自然 2 分；核心卖点准确 4 分；演示清晰 2 分；收尾转化 2 分。',
+    aiGradingHint: '优先检查视频是否包含完整销售动作和准确产品信息。',
+    attachments: [
+      { id: 'att-demo-video', type: 'video', name: '示范视频脚本.mp4', url: 'https://example.com/lumina-demo.mp4' },
+    ],
+    productLineId: 'skincare',
+    productId: 'lumina-serum',
+    tagIds: ['sales-script', 'scenario-drill'],
+    customTags: ['视频作答'],
+    difficulty: 'advanced',
+    sourceFile: 'Lumina_上柜演示标准.pdf',
+    status: 'pending_review',
+  },
 ];
 
 export function createQuestionId(prefix = 'q') {
@@ -336,8 +486,16 @@ export function findProductLine(productLineId?: string) {
   return QUESTION_TAXONOMY.productLines.find(line => line.id === productLineId);
 }
 
-export function findProduct(productLineId?: string, productId?: string) {
+export function findProduct(productLineId?: string, productId?: string): Product | undefined {
   return findProductLine(productLineId)?.products.find(product => product.id === productId);
+}
+
+export function findBrand(brandId?: string) {
+  return QUESTION_TAXONOMY.brands.find(brand => brand.id === brandId);
+}
+
+export function findCategory(categoryId?: string) {
+  return QUESTION_TAXONOMY.categories.find(category => category.id === categoryId);
 }
 
 export function findTag(tagId: string, tags: TaxonomyTag[] = QUESTION_TAXONOMY.tags) {
@@ -357,6 +515,58 @@ export function mergeTags(existing: string[], next: string[]) {
   return Array.from(new Set([...existing, ...next].map(tag => tag.trim()).filter(Boolean)));
 }
 
+function defaultChoiceOptions() {
+  return [
+    { id: 'a', label: 'A', text: '' },
+    { id: 'b', label: 'B', text: '' },
+    { id: 'c', label: 'C', text: '' },
+    { id: 'd', label: 'D', text: '' },
+  ];
+}
+
+function defaultGridRows() {
+  return [
+    { id: 'r1', label: '1', text: '' },
+    { id: 'r2', label: '2', text: '' },
+    { id: 'r3', label: '3', text: '' },
+  ];
+}
+
+function defaultGridColumns() {
+  return [
+    { id: 'c1', label: 'A', text: '' },
+    { id: 'c2', label: 'B', text: '' },
+    { id: 'c3', label: 'C', text: '' },
+  ];
+}
+
+function normalizeOptions(options: QuestionOption[] | undefined, fallback: QuestionOption[]) {
+  const nextOptions = options && options.length >= 2 ? options : fallback;
+  return nextOptions.map((option, index) => ({
+    ...option,
+    label: option.label || String.fromCharCode(65 + index),
+  }));
+}
+
+function normalizeOrderingAnswer(options: QuestionOption[], answerIds?: string[]) {
+  const optionIds = options.map(option => option.id);
+  const existingOrder = (answerIds || []).filter(id => optionIds.includes(id));
+  const missingIds = optionIds.filter(id => !existingOrder.includes(id));
+  return [...existingOrder, ...missingIds];
+}
+
+function normalizeGridAnswers(rows: QuestionOption[], columns: QuestionOption[], answers?: QuestionGridAnswer[]) {
+  const rowIds = new Set(rows.map(row => row.id));
+  const columnIds = new Set(columns.map(column => column.id));
+  const unique = new Map<string, QuestionGridAnswer>();
+  (answers || []).forEach(answer => {
+    if (rowIds.has(answer.rowId) && columnIds.has(answer.columnId)) {
+      unique.set(`${answer.rowId}:${answer.columnId}`, answer);
+    }
+  });
+  return Array.from(unique.values());
+}
+
 export function limitQuestionTags(question: QuestionBankItem): QuestionBankItem {
   const tagIds = Array.from(new Set(question.tagIds)).slice(0, MAX_TAGS_PER_QUESTION);
   const remainingCustomSlots = Math.max(0, MAX_TAGS_PER_QUESTION - tagIds.length);
@@ -372,21 +582,58 @@ export function getQuestionAnswerText(question: QuestionBankItem) {
     return question.referenceAnswer || '待补充参考答案';
   }
 
+  if (question.type === 'file_upload') {
+    return question.uploadInstructions || question.scoringRubric || '需上传图片或视频';
+  }
+
+  if (question.type === 'ordering') {
+    const optionById = new Map((question.options || []).map(option => [option.id, option]));
+    const orderedOptions = (question.correctOptionIds || []).map(id => optionById.get(id)).filter(Boolean) as QuestionOption[];
+    return orderedOptions.map((option, index) => `${index + 1}. ${option.text}`).join(' -> ') || '未设置排序答案';
+  }
+
+  if (question.type === 'checkbox_grid') {
+    const rowById = new Map((question.gridRows || []).map(row => [row.id, row]));
+    const columnById = new Map((question.gridColumns || []).map(column => [column.id, column]));
+    const answersByRow = new Map<string, string[]>();
+    (question.gridCorrectAnswers || []).forEach(answer => {
+      const row = rowById.get(answer.rowId);
+      const column = columnById.get(answer.columnId);
+      if (!row || !column) return;
+      answersByRow.set(row.id, [...(answersByRow.get(row.id) || []), column.text]);
+    });
+    return Array.from(answersByRow.entries())
+      .map(([rowId, columns]) => `${rowById.get(rowId)?.text}: ${columns.join('、')}`)
+      .join('；') || '未设置网格答案';
+  }
+
   const selectedOptions = question.options?.filter(option => question.correctOptionIds?.includes(option.id)) || [];
   return selectedOptions.map(option => `${option.label}. ${option.text}`).join('、') || '未设置答案';
 }
 
 export function getQuestionSearchText(question: QuestionBankItem, tags: TaxonomyTag[] = QUESTION_TAXONOMY.tags) {
   const line = findProductLine(question.productLineId)?.name || '';
-  const product = findProduct(question.productLineId, question.productId)?.name || '';
+  const product = findProduct(question.productLineId, question.productId);
+  const brand = findBrand(product?.brandId)?.name || '';
+  const category = findCategory(product?.categoryId)?.name || '';
   const optionText = question.options?.map(option => `${option.label}${option.text}`).join(' ') || '';
+  const gridText = [
+    ...(question.gridRows || []).map(row => `${row.label}${row.text}`),
+    ...(question.gridColumns || []).map(column => `${column.label}${column.text}`),
+  ].join(' ');
+  const attachmentText = question.attachments?.map(attachment => `${attachment.name} ${attachment.url} ${attachment.type}`).join(' ') || '';
   return [
     question.stem,
     optionText,
+    gridText,
     question.referenceAnswer,
     question.scoringRubric,
+    question.uploadInstructions,
+    attachmentText,
     line,
-    product,
+    product?.name,
+    brand,
+    category,
     question.sourceFile,
     QUESTION_TYPE_LABELS[question.type],
     DIFFICULTY_LABELS[question.difficulty],
@@ -400,9 +647,15 @@ export function filterQuestions(questions: QuestionBankItem[], filters: Question
   const selectedTagName = filters.tagId === 'all' ? '' : findTag(filters.tagId, tags)?.name || '';
 
   return questions.filter(question => {
+    const product = findProduct(question.productLineId, question.productId);
     if (filters.type !== 'all' && question.type !== filters.type) return false;
+    if (filters.brandId !== 'all' && product?.brandId !== filters.brandId) return false;
+    if (filters.brandIds.length > 0 && (!product?.brandId || !filters.brandIds.includes(product.brandId))) return false;
     if (filters.productLineId !== 'all' && question.productLineId !== filters.productLineId) return false;
+    if (filters.productLineIds.length > 0 && (!question.productLineId || !filters.productLineIds.includes(question.productLineId))) return false;
     if (filters.productId !== 'all' && question.productId !== filters.productId) return false;
+    if (filters.categoryId !== 'all' && product?.categoryId !== filters.categoryId) return false;
+    if (filters.categoryIds.length > 0 && (!product?.categoryId || !filters.categoryIds.includes(product.categoryId))) return false;
     if (filters.tagId !== 'all' && !question.tagIds.includes(filters.tagId) && !question.customTags.includes(selectedTagName)) return false;
     if (filters.difficulty !== 'all' && question.difficulty !== filters.difficulty) return false;
     if (filters.status !== 'all' && question.status !== filters.status) return false;
@@ -417,7 +670,28 @@ export function normalizeQuestionForType(question: QuestionBankItem): QuestionBa
       ...question,
       options: undefined,
       correctOptionIds: undefined,
+      gridRows: undefined,
+      gridColumns: undefined,
+      gridCorrectAnswers: undefined,
       referenceAnswer: question.referenceAnswer || '',
+      scoringRubric: question.scoringRubric || '',
+      aiGradingHint: question.aiGradingHint || '',
+      uploadInstructions: undefined,
+      allowedUploadTypes: undefined,
+    });
+  }
+
+  if (question.type === 'file_upload') {
+    return limitQuestionTags({
+      ...question,
+      options: undefined,
+      correctOptionIds: undefined,
+      gridRows: undefined,
+      gridColumns: undefined,
+      gridCorrectAnswers: undefined,
+      referenceAnswer: undefined,
+      uploadInstructions: question.uploadInstructions || '请上传图片或视频作为作答材料。',
+      allowedUploadTypes: question.allowedUploadTypes && question.allowedUploadTypes.length > 0 ? question.allowedUploadTypes : ['image', 'video'],
       scoringRubric: question.scoringRubric || '',
       aiGradingHint: question.aiGradingHint || '',
     });
@@ -433,30 +707,68 @@ export function normalizeQuestionForType(question: QuestionBankItem): QuestionBa
       ...question,
       options,
       correctOptionIds: currentAnswer === 'false' ? ['false'] : ['true'],
+      gridRows: undefined,
+      gridColumns: undefined,
+      gridCorrectAnswers: undefined,
       referenceAnswer: undefined,
       scoringRubric: undefined,
       aiGradingHint: undefined,
+      uploadInstructions: undefined,
+      allowedUploadTypes: undefined,
     });
   }
 
-  const fallbackOptions = question.options && question.options.length >= 2
-    ? question.options
-    : [
-      { id: 'a', label: 'A', text: '' },
-      { id: 'b', label: 'B', text: '' },
-      { id: 'c', label: 'C', text: '' },
-      { id: 'd', label: 'D', text: '' },
-    ];
+  if (question.type === 'checkbox_grid') {
+    const gridRows = normalizeOptions(question.gridRows, defaultGridRows());
+    const gridColumns = normalizeOptions(question.gridColumns, defaultGridColumns());
+    return limitQuestionTags({
+      ...question,
+      options: undefined,
+      correctOptionIds: undefined,
+      gridRows,
+      gridColumns,
+      gridCorrectAnswers: normalizeGridAnswers(gridRows, gridColumns, question.gridCorrectAnswers),
+      referenceAnswer: undefined,
+      scoringRubric: undefined,
+      aiGradingHint: undefined,
+      uploadInstructions: undefined,
+      allowedUploadTypes: undefined,
+    });
+  }
+
+  const fallbackOptions = normalizeOptions(question.options, defaultChoiceOptions());
+  const firstAnswerId = question.correctOptionIds?.find(id => fallbackOptions.some(option => option.id === id)) || fallbackOptions[0].id;
+
+  if (question.type === 'ordering') {
+    return limitQuestionTags({
+      ...question,
+      options: fallbackOptions,
+      correctOptionIds: normalizeOrderingAnswer(fallbackOptions, question.correctOptionIds),
+      gridRows: undefined,
+      gridColumns: undefined,
+      gridCorrectAnswers: undefined,
+      referenceAnswer: undefined,
+      scoringRubric: undefined,
+      aiGradingHint: undefined,
+      uploadInstructions: undefined,
+      allowedUploadTypes: undefined,
+    });
+  }
 
   return limitQuestionTags({
     ...question,
     options: fallbackOptions,
-    correctOptionIds: question.type === 'single_choice'
-      ? [question.correctOptionIds?.[0] || fallbackOptions[0].id]
-      : question.correctOptionIds || [fallbackOptions[0].id],
+    correctOptionIds: question.type === 'multiple_choice'
+      ? (question.correctOptionIds && question.correctOptionIds.length > 0 ? question.correctOptionIds : [fallbackOptions[0].id])
+      : [firstAnswerId],
+    gridRows: undefined,
+    gridColumns: undefined,
+    gridCorrectAnswers: undefined,
     referenceAnswer: undefined,
     scoringRubric: undefined,
     aiGradingHint: undefined,
+    uploadInstructions: undefined,
+    allowedUploadTypes: undefined,
   });
 }
 
@@ -469,7 +781,7 @@ export function createVariantQuestion(source: QuestionBankItem, index: number): 
     '用于复训抽查的变体题',
   ];
 
-  if (source.type === 'short_answer') {
+  if (source.type === 'short_answer' || source.type === 'file_upload') {
     return limitQuestionTags({
       ...source,
       id,
@@ -477,6 +789,8 @@ export function createVariantQuestion(source: QuestionBankItem, index: number): 
       referenceAnswer: source.referenceAnswer || '',
       scoringRubric: source.scoringRubric || '',
       aiGradingHint: source.aiGradingHint || 'AI 初稿，需培训师复核评分要点。',
+      uploadInstructions: source.uploadInstructions,
+      allowedUploadTypes: source.allowedUploadTypes,
       customTags: inheritedTags,
       status: 'pending_review',
       generatedFromQuestionId: source.id,
@@ -519,6 +833,30 @@ export function createUploadPreviewQuestions(): QuestionBankItem[] {
       status: 'pending_review',
       customTags: mergeTags(INITIAL_QUESTIONS[4].customTags, ['热带气候话术']),
       sourceFile: 'Lumina_新品精华_培训版.pdf',
+    },
+    {
+      ...INITIAL_QUESTIONS[7],
+      id: createQuestionId('upload'),
+      status: 'pending_review',
+      sourceFile: '敏感肌护理FAQ.pdf',
+    },
+    {
+      ...INITIAL_QUESTIONS[8],
+      id: createQuestionId('upload'),
+      status: 'pending_review',
+      sourceFile: '门店服务礼仪SOP.pdf',
+    },
+    {
+      ...INITIAL_QUESTIONS[9],
+      id: createQuestionId('upload'),
+      status: 'pending_review',
+      sourceFile: '成分功效对照表.xlsx',
+    },
+    {
+      ...INITIAL_QUESTIONS[10],
+      id: createQuestionId('upload'),
+      status: 'pending_review',
+      sourceFile: 'Lumina_上柜演示标准.pdf',
     },
   ];
 }

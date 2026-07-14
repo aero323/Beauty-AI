@@ -7,6 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { brandTone, getProgressTone, getScoreTone, getTaskStatusBadgeClass } from '../lib/visualTones';
 import { AppDownloadButton } from '../components/AppDownloadButton';
+import { MonthlyPointsFormulaTooltip, StorePointsFormulaTooltip } from '../components/MonthlyPointsFormulaTooltip';
+import { formatPointValue, getEmployeeMonthlyPoints, getEmployeeMonthlyPointsFromRate } from '../lib/points';
 
 interface HTDashboardProps {
   onNavigate?: (tab: string) => void;
@@ -25,6 +27,11 @@ const getTaskProgressText = (task: any) => {
   }
   return `${task.completed} / ${task.total} 人已完成`;
 };
+
+const getProfilePointBreakdown = (profile: { taskCompleted: number; examScore: number }) => [
+  { label: '任务完成分', detail: `${profile.taskCompleted} 个任务已完成`, value: `+${profile.taskCompleted * 10}`, tone: 'text-[#3B8F72]' },
+  { label: '考试成绩', detail: '按原始分计入', value: `+${profile.examScore}`, tone: getScoreTone(profile.examScore) },
+];
 
 const VISIBLE_ONGOING_TASK_COUNT = 4;
 const HQ_ACTIVE_BA_COUNT = 1428;
@@ -234,6 +241,22 @@ const HQ_STORE_PROFILES = {
       { id: 'BA153', name: 'Dimas Pratama', monthlyPoints: 106, completionRate: 65, lastExamScore: 68 },
     ],
   },
+};
+
+type HQStoreProfile = (typeof HQ_STORE_PROFILES)[keyof typeof HQ_STORE_PROFILES];
+
+const getStoreMonthlyPoints = (store: HQStoreProfile) => {
+  const employeeCount = store.employees.length;
+  if (employeeCount === 0) return 0;
+
+  const totalPoints = store.employees.reduce((sum, employee) => {
+    return sum + getEmployeeMonthlyPointsFromRate(employee.completionRate, employee.lastExamScore);
+  }, 0);
+  return totalPoints / employeeCount;
+};
+
+const formatStoreMonthlyPoints = (store: HQStoreProfile) => {
+  return formatPointValue(getStoreMonthlyPoints(store));
 };
 
 export function HTDashboard({ onNavigate }: HTDashboardProps) {
@@ -554,13 +577,15 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                              <div className="rounded-lg border border-[#F3C9BC] bg-[#FFF0E8] p-3">
                                <div className="flex items-start justify-between gap-3">
                                  <div>
-                                   <p className="text-[10px] font-bold uppercase tracking-wider text-[#A85F4B]">当月积分</p>
-                                   <p className="mt-1 text-[10px] leading-relaxed text-[#766F73]">按学习任务、考试成绩、练习达标三项累计</p>
+                                   <p className="text-[10px] font-bold uppercase tracking-wider text-[#A85F4B]">
+                                     <MonthlyPointsFormulaTooltip tooltipClassName="left-0 translate-x-0" />
+                                   </p>
+                                   <p className="mt-1 text-[10px] leading-relaxed text-[#766F73]">任务每完成 1 个计 10 分，考试按原始分计入</p>
                                  </div>
-                                 <span className="text-2xl font-bold text-[#A85F4B]">{selectedStaffProfile.monthlyPoints}</span>
+                                 <span className="text-2xl font-bold text-[#A85F4B]">{getEmployeeMonthlyPoints(selectedStaffProfile.taskCompleted, selectedStaffProfile.examScore)}</span>
                                </div>
                                <div className="mt-3 space-y-2 border-t border-[#F3C9BC] pt-2">
-                                 {selectedStaffProfile.pointBreakdown.map((item) => (
+                                 {getProfilePointBreakdown(selectedStaffProfile).map((item) => (
                                    <div key={item.label} className="flex items-center justify-between gap-2 text-[10px]">
                                      <span className="min-w-0 text-[#766F73]">
                                        <span className="font-bold text-[#3F3A3D]">{item.label}</span>
@@ -639,7 +664,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                             <th className="table-rank-cell py-2.5 px-4 font-bold w-16 text-center">Rank</th>
                             <th className="py-2.5 px-4 font-bold min-w-32">员工姓名</th>
                             <th className="py-2.5 px-2 font-bold hidden sm:table-cell w-1/4">所属区域/门店</th>
-                            <th className={`table-compact-cell py-2.5 px-3 font-bold text-center ${brandTone.textClass}`}>当月积分</th>
+                            <th className={`table-compact-cell py-2.5 px-3 font-bold text-center ${brandTone.textClass}`}><MonthlyPointsFormulaTooltip /></th>
                             <th className="table-compact-cell py-2.5 px-3 font-bold text-center">任务完成率</th>
                             <th className="table-compact-cell py-2.5 px-5 font-bold text-right text-[#766F73]">最新考试平均分</th>
                           </tr>
@@ -649,7 +674,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                             <td className="table-rank-cell py-3 px-4 font-bold text-[#B9822B] text-center">1</td>
                             <td className="py-3 px-4 font-bold text-[#242124] group-hover:text-rose-600 transition-colors">Siti</td>
                             <td className="py-3 px-2 text-[10px] text-[#766F73] hidden sm:table-cell">雅加达区 | Toko Senayan City</td>
-                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>236</td>
+                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{getEmployeeMonthlyPoints(HQ_STAFF_PROFILES.Siti.taskCompleted, HQ_STAFF_PROFILES.Siti.examScore)}</td>
                             <td className="py-3 px-3 text-center font-medium text-[#3F3A3D]">100%</td>
                             <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(98)}`}>98</td>
                           </tr>
@@ -657,7 +682,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                             <td className="table-rank-cell py-3 px-4 font-bold text-[#9A9396] text-center">2</td>
                             <td className="py-3 px-4 font-bold text-[#242124] group-hover:text-rose-600 transition-colors">Dewi</td>
                             <td className="py-3 px-2 text-[10px] text-[#766F73] hidden sm:table-cell">泗水区 | Tunjungan Plaza</td>
-                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>228</td>
+                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{getEmployeeMonthlyPoints(HQ_STAFF_PROFILES.Dewi.taskCompleted, HQ_STAFF_PROFILES.Dewi.examScore)}</td>
                             <td className="py-3 px-3 text-center font-medium text-[#3F3A3D]">98%</td>
                             <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(96)}`}>96</td>
                           </tr>
@@ -665,7 +690,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                             <td className="table-rank-cell py-3 px-4 font-bold text-[#8B621F] text-center">3</td>
                             <td className="py-3 px-4 font-bold text-[#242124] group-hover:text-rose-600 transition-colors">Fitri</td>
                             <td className="py-3 px-2 text-[10px] text-[#766F73] hidden sm:table-cell">雅加达区 | Toko Pacific Place</td>
-                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>219</td>
+                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{getEmployeeMonthlyPoints(HQ_STAFF_PROFILES.Fitri.taskCompleted, HQ_STAFF_PROFILES.Fitri.examScore)}</td>
                             <td className="py-3 px-3 text-center font-medium text-[#3F3A3D]">95%</td>
                             <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(95)}`}>95</td>
                           </tr>
@@ -673,7 +698,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                             <td className="table-rank-cell py-3 px-4 font-bold text-[#9A9396] text-center">4</td>
                             <td className="py-3 px-4 font-bold text-[#242124] group-hover:text-rose-600 transition-colors">Putri</td>
                             <td className="py-3 px-2 text-[10px] text-[#766F73] hidden sm:table-cell">巴厘岛区 | Beachwalk Center</td>
-                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>207</td>
+                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{getEmployeeMonthlyPoints(HQ_STAFF_PROFILES.Putri.taskCompleted, HQ_STAFF_PROFILES.Putri.examScore)}</td>
                             <td className="py-3 px-3 text-center font-medium text-[#3F3A3D]">92%</td>
                             <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(92)}`}>92</td>
                           </tr>
@@ -683,7 +708,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                               Rina
                             </td>
                             <td className="py-3 px-2 text-[10px] text-[#766F73] hidden sm:table-cell">雅加达区 | T. Kelapa Gading</td>
-                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>58</td>
+                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{getEmployeeMonthlyPoints(HQ_STAFF_PROFILES.Rina.taskCompleted, HQ_STAFF_PROFILES.Rina.examScore)}</td>
                             <td className="py-3 px-3 text-center font-medium text-rose-600">37%</td>
                             <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(52)}`}>52</td>
                           </tr>
@@ -748,7 +773,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                               <tr>
                                 <th className="p-3 font-bold w-24">工号</th>
                                 <th className="p-3 font-bold min-w-40">姓名</th>
-                                <th className={`p-3 font-bold w-28 text-center ${brandTone.textClass}`}>当月积分</th>
+                                <th className={`p-3 font-bold w-28 text-center ${brandTone.textClass}`}><MonthlyPointsFormulaTooltip /></th>
                                 <th className="p-3 font-bold w-28 text-center">任务完成率</th>
                                 <th className="p-3 font-bold w-32 text-right">最近一次考试分数</th>
                               </tr>
@@ -767,7 +792,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                                         <span className="truncate">{emp.name}</span>
                                       </div>
                                     </td>
-                                    <td className={`p-3 text-center font-bold ${brandTone.textClass}`}>{emp.monthlyPoints}</td>
+                                    <td className={`p-3 text-center font-bold ${brandTone.textClass}`}>{getEmployeeMonthlyPointsFromRate(emp.completionRate, emp.lastExamScore)}</td>
                                     <td className={`p-3 text-center font-bold ${progressTone.textClass}`}>{emp.completionRate}%</td>
                                     <td className={`p-3 text-right font-bold text-base ${getScoreTone(emp.lastExamScore)}`}>{emp.lastExamScore}</td>
                                   </tr>
@@ -793,6 +818,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                             <th className="py-2.5 px-5 font-bold w-12 text-center">Rank</th>
                             <th className="py-2.5 px-4 font-bold">门店名称</th>
                             <th className="py-2.5 px-2 font-bold hidden sm:table-cell text-center">参训人数</th>
+                            <th className={`py-2.5 px-3 font-bold text-center ${brandTone.textClass}`}><StorePointsFormulaTooltip /></th>
                             <th className="py-2.5 px-3 font-bold text-center">任务完成率</th>
                             <th className="py-2.5 px-5 font-bold text-right text-[#766F73]">最新考试平均分</th>
                           </tr>
@@ -802,6 +828,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                             <td className="py-3 px-5 font-bold text-[#B9822B] text-center">1</td>
                             <td className="py-3 px-4 font-bold text-[#242124] group-hover:text-rose-600 transition-colors">Toko Senayan City (雅加达)</td>
                              <td className="py-3 px-2 text-[10px] text-[#766F73] hidden sm:table-cell text-center font-mono">6/6</td>
+                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{formatStoreMonthlyPoints(HQ_STORE_PROFILES['Toko Senayan City (雅加达)'])}</td>
                             <td className="py-3 px-3 text-center font-medium text-[#3F3A3D]">100%</td>
                             <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(98)}`}>98</td>
                           </tr>
@@ -809,6 +836,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                             <td className="py-3 px-5 font-bold text-[#9A9396] text-center">2</td>
                             <td className="py-3 px-4 font-bold text-[#242124] group-hover:text-rose-600 transition-colors">Tunjungan Plaza (泗水)</td>
                             <td className="py-3 px-2 text-[10px] text-[#766F73] hidden sm:table-cell text-center font-mono">12/12</td>
+                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{formatStoreMonthlyPoints(HQ_STORE_PROFILES['Tunjungan Plaza (泗水)'])}</td>
                             <td className="py-3 px-3 text-center font-medium text-[#3F3A3D]">100%</td>
                             <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(96)}`}>96</td>
                           </tr>
@@ -816,6 +844,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                             <td className="py-3 px-5 font-bold text-[#8B621F] text-center">3</td>
                             <td className="py-3 px-4 font-bold text-[#242124] group-hover:text-rose-600 transition-colors">Toko Pacific Place (雅加达)</td>
                             <td className="py-3 px-2 text-[10px] text-[#766F73] hidden sm:table-cell text-center font-mono">8/8</td>
+                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{formatStoreMonthlyPoints(HQ_STORE_PROFILES['Toko Pacific Place (雅加达)'])}</td>
                             <td className="py-3 px-3 text-center font-medium text-[#3F3A3D]">95%</td>
                             <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(95)}`}>95</td>
                           </tr>
@@ -823,6 +852,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                             <td className="py-3 px-5 font-bold text-[#9A9396] text-center">4</td>
                             <td className="py-3 px-4 font-bold text-[#242124] group-hover:text-rose-600 transition-colors">Beachwalk Center (巴厘岛)</td>
                             <td className="py-3 px-2 text-[10px] text-[#766F73] hidden sm:table-cell text-center font-mono">5/5</td>
+                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{formatStoreMonthlyPoints(HQ_STORE_PROFILES['Beachwalk Center (巴厘岛)'])}</td>
                             <td className="py-3 px-3 text-center font-medium text-[#3F3A3D]">90%</td>
                             <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(92)}`}>92</td>
                           </tr>
@@ -830,6 +860,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                             <td className="py-3 px-5 font-bold text-rose-500 text-center">85</td>
                             <td className="py-3 px-4 font-bold text-rose-600 group-hover:text-rose-800 transition-colors">Toko Kelapa Gading (雅加达)</td>
                             <td className="py-3 px-2 text-[10px] text-rose-500 hidden sm:table-cell text-center font-mono">3/5</td>
+                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{formatStoreMonthlyPoints(HQ_STORE_PROFILES['Toko Kelapa Gading (雅加达)'])}</td>
                             <td className="py-3 px-3 text-center font-medium text-rose-600">60%</td>
                             <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(58)}`}>58</td>
                           </tr>

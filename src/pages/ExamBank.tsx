@@ -1,8 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Archive,
   Check,
   CheckCircle,
+  ChevronDown,
+  ChevronRight,
   Database,
   Edit,
   FileText,
@@ -46,6 +48,7 @@ import {
   QuestionBankItem,
   QuestionDifficulty,
   QuestionFilters,
+  QuestionMediaType,
   QuestionOption,
   QuestionStatus,
   QuestionType,
@@ -64,10 +67,40 @@ const typeToneClass: Record<QuestionType, string> = {
   multiple_choice: 'bg-[#EEF8F4] text-[#2F735C] border-[#BFDCCF]',
   true_false: 'bg-[#FFF7EA] text-[#8B621F] border-[#E8CCA0]',
   short_answer: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  dropdown: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+  ordering: 'bg-amber-50 text-amber-700 border-amber-200',
+  checkbox_grid: 'bg-violet-50 text-violet-700 border-violet-200',
+  file_upload: 'bg-slate-100 text-slate-700 border-slate-200',
 };
 
 const TAG_MANAGE_PAGE_SIZE = 60;
 type TagSortMode = 'usage_desc' | 'usage_asc' | 'name_asc' | 'unused_first';
+type TreeFilterKey = 'brandIds' | 'productLineIds' | 'categoryIds';
+type TreeDraftFilters = Pick<QuestionFilters, TreeFilterKey>;
+type FilterTreeSectionId = 'brand' | 'productLine' | 'category' | 'generalCapability';
+
+const emptyTreeFilters = (): TreeDraftFilters => ({
+  brandIds: [],
+  productLineIds: [],
+  categoryIds: [],
+});
+
+const copyTreeFilters = (filters: TreeDraftFilters): TreeDraftFilters => ({
+  brandIds: [...filters.brandIds],
+  productLineIds: [...filters.productLineIds],
+  categoryIds: [...filters.categoryIds],
+});
+
+const countTreeSelections = (filters: TreeDraftFilters) => (
+  filters.brandIds.length + filters.productLineIds.length + filters.categoryIds.length
+);
+
+const sameTreeSelections = (a: TreeDraftFilters, b: TreeDraftFilters) => {
+  const sameValues = (left: string[], right: string[]) => left.length === right.length && left.every(value => right.includes(value));
+  return sameValues(a.brandIds, b.brandIds)
+    && sameValues(a.productLineIds, b.productLineIds)
+    && sameValues(a.categoryIds, b.categoryIds);
+};
 
 const getVariantGenerationStep = (progress: number) => {
   if (progress < 25) return '读取旧题题干、答案和分类标签...';
@@ -104,6 +137,11 @@ function cloneQuestion(question: QuestionBankItem): QuestionBankItem {
     tagIds: [...question.tagIds],
     customTags: [...question.customTags],
     correctOptionIds: question.correctOptionIds ? [...question.correctOptionIds] : undefined,
+    gridRows: question.gridRows?.map(row => ({ ...row })),
+    gridColumns: question.gridColumns?.map(column => ({ ...column })),
+    gridCorrectAnswers: question.gridCorrectAnswers?.map(answer => ({ ...answer })),
+    allowedUploadTypes: question.allowedUploadTypes ? [...question.allowedUploadTypes] : undefined,
+    attachments: question.attachments?.map(attachment => ({ ...attachment })),
   };
 }
 
@@ -111,8 +149,18 @@ function countByProductLine(questions: QuestionBankItem[], productLineId: string
   return questions.filter(question => question.productLineId === productLineId && question.status !== 'archived').length;
 }
 
-function countByProduct(questions: QuestionBankItem[], productId: string) {
-  return questions.filter(question => question.productId === productId && question.status !== 'archived').length;
+function countByBrand(questions: QuestionBankItem[], brandId: string) {
+  return questions.filter(question => {
+    const product = findProduct(question.productLineId, question.productId);
+    return product?.brandId === brandId && question.status !== 'archived';
+  }).length;
+}
+
+function countByCategory(questions: QuestionBankItem[], categoryId: string) {
+  return questions.filter(question => {
+    const product = findProduct(question.productLineId, question.productId);
+    return product?.categoryId === categoryId && question.status !== 'archived';
+  }).length;
 }
 
 export function ExamBank() {
@@ -131,6 +179,13 @@ export function ExamBank() {
   } = useQuestionBank();
 
   const [filters, setFilters] = useState<QuestionFilters>(DEFAULT_FILTERS);
+  const [treeDraft, setTreeDraft] = useState<TreeDraftFilters>(() => copyTreeFilters(DEFAULT_FILTERS));
+  const [collapsedTreeSections, setCollapsedTreeSections] = useState<Record<FilterTreeSectionId, boolean>>({
+    brand: false,
+    productLine: false,
+    category: false,
+    generalCapability: false,
+  });
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState('');
   const [tagDialog, setTagDialog] = useState(false);
@@ -151,6 +206,14 @@ export function ExamBank() {
     targetCount: number;
     step: string;
   } | null>(null);
+
+  useEffect(() => {
+    setTreeDraft({
+      brandIds: [...filters.brandIds],
+      productLineIds: [...filters.productLineIds],
+      categoryIds: [...filters.categoryIds],
+    });
+  }, [filters.brandIds, filters.productLineIds, filters.categoryIds]);
 
   const filteredQuestions = useMemo(() => filterQuestions(questions, filters, tags), [questions, filters, tags]);
   const allVisibleSelected = filteredQuestions.length > 0 && filteredQuestions.every(question => selectedIds.has(question.id));
@@ -389,22 +452,127 @@ export function ExamBank() {
       if (!prev?.options) return prev;
       const label = String.fromCharCode(65 + prev.options.length);
       const option: QuestionOption = { id: `${label.toLowerCase()}-${Date.now()}`, label, text: '' };
-      return { ...prev, options: [...prev.options, option] };
+      const nextOptions = [...prev.options, option];
+      return {
+        ...prev,
+        options: nextOptions,
+        correctOptionIds: prev.type === 'ordering'
+          ? [...(prev.correctOptionIds || []), option.id]
+          : prev.correctOptionIds,
+      };
     });
   };
 
   const toggleCorrectOption = (optionId: string) => {
     setEditingQuestion(prev => {
       if (!prev) return prev;
-      if (prev.type === 'single_choice' || prev.type === 'true_false') {
+      if (prev.type === 'single_choice' || prev.type === 'true_false' || prev.type === 'dropdown') {
         return { ...prev, correctOptionIds: [optionId] };
       }
+      if (prev.type === 'ordering') return prev;
       const current = prev.correctOptionIds || [];
       const next = current.includes(optionId)
         ? current.filter(id => id !== optionId)
         : [...current, optionId];
       return { ...prev, correctOptionIds: next };
     });
+  };
+
+  const setOrderingPosition = (optionId: string, position: number) => {
+    setEditingQuestion(prev => {
+      if (!prev?.options || prev.type !== 'ordering') return prev;
+      const currentOrder = prev.correctOptionIds?.length === prev.options.length
+        ? [...prev.correctOptionIds]
+        : prev.options.map(option => option.id);
+      const withoutOption = currentOrder.filter(id => id !== optionId);
+      withoutOption.splice(position, 0, optionId);
+      return { ...prev, correctOptionIds: withoutOption };
+    });
+  };
+
+  const updateGridItem = (key: 'gridRows' | 'gridColumns', itemId: string, text: string) => {
+    setEditingQuestion(prev => {
+      if (!prev) return prev;
+      const items = prev[key] || [];
+      return {
+        ...prev,
+        [key]: items.map(item => item.id === itemId ? { ...item, text } : item),
+      };
+    });
+  };
+
+  const addGridItem = (key: 'gridRows' | 'gridColumns') => {
+    setEditingQuestion(prev => {
+      if (!prev) return prev;
+      const items = prev[key] || [];
+      const isRow = key === 'gridRows';
+      const index = items.length + 1;
+      const item: QuestionOption = {
+        id: `${isRow ? 'r' : 'c'}-${Date.now()}`,
+        label: isRow ? String(index) : String.fromCharCode(64 + index),
+        text: '',
+      };
+      return { ...prev, [key]: [...items, item] };
+    });
+  };
+
+  const toggleGridAnswer = (rowId: string, columnId: string) => {
+    setEditingQuestion(prev => {
+      if (!prev || prev.type !== 'checkbox_grid') return prev;
+      const current = prev.gridCorrectAnswers || [];
+      const exists = current.some(answer => answer.rowId === rowId && answer.columnId === columnId);
+      return {
+        ...prev,
+        gridCorrectAnswers: exists
+          ? current.filter(answer => !(answer.rowId === rowId && answer.columnId === columnId))
+          : [...current, { rowId, columnId }],
+      };
+    });
+  };
+
+  const toggleAllowedUploadType = (type: QuestionMediaType) => {
+    setEditingQuestion(prev => {
+      if (!prev || prev.type !== 'file_upload') return prev;
+      const current = prev.allowedUploadTypes || [];
+      const next = current.includes(type)
+        ? current.filter(item => item !== type)
+        : [...current, type];
+      return { ...prev, allowedUploadTypes: next.length > 0 ? next : [type] };
+    });
+  };
+
+  const addAttachment = (type: QuestionMediaType, file?: File) => {
+    setEditingQuestion(prev => {
+      if (!prev) return prev;
+      const nextAttachment = {
+        id: `att-${Date.now()}`,
+        type,
+        name: file?.name || (type === 'image' ? '题目图片' : '题目视频'),
+        url: file ? URL.createObjectURL(file) : (type === 'image' ? 'https://example.com/question-image.jpg' : 'https://example.com/question-video.mp4'),
+      };
+      return { ...prev, attachments: [...(prev.attachments || []), nextAttachment] };
+    });
+  };
+
+  const handleAttachmentUpload = (type: QuestionMediaType, event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.currentTarget.files?.[0];
+    if (!file) return;
+    addAttachment(type, file);
+    event.currentTarget.value = '';
+  };
+
+  const updateAttachment = (attachmentId: string, patch: { name?: string; url?: string }) => {
+    setEditingQuestion(prev => prev ? {
+      ...prev,
+      attachments: (prev.attachments || []).map(attachment => attachment.id === attachmentId ? { ...attachment, ...patch } : attachment),
+    } : prev);
+  };
+
+  const removeAttachment = (attachmentId: string) => {
+    setEditingQuestion(prev => prev ? {
+      ...prev,
+      attachments: (prev.attachments || []).filter(attachment => attachment.id !== attachmentId),
+    } : prev);
   };
 
   const saveBatchTags = () => {
@@ -481,7 +649,17 @@ export function ExamBank() {
         window.setTimeout(() => {
           const variants = generateVariants(sourceIds);
           setVariantGeneration(null);
-          setFilters(prev => ({ ...prev, status: 'pending_review', productLineId: 'all', productId: 'all' }));
+          setFilters(prev => ({
+            ...prev,
+            status: 'pending_review',
+            brandId: 'all',
+            brandIds: [],
+            productLineId: 'all',
+            productLineIds: [],
+            productId: 'all',
+            categoryId: 'all',
+            categoryIds: [],
+          }));
           setSelectedIds(new Set(variants.map(question => question.id)));
           showToast(`AI 已生成 ${variants.length} 道待审核变体题`);
         }, 250);
@@ -500,6 +678,100 @@ export function ExamBank() {
     });
     showToast('成功合并重复题目！');
   };
+
+  const appliedTreeFilters = copyTreeFilters(filters);
+  const treeDraftSelectionCount = countTreeSelections(treeDraft);
+  const treeDraftHasChanges = !sameTreeSelections(treeDraft, appliedTreeFilters);
+  const isAllTreeActive = treeDraftSelectionCount === 0;
+
+  const clearTreeDraft = () => {
+    setTreeDraft(emptyTreeFilters());
+  };
+
+  const toggleTreeDraftValue = (key: TreeFilterKey, id: string) => {
+    setTreeDraft(prev => {
+      const values = prev[key];
+      const nextValues = values.includes(id)
+        ? values.filter(value => value !== id)
+        : [...values, id];
+      return { ...prev, [key]: nextValues };
+    });
+  };
+
+  const toggleTreeSection = (sectionId: FilterTreeSectionId) => {
+    setCollapsedTreeSections(prev => ({ ...prev, [sectionId]: !prev[sectionId] }));
+  };
+
+  const applyTreeFilters = () => updateFilters({
+    brandId: 'all',
+    brandIds: [...treeDraft.brandIds],
+    productLineId: 'all',
+    productLineIds: [...treeDraft.productLineIds],
+    productId: 'all',
+    categoryId: 'all',
+    categoryIds: [...treeDraft.categoryIds],
+  });
+
+  const filterTreeSections: Array<{
+    id: FilterTreeSectionId;
+    title: string;
+    items: Array<{
+      id: string;
+      name: string;
+      count: number;
+      checked: boolean;
+      onToggle: () => void;
+      skipI18n?: boolean;
+    }>;
+  }> = [
+    {
+      id: 'brand',
+      title: '品牌',
+      items: QUESTION_TAXONOMY.brands.map(brand => ({
+        id: brand.id,
+        name: brand.name,
+        count: countByBrand(questions, brand.id),
+        checked: treeDraft.brandIds.includes(brand.id),
+        onToggle: () => toggleTreeDraftValue('brandIds', brand.id),
+        skipI18n: true,
+      })),
+    },
+    {
+      id: 'productLine',
+      title: '产品线',
+      items: QUESTION_TAXONOMY.productLines
+        .filter(line => line.id !== GENERAL_CAPABILITY_LINE_ID)
+        .map(line => ({
+          id: line.id,
+          name: line.name,
+          count: countByProductLine(questions, line.id),
+          checked: treeDraft.productLineIds.includes(line.id),
+          onToggle: () => toggleTreeDraftValue('productLineIds', line.id),
+        })),
+    },
+    {
+      id: 'category',
+      title: '类别',
+      items: QUESTION_TAXONOMY.categories.map(category => ({
+        id: category.id,
+        name: category.name,
+        count: countByCategory(questions, category.id),
+        checked: treeDraft.categoryIds.includes(category.id),
+        onToggle: () => toggleTreeDraftValue('categoryIds', category.id),
+      })),
+    },
+    {
+      id: 'generalCapability',
+      title: '通用能力',
+      items: [{
+        id: GENERAL_CAPABILITY_LINE_ID,
+        name: '通用能力题',
+        count: countByProductLine(questions, GENERAL_CAPABILITY_LINE_ID),
+        checked: treeDraft.productLineIds.includes(GENERAL_CAPABILITY_LINE_ID),
+        onToggle: () => toggleTreeDraftValue('productLineIds', GENERAL_CAPABILITY_LINE_ID),
+      }],
+    },
+  ];
 
   return (
     <div className="relative flex h-[calc(100vh-6rem)] min-h-[680px] flex-col gap-4 overflow-hidden">
@@ -564,45 +836,71 @@ export function ExamBank() {
           <div className="border-b border-[#E9E4DF] p-4">
             <div className="flex items-center text-sm font-bold text-[#242124]">
               <FolderTree className="mr-2 h-4 w-4 text-rose-600" />
-              题目分类
+              筛选树
             </div>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto p-3">
-            <button
-              onClick={() => updateFilters({ productLineId: 'all', productId: 'all' })}
-              className={`mb-2 flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-bold transition-colors ${filters.productLineId === 'all' ? 'bg-rose-50 text-rose-700' : 'text-[#3F3A3D] hover:bg-[#F8F5F3]'}`}
-            >
-              <span>全部题目</span>
-              <span className="text-xs text-[#9A9396]">{questions.filter(question => question.status !== 'archived').length}</span>
-            </button>
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className="min-h-0 flex-1 overflow-y-auto p-3">
+              <button
+                onClick={clearTreeDraft}
+                className={`mb-3 flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-bold transition-colors ${isAllTreeActive ? 'bg-rose-50 text-rose-700' : 'text-[#3F3A3D] hover:bg-[#F8F5F3]'}`}
+              >
+                <span>全部题目</span>
+                <span className="text-xs text-[#9A9396]">{questions.filter(question => question.status !== 'archived').length}</span>
+              </button>
 
-            {QUESTION_TAXONOMY.productLines.map(line => (
-              <div key={line.id} className="mb-2">
-                <button
-                  onClick={() => updateFilters({ productLineId: line.id, productId: 'all' })}
-                  className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-bold transition-colors ${filters.productLineId === line.id && filters.productId === 'all' ? 'bg-rose-50 text-rose-700' : 'text-[#3F3A3D] hover:bg-[#F8F5F3]'}`}
-                >
-                  <span data-i18n-skip="true">{line.name}</span>
-                  <span className="text-xs text-[#9A9396]">{countByProductLine(questions, line.id)}</span>
-                </button>
-                {line.products.length > 0 ? (
-                  <div className="mt-1 space-y-1 pl-3">
-                    {line.products.map(product => (
+              <div className="space-y-2">
+                {filterTreeSections.map(section => {
+                  const collapsed = collapsedTreeSections[section.id];
+                  const checkedCount = section.items.filter(item => item.checked).length;
+                  return (
+                    <div key={section.id}>
                       <button
-                        key={product.id}
-                        onClick={() => updateFilters({ productLineId: line.id, productId: product.id })}
-                        className={`flex w-full items-center justify-between rounded-lg px-3 py-1.5 text-left text-xs transition-colors ${filters.productId === product.id ? 'bg-[#F8F5F3] text-rose-700 font-bold' : 'text-[#766F73] hover:bg-[#F8F5F3]'}`}
+                        type="button"
+                        onClick={() => toggleTreeSection(section.id)}
+                        aria-expanded={!collapsed}
+                        className="mb-1 flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-[11px] font-bold text-[#766F73] transition-colors hover:bg-[#F8F5F3] hover:text-[#3F3A3D]"
                       >
-                        <span data-i18n-skip="true" className="truncate">{product.name}</span>
-                        <span className="ml-2 shrink-0 text-[#9A9396]">{countByProduct(questions, product.id)}</span>
+                        {collapsed ? <ChevronRight className="h-3.5 w-3.5 shrink-0" /> : <ChevronDown className="h-3.5 w-3.5 shrink-0" />}
+                        <span className="min-w-0 flex-1 truncate">{section.title}</span>
+                        {checkedCount > 0 && (
+                          <span data-i18n-skip="true" className="rounded-full bg-rose-50 px-1.5 py-0.5 text-[10px] text-rose-700">
+                            {checkedCount}
+                          </span>
+                        )}
                       </button>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="mt-1 px-3 pb-1 text-[10px] text-[#9A9396]">标签自定义细分</div>
-                )}
+                      {!collapsed && (
+                        <div className="space-y-1 border-l border-[#E9E4DF] pl-2">
+                          {section.items.map(item => (
+                            <label
+                              key={item.id}
+                              className={`flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 text-left text-xs transition-colors ${item.checked ? 'bg-rose-50 font-bold text-rose-700' : 'text-[#766F73] hover:bg-[#F8F5F3]'}`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={item.checked}
+                                onChange={item.onToggle}
+                                className="h-3.5 w-3.5 shrink-0 rounded border-[#D6CEC8] text-rose-600 focus:ring-rose-500"
+                              />
+                              <span data-i18n-skip={item.skipI18n ? 'true' : undefined} className="min-w-0 flex-1 truncate">{item.name}</span>
+                              <span className="shrink-0 text-[#9A9396]">{item.count}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-            ))}
+            </div>
+            <div className="grid shrink-0 grid-cols-[auto_minmax(0,1fr)] gap-2 border-t border-[#E9E4DF] bg-white p-3 shadow-[0_-6px_14px_rgba(31,28,31,0.04)]">
+              <Button onClick={clearTreeDraft} variant="outline" size="sm" className="h-8 px-3 text-xs">
+                清空
+              </Button>
+              <Button onClick={applyTreeFilters} disabled={!treeDraftHasChanges} size="sm" className="h-8 bg-rose-600 px-3 text-xs text-white hover:bg-rose-700 disabled:bg-[#D6CEC8]">
+                确定
+              </Button>
+            </div>
           </div>
           <div className="border-t border-[#E9E4DF] p-4">
             <div className="relative mb-2 flex items-center justify-between gap-2 group/tag-rule-note">
@@ -754,7 +1052,8 @@ export function ExamBank() {
                 const questionTags = getQuestionTagNames(question, tags);
                 const isGeneralCapability = question.productLineId === GENERAL_CAPABILITY_LINE_ID;
                 const categoryName = line?.name || '未分类';
-                const productName = isGeneralCapability ? '标签自定义细分' : product?.name || '未关联产品';
+                const productName = product?.name || '未关联产品';
+                const categoryProductLabel = isGeneralCapability ? categoryName : `${categoryName} / ${productName}`;
                 const productColumnName = isGeneralCapability ? '通用能力' : product?.name || '未关联产品';
 
                 return (
@@ -783,7 +1082,7 @@ export function ExamBank() {
                           {question.stem}
                         </div>
                         <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-[#766F73]">
-                          <span data-i18n-skip="true">{categoryName} / {productName}</span>
+                          <span data-i18n-skip="true">{categoryProductLabel}</span>
                           <span>{DIFFICULTY_LABELS[question.difficulty]}</span>
                           {question.generatedFromQuestionId && <span className="rounded bg-indigo-50 px-1.5 py-0.5 font-bold text-indigo-700">AI 派生</span>}
                         </div>
@@ -914,6 +1213,50 @@ export function ExamBank() {
                 />
               </label>
 
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-sm font-bold text-[#3F3A3D]">题目素材</span>
+                  <div className="flex gap-2">
+                    <label className="inline-flex h-7 cursor-pointer items-center justify-center rounded-md border border-[#E5DED8] bg-white px-3 text-xs font-bold text-[#3F3A3D] shadow-sm transition-colors hover:bg-[#F8F5F3]">
+                      添加图片
+                      <input type="file" accept="image/*" className="hidden" onChange={event => handleAttachmentUpload('image', event)} />
+                    </label>
+                    <label className="inline-flex h-7 cursor-pointer items-center justify-center rounded-md border border-[#E5DED8] bg-white px-3 text-xs font-bold text-[#3F3A3D] shadow-sm transition-colors hover:bg-[#F8F5F3]">
+                      添加视频
+                      <input type="file" accept="video/*" className="hidden" onChange={event => handleAttachmentUpload('video', event)} />
+                    </label>
+                  </div>
+                </div>
+                <div className="space-y-2 rounded-lg border border-[#E9E4DF] bg-[#F8F5F3] p-2">
+                  {(editingQuestion.attachments || []).length === 0 ? (
+                    <div className="px-2 py-1 text-xs text-[#9A9396]">暂无图片或视频素材</div>
+                  ) : (
+                    editingQuestion.attachments?.map(attachment => (
+                      <div key={attachment.id} className="grid gap-2 rounded-md bg-white p-2 md:grid-cols-[72px_minmax(0,1fr)_minmax(0,1.4fr)_28px] md:items-center">
+                        <Badge variant="outline" className="w-fit text-[10px]">{attachment.type === 'image' ? '图片' : '视频'}</Badge>
+                        <input
+                          data-i18n-skip="true"
+                          value={attachment.name}
+                          onChange={event => updateAttachment(attachment.id, { name: event.target.value })}
+                          className="h-8 min-w-0 rounded-md border border-[#E5DED8] px-2 text-xs outline-none focus:ring-2 focus:ring-rose-500/20"
+                          placeholder="素材名称"
+                        />
+                        <input
+                          data-i18n-skip="true"
+                          value={attachment.url}
+                          onChange={event => updateAttachment(attachment.id, { url: event.target.value })}
+                          className="h-8 min-w-0 rounded-md border border-[#E5DED8] px-2 text-xs outline-none focus:ring-2 focus:ring-rose-500/20"
+                          placeholder="素材链接"
+                        />
+                        <button onClick={() => removeAttachment(attachment.id)} className="flex h-7 w-7 items-center justify-center rounded-md text-[#9A9396] hover:bg-red-50 hover:text-red-500" title="移除素材">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
               {editingQuestion.type === 'short_answer' ? (
                 <div className="space-y-3">
                   <label className="block">
@@ -929,10 +1272,132 @@ export function ExamBank() {
                     <textarea data-i18n-skip="true" value={editingQuestion.aiGradingHint || ''} onChange={event => setEditingField('aiGradingHint', event.target.value)} className="min-h-16 w-full resize-none rounded-lg border border-[#E5DED8] px-3 py-2 text-sm leading-relaxed outline-none focus:ring-2 focus:ring-rose-500/20" />
                   </label>
                 </div>
+              ) : editingQuestion.type === 'file_upload' ? (
+                <div className="space-y-3">
+                  <label className="block">
+                    <span className="mb-1 block text-sm font-bold text-[#3F3A3D]">上传说明</span>
+                    <textarea data-i18n-skip="true" value={editingQuestion.uploadInstructions || ''} onChange={event => setEditingField('uploadInstructions', event.target.value)} className="min-h-20 w-full resize-none rounded-lg border border-[#E5DED8] px-3 py-2 text-sm leading-relaxed outline-none focus:ring-2 focus:ring-rose-500/20" />
+                  </label>
+                  <div>
+                    <span className="mb-2 block text-sm font-bold text-[#3F3A3D]">允许上传类型</span>
+                    <div className="flex gap-3">
+                      {(['image', 'video'] as QuestionMediaType[]).map(type => (
+                        <label key={type} className="flex items-center gap-2 rounded-lg border border-[#E5DED8] bg-[#F8F5F3] px-3 py-2 text-sm font-bold text-[#5D565A]">
+                          <input
+                            type="checkbox"
+                            checked={editingQuestion.allowedUploadTypes?.includes(type) || false}
+                            onChange={() => toggleAllowedUploadType(type)}
+                            className="h-4 w-4 text-rose-600 focus:ring-rose-500"
+                          />
+                          {type === 'image' ? '图片' : '视频'}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <label className="block">
+                    <span className="mb-1 block text-sm font-bold text-[#3F3A3D]">评分要点</span>
+                    <textarea data-i18n-skip="true" value={editingQuestion.scoringRubric || ''} onChange={event => setEditingField('scoringRubric', event.target.value)} className="min-h-20 w-full resize-none rounded-lg border border-[#E5DED8] px-3 py-2 text-sm leading-relaxed outline-none focus:ring-2 focus:ring-rose-500/20" />
+                  </label>
+                  <label className="block">
+                    <span className="mb-1 block text-sm font-bold text-[#3F3A3D]">AI 阅卷提示 (选填)</span>
+                    <textarea data-i18n-skip="true" value={editingQuestion.aiGradingHint || ''} onChange={event => setEditingField('aiGradingHint', event.target.value)} className="min-h-16 w-full resize-none rounded-lg border border-[#E5DED8] px-3 py-2 text-sm leading-relaxed outline-none focus:ring-2 focus:ring-rose-500/20" />
+                  </label>
+                </div>
+              ) : editingQuestion.type === 'checkbox_grid' ? (
+                <div className="space-y-3">
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div>
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="text-sm font-bold text-[#3F3A3D]">网格行</span>
+                        <Button onClick={() => addGridItem('gridRows')} variant="outline" size="sm" className="h-7 text-xs">
+                          <Plus className="h-3.5 w-3.5" />
+                          加行
+                        </Button>
+                      </div>
+                      <div className="space-y-2">
+                        {editingQuestion.gridRows?.map(row => (
+                          <div key={row.id} className="flex items-center gap-2 rounded-lg border border-[#E9E4DF] bg-[#F8F5F3] p-2">
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white text-xs font-bold text-[#766F73]">{row.label}</span>
+                            <input data-i18n-skip="true" value={row.text} onChange={event => updateGridItem('gridRows', row.id, event.target.value)} className="h-8 min-w-0 flex-1 rounded-md border border-[#E5DED8] bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-rose-500/20" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="text-sm font-bold text-[#3F3A3D]">网格列</span>
+                        <Button onClick={() => addGridItem('gridColumns')} variant="outline" size="sm" className="h-7 text-xs">
+                          <Plus className="h-3.5 w-3.5" />
+                          加列
+                        </Button>
+                      </div>
+                      <div className="space-y-2">
+                        {editingQuestion.gridColumns?.map(column => (
+                          <div key={column.id} className="flex items-center gap-2 rounded-lg border border-[#E9E4DF] bg-[#F8F5F3] p-2">
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white text-xs font-bold text-[#766F73]">{column.label}</span>
+                            <input data-i18n-skip="true" value={column.text} onChange={event => updateGridItem('gridColumns', column.id, event.target.value)} className="h-8 min-w-0 flex-1 rounded-md border border-[#E5DED8] bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-rose-500/20" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto rounded-lg border border-[#E9E4DF]">
+                    <table className="min-w-full text-xs">
+                      <thead className="bg-[#F8F5F3]">
+                        <tr>
+                          <th className="w-28 px-3 py-2 text-left text-[#766F73]">匹配项</th>
+                          {editingQuestion.gridColumns?.map(column => <th key={column.id} data-i18n-skip="true" className="px-3 py-2 text-center text-[#766F73]">{column.text || column.label}</th>)}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#E9E4DF] bg-white">
+                        {editingQuestion.gridRows?.map(row => (
+                          <tr key={row.id}>
+                            <td data-i18n-skip="true" className="px-3 py-2 font-bold text-[#3F3A3D]">{row.text || row.label}</td>
+                            {editingQuestion.gridColumns?.map(column => {
+                              const checked = editingQuestion.gridCorrectAnswers?.some(answer => answer.rowId === row.id && answer.columnId === column.id) || false;
+                              return (
+                                <td key={column.id} className="px-3 py-2 text-center">
+                                  <input type="checkbox" checked={checked} onChange={() => toggleGridAnswer(row.id, column.id)} className="h-4 w-4 text-rose-600 focus:ring-rose-500" />
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : editingQuestion.type === 'ordering' ? (
+                <div>
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-sm font-bold text-[#3F3A3D]">排序步骤与正确顺序</span>
+                    <Button onClick={addOption} variant="outline" size="sm" className="h-7 text-xs">
+                      <Plus className="h-3.5 w-3.5" />
+                      增加步骤
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    {editingQuestion.options?.map(option => {
+                      const order = editingQuestion.correctOptionIds || editingQuestion.options?.map(item => item.id) || [];
+                      const position = Math.max(0, order.indexOf(option.id));
+                      return (
+                        <div key={option.id} className="grid grid-cols-[72px_1fr] items-center gap-2 rounded-lg border border-[#E9E4DF] bg-[#F8F5F3] p-2">
+                          <select value={position} onChange={event => setOrderingPosition(option.id, Number(event.target.value))} className="h-8 rounded-md border border-[#E5DED8] bg-white px-2 text-xs font-bold outline-none focus:ring-2 focus:ring-rose-500/20">
+                            {editingQuestion.options?.map((_, index) => <option key={index} value={index}>第 {index + 1}</option>)}
+                          </select>
+                          <div className="flex min-w-0 items-center gap-2">
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white text-xs font-bold text-[#766F73]">{option.label}</span>
+                            <input data-i18n-skip="true" value={option.text} onChange={event => updateOption(option.id, event.target.value)} className="h-8 min-w-0 flex-1 rounded-md border border-[#E5DED8] bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-rose-500/20" />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               ) : (
                 <div>
                   <div className="mb-2 flex items-center justify-between">
-                    <span className="text-sm font-bold text-[#3F3A3D]">选项与答案</span>
+                    <span className="text-sm font-bold text-[#3F3A3D]">{editingQuestion.type === 'dropdown' ? '下拉选项与答案' : '选项与答案'}</span>
                     {editingQuestion.type !== 'true_false' && (
                       <Button onClick={addOption} variant="outline" size="sm" className="h-7 text-xs">
                         <Plus className="h-3.5 w-3.5" />
@@ -1123,8 +1588,6 @@ export function ExamBank() {
             </DialogTitle>
             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#766F73]">
               <span>全部 <span data-i18n-skip="true">{tags.length}</span> 个标签</span>
-              <span>当前匹配 <span data-i18n-skip="true">{tagRows.length}</span> 个</span>
-              <span>每页 <span data-i18n-skip="true">{TAG_MANAGE_PAGE_SIZE}</span> 个</span>
             </div>
           </div>
 
