@@ -37,6 +37,84 @@ const VISIBLE_ONGOING_TASK_COUNT = 4;
 const HQ_ACTIVE_BA_COUNT = 1428;
 const HQ_INACTIVE_BA_COUNT = 12;
 
+type HQBAActivityStatus = 'online' | 'offline';
+type HQBAActivityType = 'learning' | 'exam' | 'task' | 'idle';
+type HQBAActivityFilter = 'all' | 'online' | 'offline' | 'learning' | 'exam' | 'task';
+
+interface HQBAActivityRow {
+  id: string;
+  name: string;
+  region: string;
+  status: HQBAActivityStatus;
+  lastActivity: string;
+  activityType: HQBAActivityType;
+  activity: string;
+  progress: number;
+}
+
+const HQ_BA_ACTIVITY_SUMMARY = [
+  { label: '在线', value: 38, filterKey: 'online' as const, icon: Users, toneClass: 'border-[#BFDCCF] bg-[#EEF8F4] text-[#2F735C]', iconClass: 'text-[#3B8F72]' },
+  { label: '离线', value: 62, filterKey: 'offline' as const, icon: Clock, toneClass: 'border-[#E5DED8] bg-[#F8F5F3] text-[#5D565A]', iconClass: 'text-[#9A9396]' },
+  { label: '正在学习', value: 21, filterKey: 'learning' as const, icon: BookOpen, toneClass: 'border-rose-200 bg-rose-50 text-rose-700', iconClass: 'text-rose-500' },
+  { label: '正在参加考试', value: 8, filterKey: 'exam' as const, icon: CalendarCheck, toneClass: 'border-[#C8CEF8] bg-[#EEF0FF] text-[#4F5FD5]', iconClass: 'text-[#4F5FD5]' },
+  { label: '正在完成任务', value: 9, filterKey: 'task' as const, icon: ClipboardList, toneClass: 'border-[#E8CCA0] bg-[#FFF7EA] text-[#8B621F]', iconClass: 'text-[#B9822B]' },
+];
+
+const HQ_BA_ACTIVITY_ROWS: HQBAActivityRow[] = [
+  { id: 'BA001', name: 'Siti Aminah', region: '雅加达区', status: 'online', lastActivity: '刚刚', activityType: 'learning', activity: '课程：敏感肌抗老基础', progress: 72 },
+  { id: 'BA041', name: 'Dewi Sartika', region: '泗水区', status: 'online', lastActivity: '1 分钟前', activityType: 'exam', activity: '考试：全员基础服务礼仪月度测试', progress: 46 },
+  { id: 'BA071', name: 'Fitri Rahma', region: '雅加达区', status: 'online', lastActivity: '2 分钟前', activityType: 'task', activity: '任务：秋冬面霜系列话术演练', progress: 68 },
+  { id: 'BA101', name: 'Putri Ayu', region: '巴厘岛区', status: 'online', lastActivity: '4 分钟前', activityType: 'learning', activity: '课程：新品核心成分区分体验', progress: 91 },
+  { id: 'BA112', name: 'Made Laras', region: '巴厘岛区', status: 'online', lastActivity: '6 分钟前', activityType: 'task', activity: '任务：新客破冰沟通场景演练', progress: 35 },
+  { id: 'BA142', name: 'Lia Kartika', region: '雅加达区', status: 'online', lastActivity: '8 分钟前', activityType: 'exam', activity: '考试：夏季新品区域通关考核', progress: 82 },
+  { id: 'BA153', name: 'Dimas Pratama', region: '雅加达区', status: 'offline', lastActivity: '35 分钟前', activityType: 'idle', activity: '暂无进行中活动', progress: 0 },
+  { id: 'BA018', name: 'Maya Putri', region: '雅加达区', status: 'offline', lastActivity: '1 小时前', activityType: 'idle', activity: '暂无进行中活动', progress: 0 },
+  { id: 'BA052', name: 'Rani Wulandari', region: '泗水区', status: 'offline', lastActivity: '2 小时前', activityType: 'idle', activity: '暂无进行中活动', progress: 0 },
+  { id: 'BA082', name: 'Ayu Permata', region: '雅加达区', status: 'offline', lastActivity: '昨天 18:40', activityType: 'idle', activity: '暂无进行中活动', progress: 0 },
+  { id: 'BA123', name: 'Kadek Rina', region: '巴厘岛区', status: 'offline', lastActivity: '昨天 16:12', activityType: 'idle', activity: '暂无进行中活动', progress: 0 },
+  { id: 'BA131', name: 'Rina Wijaya', region: '雅加达区', status: 'offline', lastActivity: '7 天前', activityType: 'idle', activity: '暂无进行中活动', progress: 0 },
+];
+
+const getBAActivityStatusMeta = (status: HQBAActivityStatus) => {
+  if (status === 'online') {
+    return {
+      label: '在线',
+      className: 'border-[#BFDCCF] bg-[#EEF8F4] text-[#2F735C]',
+      dotClassName: 'bg-[#3B8F72]',
+    };
+  }
+
+  return {
+    label: '离线',
+    className: 'border-[#E5DED8] bg-[#F8F5F3] text-[#5D565A]',
+    dotClassName: 'bg-[#C9C1C4]',
+  };
+};
+
+const getBAActivityTypeClass = (activityType: HQBAActivityType) => {
+  switch (activityType) {
+    case 'learning':
+      return 'border-rose-200 bg-rose-50 text-rose-700';
+    case 'exam':
+      return 'border-[#C8CEF8] bg-[#EEF0FF] text-[#4F5FD5]';
+    case 'task':
+      return 'border-[#E8CCA0] bg-[#FFF7EA] text-[#8B621F]';
+    default:
+      return 'border-[#E5DED8] bg-[#F8F5F3] text-[#766F73]';
+  }
+};
+
+const getBAActivityFilterLabel = (filter: HQBAActivityFilter) => {
+  if (filter === 'all') return '所有 BA';
+  return HQ_BA_ACTIVITY_SUMMARY.find(item => item.filterKey === filter)?.label ?? '所有 BA';
+};
+
+const doesBAActivityMatchFilter = (row: HQBAActivityRow, filter: HQBAActivityFilter) => {
+  if (filter === 'all') return true;
+  if (filter === 'online' || filter === 'offline') return row.status === filter;
+  return row.activityType === filter;
+};
+
 const HQ_STAFF_PROFILES = {
   Siti: {
     status: '正常',
@@ -261,10 +339,14 @@ const formatStoreMonthlyPoints = (store: HQStoreProfile) => {
 
 export function HTDashboard({ onNavigate }: HTDashboardProps) {
   const [showAllTasks, setShowAllTasks] = useState(false);
+  const [showBaActivityDialog, setShowBaActivityDialog] = useState(false);
+  const [baActivityFilter, setBaActivityFilter] = useState<HQBAActivityFilter>('all');
   const [selectedStaff, setSelectedStaff] = useState<string | null>(null);
   const [selectedStore, setSelectedStore] = useState<string | null>(null);
   const selectedStaffProfile = selectedStaff ? (HQ_STAFF_PROFILES[selectedStaff as keyof typeof HQ_STAFF_PROFILES] ?? HQ_STAFF_PROFILES.Rina) : HQ_STAFF_PROFILES.Rina;
   const selectedStoreProfile = selectedStore ? (HQ_STORE_PROFILES[selectedStore as keyof typeof HQ_STORE_PROFILES] ?? HQ_STORE_PROFILES['Toko Kelapa Gading (雅加达)']) : HQ_STORE_PROFILES['Toko Kelapa Gading (雅加达)'];
+  const filteredBAActivityRows = HQ_BA_ACTIVITY_ROWS.filter(row => doesBAActivityMatchFilter(row, baActivityFilter));
+  const baActivityFilterLabel = getBAActivityFilterLabel(baActivityFilter);
 
   const handleStaffClick = (staffName: string) => {
     setSelectedStaff(staffName);
@@ -272,6 +354,18 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
 
   const handleStoreClick = (storeName: string) => {
     setSelectedStore(storeName);
+  };
+
+  const openBaActivityDialog = () => {
+    setBaActivityFilter('all');
+    setShowBaActivityDialog(true);
+  };
+
+  const handleBaActivityCardKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      openBaActivityDialog();
+    }
   };
 
   return (
@@ -286,7 +380,13 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="rounded-2xl shadow-sm border border-[#E9E4DF] overflow-hidden bg-white">
+        <Card
+          role="button"
+          tabIndex={0}
+          onClick={openBaActivityDialog}
+          onKeyDown={handleBaActivityCardKeyDown}
+          className="rounded-2xl shadow-sm border border-[#E9E4DF] overflow-hidden bg-white cursor-pointer transition-all hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-rose-500/25"
+        >
           <CardHeader className="p-4 pb-0 flex flex-row items-center justify-between">
             <CardTitle className="text-xs font-bold text-[#766F73] uppercase tracking-widest">全国当前已激活BA数</CardTitle>
             <Users className="h-4 w-4 text-rose-400" />
@@ -297,6 +397,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                 <span className="text-3xl font-bold text-[#242124]">{HQ_ACTIVE_BA_COUNT.toLocaleString('en-US')}</span>
                 <p className="mt-1 text-[10px] font-medium text-[#9A9396]">（{HQ_INACTIVE_BA_COUNT} 人未激活）</p>
               </div>
+              <span className="rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-bold text-rose-600">实时</span>
             </div>
           </CardContent>
         </Card>
@@ -873,6 +974,134 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
           </TabsContent>
         </Tabs>
       </div>
+
+      <Dialog open={showBaActivityDialog} onOpenChange={setShowBaActivityDialog}>
+        <DialogContent className="flex h-[86vh] max-h-[86vh] flex-col overflow-hidden bg-[#FCFAF8] p-0 sm:max-w-6xl">
+          <DialogHeader className="shrink-0 border-b border-[#E9E4DF] bg-white px-6 py-5">
+            <DialogTitle className="flex flex-col gap-1 text-[#242124]">
+              <span className="flex items-center text-lg font-bold">
+                <Users className="mr-2 h-5 w-5 text-rose-500" />
+                今日 BA 活动情况
+              </span>
+              <span className="text-xs font-medium text-[#766F73]">
+                全国已激活 BA {HQ_ACTIVE_BA_COUNT.toLocaleString('en-US')} 人，可按活动状态筛选查看
+              </span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden px-6 pb-6 pt-4">
+            <div className="grid shrink-0 grid-cols-2 gap-3 lg:grid-cols-5">
+              {HQ_BA_ACTIVITY_SUMMARY.map(item => {
+                const Icon = item.icon;
+                const isActive = baActivityFilter === item.filterKey;
+                return (
+                  <button
+                    key={item.label}
+                    type="button"
+                    onClick={() => setBaActivityFilter(prev => prev === item.filterKey ? 'all' : item.filterKey)}
+                    className={`rounded-xl border px-4 py-3 text-left transition-all hover:-translate-y-0.5 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 ${item.toneClass} ${isActive ? 'ring-2 ring-offset-2 ring-[#242124]/15 shadow-md' : ''}`}
+                    aria-pressed={isActive}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-bold">{item.label}</p>
+                        <p className="mt-1 text-2xl font-black leading-none">{item.value}</p>
+                      </div>
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/80 shadow-sm">
+                        <Icon className={`h-4 w-4 ${item.iconClass}`} />
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-[#E9E4DF] bg-white shadow-sm">
+              <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-[#E9E4DF] bg-[#F8F5F3]/60 px-4 py-3">
+                <div>
+                  <h3 className="text-sm font-bold text-[#242124]">{baActivityFilterLabel}列表</h3>
+                  <p className="mt-0.5 text-[11px] text-[#766F73]">
+                    当前显示 {filteredBAActivityRows.length} 人，支持按区域、在线状态、最后活动时间、当前活动与进度查看
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  {baActivityFilter !== 'all' && (
+                    <button
+                      type="button"
+                      onClick={() => setBaActivityFilter('all')}
+                      className="rounded-md border border-[#E5DED8] bg-white px-2.5 py-1 text-[11px] font-bold text-[#5D565A] transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                    >
+                      全部 BA
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="min-h-0 flex-1 overflow-auto">
+                <table className="responsive-data-table min-w-[960px] w-full text-left text-sm">
+                  <thead className="sticky top-0 z-10 border-b border-[#E9E4DF] bg-white text-[10px] font-bold text-[#9A9396]">
+                    <tr>
+                      <th className="px-4 py-3">BA</th>
+                      <th className="px-3 py-3">区域</th>
+                      <th className="px-3 py-3">在线 / 离线状态</th>
+                      <th className="px-3 py-3">Last Activity</th>
+                      <th className="px-3 py-3">正在进行的活动</th>
+                      <th className="px-3 py-3">当前进度</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F0ECE8]">
+                    {filteredBAActivityRows.map(row => {
+                      const statusMeta = getBAActivityStatusMeta(row.status);
+                      const isIdle = row.activityType === 'idle';
+                      return (
+                        <tr key={row.id} className="transition-colors hover:bg-[#F8F5F3]/70">
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose-50 text-xs font-black text-rose-600 ring-1 ring-rose-100">
+                                {row.name.slice(0, 1)}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-bold text-[#242124]">{row.name}</p>
+                                <p className="text-[10px] font-medium text-[#9A9396]">{row.id}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-3 py-3 text-xs font-medium text-[#5D565A]">{row.region}</td>
+                          <td className="px-3 py-3">
+                            <Badge variant="outline" className={`gap-1.5 border text-[10px] font-bold ${statusMeta.className}`}>
+                              <span className={`h-1.5 w-1.5 rounded-full ${statusMeta.dotClassName}`} />
+                              {statusMeta.label}
+                            </Badge>
+                          </td>
+                          <td className="px-3 py-3 text-xs font-medium text-[#766F73]">{row.lastActivity}</td>
+                          <td className="px-3 py-3">
+                            <Badge variant="outline" className={`max-w-[260px] justify-start truncate border text-[10px] font-medium ${getBAActivityTypeClass(row.activityType)}`}>
+                              {row.activity}
+                            </Badge>
+                          </td>
+                          <td className="px-3 py-3">
+                            <div className="flex min-w-[140px] items-center gap-2">
+                              <Progress value={row.progress} className="h-1.5 bg-slate-100" indicatorClassName={isIdle ? 'bg-[#C9C1C4]' : getProgressTone(row.progress).indicatorClass} />
+                              <span className={`w-9 text-right text-[10px] font-bold ${isIdle ? 'text-[#9A9396]' : getProgressTone(row.progress).textClass}`}>
+                                {isIdle ? '-' : `${row.progress}%`}
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                {filteredBAActivityRows.length === 0 && (
+                  <div className="flex h-32 items-center justify-center text-xs font-medium text-[#9A9396]">
+                    当前筛选下暂无 BA
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* View All Tasks Dialog */}
       <Dialog open={showAllTasks} onOpenChange={setShowAllTasks}>

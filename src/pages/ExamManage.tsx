@@ -475,7 +475,22 @@ export function ExamManage({ onExamPublished, onGoToExamTasks }: ExamManageProps
                 <label className="block text-sm font-medium text-[#3F3A3D] mb-1">考试时长 (分钟)</label>
                 <input type="number" placeholder="45" className="w-full px-3 py-2 border rounded-md text-sm" />
               </div>
-              <div className="rounded-lg border border-[#DCEFE7] bg-[#EEF8F4] px-3 py-2">
+              <div className="group/profile-field-note relative rounded-lg border border-[#DCEFE7] bg-[#EEF8F4] px-3 py-2">
+                <button
+                  type="button"
+                  aria-describedby="exam-profile-field-note"
+                  className="absolute -right-1.5 -top-2 z-20 h-4 min-w-4 rounded-full bg-blue-950 px-1 text-center text-[9px] font-bold leading-4 text-white shadow-sm outline-none ring-blue-300 transition-colors hover:bg-blue-900 focus:ring-2"
+                >
+                  注
+                </button>
+                <div
+                  id="exam-profile-field-note"
+                  data-i18n-skip="true"
+                  role="tooltip"
+                  className="absolute right-0 bottom-full z-[100] mb-2 hidden w-[380px] max-w-[min(380px,calc(100vw-2rem))] rounded-lg bg-blue-950/95 px-4 py-3 text-xs leading-relaxed text-white shadow-xl backdrop-blur-sm group-hover/profile-field-note:block group-focus-within/profile-field-note:block"
+                >
+                  给研发：系统自己带职位名称和地区；门店不进系统，由客户自己填。填写后进入考试结果统计，客户后续通过 Excel 导出自行治理。
+                </div>
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-sm font-bold text-[#2F735C]">随卷信息填写</span>
                   <span className="text-xs font-bold text-[#2F735C]">共 {paperQuestionCount} 题</span>
