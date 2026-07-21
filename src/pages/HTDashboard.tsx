@@ -1,25 +1,86 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Users, BookOpen, Clock, AlertTriangle, CalendarCheck, Database, MessageSquare, TextSelect, ArrowRight, BrainCircuit, ClipboardList, User, ChevronLeft, Building, PlayCircle, Presentation } from 'lucide-react';
+import { Users, BookOpen, Clock, AlertTriangle, CalendarCheck, CalendarRange, Database, MessageSquare, TextSelect, ArrowRight, BrainCircuit, ClipboardList, User, ChevronLeft, Building, PlayCircle, Presentation } from 'lucide-react';
 import { Badge } from '../components/ui/badge';
 import { Progress } from '../components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '../components/ui/select';
 import { brandTone, getProgressTone, getScoreTone, getTaskStatusBadgeClass } from '../lib/visualTones';
 import { AppDownloadButton } from '../components/AppDownloadButton';
 import { MonthlyPointsFormulaTooltip, StorePointsFormulaTooltip } from '../components/MonthlyPointsFormulaTooltip';
 import { formatPointValue, getEmployeeMonthlyPoints, getEmployeeMonthlyPointsFromRate } from '../lib/points';
+import { useI18n, type Language } from '../lib/i18n';
 
 interface HTDashboardProps {
   onNavigate?: (tab: string) => void;
 }
 
-const MOCK_ONGOING_TASKS = [
-  { id: '2', title: '『敏感肌抗老』场景陪练', scope: '全国', type: '练习任务', completed: 850, total: 1428, progress: 59, cycleLabel: '本周', frequency: '每周完成 3 次', deadlineText: '本周五 (剩余 3 天)', isWarning: true, badgeClass: 'border-[#BFDCCF] text-[#3B8F72] bg-[#EEF8F4]' },
-  { id: '3', title: '全员基础服务礼仪月度测试', scope: '全国', type: '考试任务', completed: 900, total: 1428, progress: 63, deadlineText: '下周五', isWarning: false, badgeClass: 'border-rose-200 text-rose-600 bg-rose-50' },
-  { id: '4', title: '新晋店长管理赋能 (第一期)', scope: '全国', type: '学习任务', completed: 45, total: 50, progress: 90, deadlineText: '无需截止日期 (长期有效)', isWarning: false, badgeClass: 'border-[#E5DED8] text-[#5D565A] bg-[#F8F5F3]' },
-  { id: '5', title: '秋冬面霜系列话术演练', scope: '全国', type: '练习任务', completed: 1000, total: 1428, progress: 70, cycleLabel: '本日', frequency: '每日完成 1 次', deadlineText: '本月月底', isWarning: false, badgeClass: 'border-[#E8CCA0] text-[#B9822B] bg-[#FFF7EA]' },
+type TaskType = '练习任务' | '学习任务' | '考试任务';
+type TaskTypeFilter = '全部任务' | TaskType;
+
+interface OngoingTask {
+  id: string;
+  title: string;
+  scope: string;
+  type: TaskType;
+  completed: number;
+  total: number;
+  progress: number;
+  cycleLabel?: string;
+  frequency?: string;
+  deadlineText: string;
+  startTime: string;
+  endTime: string;
+  isWarning: boolean;
+  badgeClass: string;
+}
+
+const MOCK_ONGOING_TASKS: OngoingTask[] = [
+  { id: '2', title: '『敏感肌抗老』场景陪练', scope: '全国', type: '练习任务', completed: 850, total: 1428, progress: 59, cycleLabel: '本周', frequency: '每周完成 3 次', deadlineText: '本周五 (剩余 3 天)', startTime: '2026-06-01 00:00', endTime: '2026-08-31 23:59', isWarning: true, badgeClass: 'border-[#BFDCCF] text-[#3B8F72] bg-[#EEF8F4]' },
+  { id: '3', title: '全员基础服务礼仪月度测试', scope: '全国', type: '考试任务', completed: 900, total: 1428, progress: 63, deadlineText: '下周五', startTime: '2026-07-15 09:00', endTime: '2026-07-31 23:59', isWarning: false, badgeClass: 'border-rose-200 text-rose-600 bg-rose-50' },
+  { id: '4', title: '新晋店长管理赋能 (第一期)', scope: '全国', type: '学习任务', completed: 45, total: 50, progress: 90, deadlineText: '无需截止日期 (长期有效)', startTime: '2026-06-15 00:00', endTime: '2026-09-30 23:59', isWarning: false, badgeClass: 'border-[#E5DED8] text-[#5D565A] bg-[#F8F5F3]' },
+  { id: '5', title: '秋冬面霜系列话术演练', scope: '全国', type: '练习任务', completed: 1000, total: 1428, progress: 70, cycleLabel: '本日', frequency: '每日完成 1 次', deadlineText: '本月月底', startTime: '2026-07-01 00:00', endTime: '2026-07-31 23:59', isWarning: false, badgeClass: 'border-[#E8CCA0] text-[#B9822B] bg-[#FFF7EA]' },
 ];
+
+const TASK_TYPE_FILTERS = [
+  { type: '全部任务' as const, icon: ClipboardList },
+  { type: '练习任务' as const, icon: PlayCircle },
+  { type: '学习任务' as const, icon: BookOpen },
+  { type: '考试任务' as const, icon: CalendarCheck },
+];
+
+const TASK_MONTH_OPTIONS = ['2026-06', '2026-07', '2026-08', '2026-09'];
+
+const isTaskActiveInMonth = (task: OngoingTask, month: string) => {
+  return task.startTime.slice(0, 7) <= month && task.endTime.slice(0, 7) >= month;
+};
+
+const getDateLocale = (language: Language) => {
+  if (language === 'id') return 'id-ID';
+  if (language === 'en') return 'en-US';
+  return 'zh-CN';
+};
+
+const formatTaskMonth = (month: string, language: Language) => {
+  const date = new Date(`${month}-01T00:00:00`);
+  return new Intl.DateTimeFormat(getDateLocale(language), {
+    year: 'numeric',
+    month: 'long',
+  }).format(date);
+};
+
+const formatTaskTime = (dateTime: string, language: Language) => {
+  const [date, time] = dateTime.split(' ');
+  return new Intl.DateTimeFormat(getDateLocale(language), {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date(`${date}T${time}:00`));
+};
 
 const getTaskProgressText = (task: any) => {
   if (task.type === '练习任务') {
@@ -338,7 +399,10 @@ const formatStoreMonthlyPoints = (store: HQStoreProfile) => {
 };
 
 export function HTDashboard({ onNavigate }: HTDashboardProps) {
+  const { language } = useI18n();
   const [showAllTasks, setShowAllTasks] = useState(false);
+  const [selectedTaskMonth, setSelectedTaskMonth] = useState('2026-07');
+  const [taskTypeFilter, setTaskTypeFilter] = useState<TaskTypeFilter>('全部任务');
   const [showBaActivityDialog, setShowBaActivityDialog] = useState(false);
   const [baActivityFilter, setBaActivityFilter] = useState<HQBAActivityFilter>('all');
   const [selectedStaff, setSelectedStaff] = useState<string | null>(null);
@@ -347,6 +411,10 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
   const selectedStoreProfile = selectedStore ? (HQ_STORE_PROFILES[selectedStore as keyof typeof HQ_STORE_PROFILES] ?? HQ_STORE_PROFILES['Toko Kelapa Gading (雅加达)']) : HQ_STORE_PROFILES['Toko Kelapa Gading (雅加达)'];
   const filteredBAActivityRows = HQ_BA_ACTIVITY_ROWS.filter(row => doesBAActivityMatchFilter(row, baActivityFilter));
   const baActivityFilterLabel = getBAActivityFilterLabel(baActivityFilter);
+  const tasksInSelectedMonth = MOCK_ONGOING_TASKS.filter(task => isTaskActiveInMonth(task, selectedTaskMonth));
+  const filteredTasks = taskTypeFilter === '全部任务'
+    ? tasksInSelectedMonth
+    : tasksInSelectedMonth.filter(task => task.type === taskTypeFilter);
 
   const handleStaffClick = (staffName: string) => {
     setSelectedStaff(staffName);
@@ -1105,12 +1173,62 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
 
       {/* View All Tasks Dialog */}
       <Dialog open={showAllTasks} onOpenChange={setShowAllTasks}>
-        <DialogContent className="sm:max-w-2xl flex flex-col max-h-[80vh]">
+        <DialogContent className="flex h-[80vh] max-h-[44rem] flex-col sm:max-w-2xl">
           <DialogHeader className="border-b border-[#E9E4DF] pb-4 shrink-0">
             <DialogTitle>全国任务监控 (所有进行中)</DialogTitle>
           </DialogHeader>
-          <div className="overflow-y-auto px-1 py-4 space-y-3">
-            {MOCK_ONGOING_TASKS.map(task => {
+          <div className="shrink-0 space-y-2.5 border-b border-[#E9E4DF] pb-4">
+            <div className="flex flex-wrap items-center justify-between gap-2.5">
+              <div
+                className="inline-flex max-w-full flex-wrap items-center rounded-lg border border-[#E9E4DF] bg-[#F8F5F3] p-1"
+                role="radiogroup"
+                aria-label="任务类型筛选"
+              >
+                {TASK_TYPE_FILTERS.map(({ type, icon: Icon }) => {
+                  const isActive = taskTypeFilter === type;
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      role="radio"
+                      aria-checked={isActive}
+                      onClick={() => setTaskTypeFilter(type)}
+                      className={`inline-flex min-h-8 items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-bold transition-colors focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 ${
+                        isActive
+                          ? 'bg-white text-rose-600 shadow-sm ring-1 ring-[#F1D8DC]'
+                          : 'text-[#766F73] hover:bg-white/70 hover:text-[#242124]'
+                      }`}
+                    >
+                      <Icon className="h-3.5 w-3.5 shrink-0" />
+                      <span>{type}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="shrink-0 text-xs font-medium text-[#766F73]">开始时间</span>
+                <Select value={selectedTaskMonth} onValueChange={(value) => setSelectedTaskMonth(value ?? '2026-07')}>
+                  <SelectTrigger className="h-9 min-w-36 border-[#E5DED8] bg-white text-xs font-bold text-[#5D565A]" aria-label="选择月份">
+                    <CalendarRange className="h-3.5 w-3.5 text-[#9A9396]" />
+                    <span className="flex-1 text-left">{formatTaskMonth(selectedTaskMonth, language)}</span>
+                  </SelectTrigger>
+                  <SelectContent align="end">
+                    {TASK_MONTH_OPTIONS.map(month => (
+                      <SelectItem key={month} value={month}>{formatTaskMonth(month, language)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <p className="text-[11px] font-medium text-[#9A9396]">
+              <span>已显示</span>{' '}
+              <span key={`${selectedTaskMonth}-${taskTypeFilter}`}>{filteredTasks.length}</span>{' '}
+              <span>条任务</span>
+            </p>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-1 py-4 space-y-3">
+            {filteredTasks.map(task => {
               const tone = getProgressTone(task.progress);
               return (
               <div key={task.id} className="border border-[#E9E4DF] rounded-xl p-4 bg-white shadow-sm relative overflow-hidden">
@@ -1127,13 +1245,25 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                   <span className={`font-bold ${tone.textClass}`}>{task.progress}%</span>
                 </div>
                 <Progress value={task.progress} className="h-2 bg-slate-100" indicatorClassName={tone.indicatorClass} />
-                <div className="mt-4 text-xs text-[#766F73] font-medium flex items-center">
-                  {task.isWarning && <AlertTriangle className="h-4 w-4 mr-1 text-[#B9822B]" />}
-                  {task.deadlineText !== '无需截止日期 (长期有效)' ? `截止日期: ${task.deadlineText}` : task.deadlineText}
+                <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-[#F1EDE9] pt-3 text-xs font-medium text-[#766F73]">
+                  {task.isWarning ? (
+                    <AlertTriangle className="h-4 w-4 shrink-0 text-[#B9822B]" />
+                  ) : (
+                    <CalendarRange className="h-4 w-4 shrink-0 text-[#9A9396]" />
+                  )}
+                  <span className="whitespace-nowrap"><span className="text-[#9A9396]">开始时间：</span>{formatTaskTime(task.startTime, language)}</span>
+                  <span className="hidden h-3 w-px bg-[#E5DED8] sm:block" />
+                  <span className="whitespace-nowrap"><span className="text-[#9A9396]">结束时间：</span>{formatTaskTime(task.endTime, language)}</span>
                 </div>
               </div>
               );
             })}
+            {filteredTasks.length === 0 && (
+              <div className="flex min-h-48 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[#E5DED8] bg-[#F8F5F3]/60 text-[#9A9396]">
+                <ClipboardList className="h-7 w-7" />
+                <p className="text-xs font-medium">当前筛选下暂无任务</p>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
