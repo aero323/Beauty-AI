@@ -1,0 +1,294 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e9]: SalesBoost AI
+        - generic [ref=e10]:
+          - paragraph [ref=e11]: 服务客户
+          - paragraph [ref=e12]: Hebe Beauty
+      - navigation [ref=e13]:
+        - button "全国数据" [ref=e15]:
+          - img [ref=e16]
+          - generic [ref=e21]: 全国数据
+        - generic [ref=e22]:
+          - button "在线课件" [ref=e23]:
+            - generic [ref=e24]:
+              - img [ref=e25]
+              - generic [ref=e27]: 在线课件
+            - img [ref=e28]
+          - generic [ref=e30]:
+            - button "生成新课件" [ref=e31]
+            - button "课件管理" [ref=e32]
+        - button "AI陪练" [ref=e34]:
+          - generic [ref=e35]:
+            - img [ref=e36]
+            - generic [ref=e41]: AI陪练
+          - img [ref=e42]
+        - button "题目与考试" [ref=e45]:
+          - generic [ref=e46]:
+            - img [ref=e47]
+            - generic [ref=e50]: 题目与考试
+          - img [ref=e51]
+        - button "周期任务" [ref=e54]:
+          - generic [ref=e55]:
+            - img [ref=e56]
+            - generic [ref=e58]: 周期任务
+          - img [ref=e59]
+        - button "组织与档案" [ref=e62]:
+          - generic [ref=e63]:
+            - img [ref=e64]
+            - generic [ref=e69]: 组织与档案
+          - img [ref=e70]
+    - generic [ref=e72]:
+      - generic [ref=e73]:
+        - paragraph [ref=e74]: 角色切换 (Demo)
+        - generic [ref=e75]:
+          - combobox [ref=e76]:
+            - option "系统管理员 (SA)"
+            - option "总部培训师 (HT)" [selected]
+            - option "区域经理 (RM)"
+            - option "区域培训师主管 (RTM)"
+            - option "区域培训师 (RT)"
+          - img
+      - generic [ref=e77]:
+        - paragraph [ref=e78]:
+          - text: 当前登录用户
+          - button [ref=e79]:
+            - img [ref=e80]
+        - paragraph [ref=e83]: Sarah Lee
+        - paragraph [ref=e84]: 全球总部
+  - generic [ref=e85]:
+    - banner [ref=e86]:
+      - generic [ref=e87]:
+        - heading "全国培训总览" [level=1] [ref=e88]
+        - generic [ref=e89]: "|"
+        - generic [ref=e90]: SalesBoost AI
+      - generic [ref=e91]:
+        - combobox "Language" [ref=e93]:
+          - option "中文" [selected]
+          - option "英文"
+          - option "印尼语"
+        - generic [ref=e94]:
+          - generic [ref=e95]: 注
+          - button [ref=e96]:
+            - img [ref=e97]
+        - generic [ref=e101]:
+          - paragraph [ref=e102]: Sarah Lee
+          - paragraph [ref=e103]: HQ TRAINER
+        - generic [ref=e105]: SL
+    - main [ref=e106]:
+      - generic [ref=e108]:
+        - generic [ref=e109]:
+          - generic [ref=e110]:
+            - paragraph [ref=e111]: Dashboard
+            - heading "全国培训概览" [level=2] [ref=e112]
+          - button "下载APP" [ref=e114]:
+            - img [ref=e115]
+            - generic [ref=e118]: 下载APP
+        - generic [ref=e119]:
+          - generic [ref=e120]:
+            - generic [ref=e121]:
+              - generic [ref=e122]: 全国当前已激活BA数
+              - img [ref=e123]
+            - generic [ref=e130]:
+              - text: 1,428
+              - paragraph [ref=e131]: （12 人未激活）
+          - generic [ref=e132]:
+            - generic [ref=e133]:
+              - generic [ref=e134]: 本月课件学习次数
+              - img [ref=e135]
+            - generic [ref=e138]:
+              - generic [ref=e139]: 45.2k
+              - generic [ref=e140]: 环比 ↑ 12%
+          - generic [ref=e141]:
+            - generic [ref=e142]:
+              - generic [ref=e143]: 本月平均任务完成率
+              - img [ref=e144]
+            - generic [ref=e148]:
+              - generic [ref=e149]: 88.5%
+              - generic [ref=e150]: 环比 ↑ 4.2%
+          - generic [ref=e151]:
+            - generic [ref=e152]:
+              - generic [ref=e153]: 本月全国练习总次数
+              - img [ref=e154]
+            - generic [ref=e158]:
+              - generic [ref=e159]: 12.4k
+              - generic [ref=e160]: 约 3.2 万小时
+        - generic [ref=e161]:
+          - generic [ref=e163]:
+            - generic [ref=e165]:
+              - img [ref=e166]
+              - text: 数字资产大盘 (全局通览)
+            - generic [ref=e171]:
+              - generic [ref=e172] [cursor=pointer]:
+                - generic [ref=e173]:
+                  - img [ref=e175]
+                  - generic [ref=e177]:
+                    - generic [ref=e178]: 在线课件
+                    - generic [ref=e179]: "共计: 124 份"
+                - button "查看" [ref=e180]
+              - generic [ref=e181] [cursor=pointer]:
+                - generic [ref=e182]:
+                  - img [ref=e184]
+                  - generic [ref=e189]:
+                    - generic [ref=e190]: 数字人顾客
+                    - generic [ref=e191]: "共计: 8 位"
+                - button "查看" [ref=e192]
+              - generic [ref=e193] [cursor=pointer]:
+                - generic [ref=e194]:
+                  - img [ref=e196]
+                  - generic [ref=e198]:
+                    - generic [ref=e199]: 场景剧本
+                    - generic [ref=e200]: "共计: 35 个"
+                - button "查看" [ref=e201]
+              - generic [ref=e202] [cursor=pointer]:
+                - generic [ref=e203]:
+                  - img [ref=e205]
+                  - generic [ref=e210]:
+                    - generic [ref=e211]: 金句库
+                    - generic [ref=e212]: "共计: 850 句"
+                - button "查看" [ref=e213]
+              - generic [ref=e214] [cursor=pointer]:
+                - generic [ref=e215]:
+                  - img [ref=e217]
+                  - generic [ref=e221]:
+                    - generic [ref=e222]: 题库题目
+                    - generic [ref=e223]: "共计: 3,240 题"
+                - button "查看" [ref=e224]
+              - generic [ref=e225] [cursor=pointer]:
+                - generic [ref=e226]:
+                  - img [ref=e228]
+                  - generic [ref=e231]:
+                    - generic [ref=e232]: 试卷总数
+                    - generic [ref=e233]: "共计: 42 份"
+                - button "查看" [ref=e234]
+          - generic [ref=e236]:
+            - generic [ref=e237]:
+              - generic [ref=e238]:
+                - img [ref=e239]
+                - text: 全国任务监控 (进行中)
+              - button "查看全部任务" [ref=e242]:
+                - text: 查看全部任务
+                - img [ref=e243]
+            - generic [ref=e245]:
+              - generic [ref=e246] [cursor=pointer]:
+                - generic [ref=e248]:
+                  - heading "『敏感肌抗老』场景陪练" [level=4] [ref=e249]
+                  - generic [ref=e250]:
+                    - generic [ref=e251]: 全国
+                    - generic [ref=e252]: 练习任务
+                - generic [ref=e253]:
+                  - generic [ref=e254]: 本周 850 / 1428 人已达标
+                  - generic [ref=e255]: 59%
+                - progressbar [ref=e256]: x
+                - generic [ref=e259]:
+                  - img [ref=e260]
+                  - text: "截止日期: 本周五 (剩余 3 天)"
+              - generic [ref=e262] [cursor=pointer]:
+                - generic [ref=e264]:
+                  - heading "全员基础服务礼仪月度测试" [level=4] [ref=e265]
+                  - generic [ref=e266]:
+                    - generic [ref=e267]: 全国
+                    - generic [ref=e268]: 考试任务
+                - generic [ref=e269]:
+                  - generic [ref=e270]: 900 / 1428 人已完成
+                  - generic [ref=e271]: 63%
+                - progressbar [ref=e272]: x
+                - generic [ref=e275]: "截止日期: 下周五"
+              - generic [ref=e276] [cursor=pointer]:
+                - generic [ref=e278]:
+                  - heading "新晋店长管理赋能 (第一期)" [level=4] [ref=e279]
+                  - generic [ref=e280]:
+                    - generic [ref=e281]: 全国
+                    - generic [ref=e282]: 学习任务
+                - generic [ref=e283]:
+                  - generic [ref=e284]: 45 / 50 人已完成
+                  - generic [ref=e285]: 90%
+                - progressbar [ref=e286]: x
+                - generic [ref=e289]: 无需截止日期 (长期有效)
+              - generic [ref=e290] [cursor=pointer]:
+                - generic [ref=e292]:
+                  - heading "秋冬面霜系列话术演练" [level=4] [ref=e293]
+                  - generic [ref=e294]:
+                    - generic [ref=e295]: 全国
+                    - generic [ref=e296]: 练习任务
+                - generic [ref=e297]:
+                  - generic [ref=e298]: 本日 1000 / 1428 人已达标
+                  - generic [ref=e299]: 70%
+                - progressbar [ref=e300]: x
+                - generic [ref=e303]: "截止日期: 本月月底"
+          - generic [ref=e305]:
+            - img [ref=e307]
+            - generic [ref=e319]:
+              - generic [ref=e320]: 注
+              - generic [ref=e321]:
+                - img [ref=e322]
+                - text: "AI 自动洞察: 全国核心薄弱点"
+              - generic [ref=e334]: 该洞察基于近期数据生成，每周刷新
+            - generic [ref=e335]:
+              - generic [ref=e336]:
+                - generic [ref=e337]:
+                  - generic [ref=e338]: "TOP 1: 新品核心成分区分体验"
+                  - generic [ref=e339]: 68% 高频卡点
+                - paragraph [ref=e340]: 💡 AI 结论： 大量 BA 无法通过情景演练清晰表述双萃系列 "亲水亲油" 的黄金比例，当面对敏感肌顾客时极易背错浓度配比。
+              - generic [ref=e341]:
+                - generic [ref=e342]:
+                  - generic [ref=e343]: "TOP 2: 竞对异议处理 (价格向)"
+                  - generic [ref=e344]: 42% 卡顿超5s
+                - paragraph [ref=e345]: 💡 AI 结论： 语音识别显示，员工在被质问 "XX牌更便宜为什么要买你们的" 时，卡顿显著，缺少差异化卖点和情绪价值支撑。
+        - generic [ref=e347]:
+          - tablist [ref=e348]:
+            - tab "全国员工排行" [selected] [ref=e349]
+            - tab "全国门店培训排行" [ref=e350]
+          - tabpanel "全国员工排行" [ref=e351]:
+            - generic [ref=e353]:
+              - generic [ref=e354]:
+                - generic [ref=e356]:
+                  - img [ref=e357]
+                  - text: 全国员工学习力排名
+                - generic [ref=e360]: 点击员工姓名下钻个人履历
+              - table [ref=e362]:
+                - rowgroup [ref=e363]:
+                  - row "Rank 员工姓名 所属区域/门店 当月积分 任务完成率 最新考试平均分" [ref=e364]:
+                    - columnheader "Rank" [ref=e365]
+                    - columnheader "员工姓名" [ref=e366]
+                    - columnheader "所属区域/门店" [ref=e367]
+                    - columnheader "当月积分" [ref=e368]
+                    - columnheader "任务完成率" [ref=e369]
+                    - columnheader "最新考试平均分" [ref=e370]
+                - rowgroup [ref=e371]:
+                  - row "1 Siti 雅加达区 | Toko Senayan City 236 100% 98" [ref=e372] [cursor=pointer]:
+                    - cell "1" [ref=e373]
+                    - cell "Siti" [ref=e374]
+                    - cell "雅加达区 | Toko Senayan City" [ref=e375]
+                    - cell "236" [ref=e376]
+                    - cell "100%" [ref=e377]
+                    - cell "98" [ref=e378]
+                  - row "2 Dewi 泗水区 | Tunjungan Plaza 228 98% 96" [ref=e379] [cursor=pointer]:
+                    - cell "2" [ref=e380]
+                    - cell "Dewi" [ref=e381]
+                    - cell "泗水区 | Tunjungan Plaza" [ref=e382]
+                    - cell "228" [ref=e383]
+                    - cell "98%" [ref=e384]
+                    - cell "96" [ref=e385]
+                  - row "3 Fitri 雅加达区 | Toko Pacific Place 219 95% 95" [ref=e386] [cursor=pointer]:
+                    - cell "3" [ref=e387]
+                    - cell "Fitri" [ref=e388]
+                    - cell "雅加达区 | Toko Pacific Place" [ref=e389]
+                    - cell "219" [ref=e390]
+                    - cell "95%" [ref=e391]
+                    - cell "95" [ref=e392]
+                  - row "4 Putri 巴厘岛区 | Beachwalk Center 207 92% 92" [ref=e393] [cursor=pointer]:
+                    - cell "4" [ref=e394]
+                    - cell "Putri" [ref=e395]
+                    - cell "巴厘岛区 | Beachwalk Center" [ref=e396]
+                    - cell "207" [ref=e397]
+                    - cell "92%" [ref=e398]
+                    - cell "92" [ref=e399]
+                  - row "342 Rina 雅加达区 | T. Kelapa Gading 58 37% 52" [ref=e400] [cursor=pointer]:
+                    - cell "342" [ref=e401]
+                    - cell "Rina" [ref=e402]
+                    - cell "雅加达区 | T. Kelapa Gading" [ref=e403]
+                    - cell "58" [ref=e404]
+                    - cell "37%" [ref=e405]
+                    - cell "52" [ref=e406]

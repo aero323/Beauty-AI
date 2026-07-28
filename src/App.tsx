@@ -34,6 +34,7 @@ import { Role } from './types';
 import { Loader2, CheckCircle } from 'lucide-react';
 import { Progress } from './components/ui/progress';
 import { QuestionBankProvider } from './lib/QuestionBankContext';
+import type { DefaultExamProfileQuestion, ExamPassRule } from './lib/examPublishSettings';
 
 export default function App() {
   const [role, setRole] = useState<Role>('HQ Trainer');
@@ -100,7 +101,13 @@ export default function App() {
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
   };
 
-  const handleExamPublished = (exam: { id: string; title: string }) => {
+  const handleExamPublished = (exam: {
+    id: string;
+    title: string;
+    passRules: ExamPassRule[];
+    profileQuestions: DefaultExamProfileQuestion[];
+    questionCount: number;
+  }) => {
     setExamTasks(prev => {
       const taskId = `published-${exam.id}`;
       if (prev.some(task => task.id === taskId)) {
@@ -116,6 +123,9 @@ export default function App() {
           targetCount: 1200,
           submittedCount: 0,
           aiGraded: false,
+          passRules: exam.passRules,
+          profileQuestions: exam.profileQuestions,
+          questionCount: exam.questionCount,
         },
         ...prev,
       ];

@@ -1,23 +1,86 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Users, BookOpen, Clock, AlertTriangle, CalendarCheck, Database, MessageSquare, TextSelect, ArrowRight, BrainCircuit, ClipboardList, User, ChevronLeft, Building, PlayCircle, Presentation } from 'lucide-react';
+import { Users, BookOpen, Clock, AlertTriangle, CalendarCheck, CalendarRange, Database, MessageSquare, TextSelect, ArrowRight, BrainCircuit, ClipboardList, User, ChevronLeft, Building, PlayCircle, Presentation } from 'lucide-react';
 import { Badge } from '../components/ui/badge';
 import { Progress } from '../components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '../components/ui/select';
 import { brandTone, getProgressTone, getScoreTone, getTaskStatusBadgeClass } from '../lib/visualTones';
 import { AppDownloadButton } from '../components/AppDownloadButton';
+import { MonthlyPointsFormulaTooltip, StorePointsFormulaTooltip } from '../components/MonthlyPointsFormulaTooltip';
+import { formatPointValue, getEmployeeMonthlyPoints, getEmployeeMonthlyPointsFromRate } from '../lib/points';
+import { useI18n, type Language } from '../lib/i18n';
 
 interface HTDashboardProps {
   onNavigate?: (tab: string) => void;
 }
 
-const MOCK_ONGOING_TASKS = [
-  { id: '2', title: '『敏感肌抗老』场景陪练', scope: '全国', type: '练习任务', completed: 850, total: 1428, progress: 59, cycleLabel: '本周', frequency: '每周完成 3 次', deadlineText: '本周五 (剩余 3 天)', isWarning: true, badgeClass: 'border-[#BFDCCF] text-[#3B8F72] bg-[#EEF8F4]' },
-  { id: '3', title: '全员基础服务礼仪月度测试', scope: '全国', type: '考试任务', completed: 900, total: 1428, progress: 63, deadlineText: '下周五', isWarning: false, badgeClass: 'border-rose-200 text-rose-600 bg-rose-50' },
-  { id: '4', title: '新晋店长管理赋能 (第一期)', scope: '全国', type: '学习任务', completed: 45, total: 50, progress: 90, deadlineText: '无需截止日期 (长期有效)', isWarning: false, badgeClass: 'border-[#E5DED8] text-[#5D565A] bg-[#F8F5F3]' },
-  { id: '5', title: '秋冬面霜系列话术演练', scope: '全国', type: '练习任务', completed: 1000, total: 1428, progress: 70, cycleLabel: '本日', frequency: '每日完成 1 次', deadlineText: '本月月底', isWarning: false, badgeClass: 'border-[#E8CCA0] text-[#B9822B] bg-[#FFF7EA]' },
+type TaskType = '练习任务' | '学习任务' | '考试任务';
+type TaskTypeFilter = '全部任务' | TaskType;
+
+interface OngoingTask {
+  id: string;
+  title: string;
+  scope: string;
+  type: TaskType;
+  completed: number;
+  total: number;
+  progress: number;
+  cycleLabel?: string;
+  frequency?: string;
+  deadlineText: string;
+  startTime: string;
+  endTime: string;
+  isWarning: boolean;
+  badgeClass: string;
+}
+
+const MOCK_ONGOING_TASKS: OngoingTask[] = [
+  { id: '2', title: '『敏感肌抗老』场景陪练', scope: '全国', type: '练习任务', completed: 850, total: 1428, progress: 59, cycleLabel: '本周', frequency: '每周完成 3 次', deadlineText: '本周五 (剩余 3 天)', startTime: '2026-06-01 00:00', endTime: '2026-08-31 23:59', isWarning: true, badgeClass: 'border-[#BFDCCF] text-[#3B8F72] bg-[#EEF8F4]' },
+  { id: '3', title: '全员基础服务礼仪月度测试', scope: '全国', type: '考试任务', completed: 900, total: 1428, progress: 63, deadlineText: '下周五', startTime: '2026-07-15 09:00', endTime: '2026-07-31 23:59', isWarning: false, badgeClass: 'border-rose-200 text-rose-600 bg-rose-50' },
+  { id: '4', title: '新晋店长管理赋能 (第一期)', scope: '全国', type: '学习任务', completed: 45, total: 50, progress: 90, deadlineText: '无需截止日期 (长期有效)', startTime: '2026-06-15 00:00', endTime: '2026-09-30 23:59', isWarning: false, badgeClass: 'border-[#E5DED8] text-[#5D565A] bg-[#F8F5F3]' },
+  { id: '5', title: '秋冬面霜系列话术演练', scope: '全国', type: '练习任务', completed: 1000, total: 1428, progress: 70, cycleLabel: '本日', frequency: '每日完成 1 次', deadlineText: '本月月底', startTime: '2026-07-01 00:00', endTime: '2026-07-31 23:59', isWarning: false, badgeClass: 'border-[#E8CCA0] text-[#B9822B] bg-[#FFF7EA]' },
 ];
+
+const TASK_TYPE_FILTERS = [
+  { type: '全部任务' as const, icon: ClipboardList },
+  { type: '练习任务' as const, icon: PlayCircle },
+  { type: '学习任务' as const, icon: BookOpen },
+  { type: '考试任务' as const, icon: CalendarCheck },
+];
+
+const TASK_MONTH_OPTIONS = ['2026-06', '2026-07', '2026-08', '2026-09'];
+
+const isTaskActiveInMonth = (task: OngoingTask, month: string) => {
+  return task.startTime.slice(0, 7) <= month && task.endTime.slice(0, 7) >= month;
+};
+
+const getDateLocale = (language: Language) => {
+  if (language === 'id') return 'id-ID';
+  if (language === 'en') return 'en-US';
+  return 'zh-CN';
+};
+
+const formatTaskMonth = (month: string, language: Language) => {
+  const date = new Date(`${month}-01T00:00:00`);
+  return new Intl.DateTimeFormat(getDateLocale(language), {
+    year: 'numeric',
+    month: 'long',
+  }).format(date);
+};
+
+const formatTaskTime = (dateTime: string, language: Language) => {
+  const [date, time] = dateTime.split(' ');
+  return new Intl.DateTimeFormat(getDateLocale(language), {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date(`${date}T${time}:00`));
+};
 
 const getTaskProgressText = (task: any) => {
   if (task.type === '练习任务') {
@@ -26,9 +89,92 @@ const getTaskProgressText = (task: any) => {
   return `${task.completed} / ${task.total} 人已完成`;
 };
 
+const getProfilePointBreakdown = (profile: { taskCompleted: number; examScore: number }) => [
+  { label: '任务完成分', detail: `${profile.taskCompleted} 个任务已完成`, value: `+${profile.taskCompleted * 10}`, tone: 'text-[#3B8F72]' },
+  { label: '考试成绩', detail: '按原始分计入', value: `+${profile.examScore}`, tone: getScoreTone(profile.examScore) },
+];
+
 const VISIBLE_ONGOING_TASK_COUNT = 4;
 const HQ_ACTIVE_BA_COUNT = 1428;
 const HQ_INACTIVE_BA_COUNT = 12;
+
+type HQBAActivityStatus = 'online' | 'offline';
+type HQBAActivityType = 'learning' | 'exam' | 'task' | 'idle';
+type HQBAActivityFilter = 'all' | 'online' | 'offline' | 'learning' | 'exam' | 'task';
+
+interface HQBAActivityRow {
+  id: string;
+  name: string;
+  region: string;
+  status: HQBAActivityStatus;
+  lastActivity: string;
+  activityType: HQBAActivityType;
+  activity: string;
+  progress: number;
+}
+
+const HQ_BA_ACTIVITY_SUMMARY = [
+  { label: '在线', value: 38, filterKey: 'online' as const, icon: Users, toneClass: 'border-[#BFDCCF] bg-[#EEF8F4] text-[#2F735C]', iconClass: 'text-[#3B8F72]' },
+  { label: '离线', value: 62, filterKey: 'offline' as const, icon: Clock, toneClass: 'border-[#E5DED8] bg-[#F8F5F3] text-[#5D565A]', iconClass: 'text-[#9A9396]' },
+  { label: '正在学习', value: 21, filterKey: 'learning' as const, icon: BookOpen, toneClass: 'border-rose-200 bg-rose-50 text-rose-700', iconClass: 'text-rose-500' },
+  { label: '正在参加考试', value: 8, filterKey: 'exam' as const, icon: CalendarCheck, toneClass: 'border-[#C8CEF8] bg-[#EEF0FF] text-[#4F5FD5]', iconClass: 'text-[#4F5FD5]' },
+  { label: '正在完成任务', value: 9, filterKey: 'task' as const, icon: ClipboardList, toneClass: 'border-[#E8CCA0] bg-[#FFF7EA] text-[#8B621F]', iconClass: 'text-[#B9822B]' },
+];
+
+const HQ_BA_ACTIVITY_ROWS: HQBAActivityRow[] = [
+  { id: 'BA001', name: 'Siti Aminah', region: '雅加达区', status: 'online', lastActivity: '刚刚', activityType: 'learning', activity: '课程：敏感肌抗老基础', progress: 72 },
+  { id: 'BA041', name: 'Dewi Sartika', region: '泗水区', status: 'online', lastActivity: '1 分钟前', activityType: 'exam', activity: '考试：全员基础服务礼仪月度测试', progress: 46 },
+  { id: 'BA071', name: 'Fitri Rahma', region: '雅加达区', status: 'online', lastActivity: '2 分钟前', activityType: 'task', activity: '任务：秋冬面霜系列话术演练', progress: 68 },
+  { id: 'BA101', name: 'Putri Ayu', region: '巴厘岛区', status: 'online', lastActivity: '4 分钟前', activityType: 'learning', activity: '课程：新品核心成分区分体验', progress: 91 },
+  { id: 'BA112', name: 'Made Laras', region: '巴厘岛区', status: 'online', lastActivity: '6 分钟前', activityType: 'task', activity: '任务：新客破冰沟通场景演练', progress: 35 },
+  { id: 'BA142', name: 'Lia Kartika', region: '雅加达区', status: 'online', lastActivity: '8 分钟前', activityType: 'exam', activity: '考试：夏季新品区域通关考核', progress: 82 },
+  { id: 'BA153', name: 'Dimas Pratama', region: '雅加达区', status: 'offline', lastActivity: '35 分钟前', activityType: 'idle', activity: '暂无进行中活动', progress: 0 },
+  { id: 'BA018', name: 'Maya Putri', region: '雅加达区', status: 'offline', lastActivity: '1 小时前', activityType: 'idle', activity: '暂无进行中活动', progress: 0 },
+  { id: 'BA052', name: 'Rani Wulandari', region: '泗水区', status: 'offline', lastActivity: '2 小时前', activityType: 'idle', activity: '暂无进行中活动', progress: 0 },
+  { id: 'BA082', name: 'Ayu Permata', region: '雅加达区', status: 'offline', lastActivity: '昨天 18:40', activityType: 'idle', activity: '暂无进行中活动', progress: 0 },
+  { id: 'BA123', name: 'Kadek Rina', region: '巴厘岛区', status: 'offline', lastActivity: '昨天 16:12', activityType: 'idle', activity: '暂无进行中活动', progress: 0 },
+  { id: 'BA131', name: 'Rina Wijaya', region: '雅加达区', status: 'offline', lastActivity: '7 天前', activityType: 'idle', activity: '暂无进行中活动', progress: 0 },
+];
+
+const getBAActivityStatusMeta = (status: HQBAActivityStatus) => {
+  if (status === 'online') {
+    return {
+      label: '在线',
+      className: 'border-[#BFDCCF] bg-[#EEF8F4] text-[#2F735C]',
+      dotClassName: 'bg-[#3B8F72]',
+    };
+  }
+
+  return {
+    label: '离线',
+    className: 'border-[#E5DED8] bg-[#F8F5F3] text-[#5D565A]',
+    dotClassName: 'bg-[#C9C1C4]',
+  };
+};
+
+const getBAActivityTypeClass = (activityType: HQBAActivityType) => {
+  switch (activityType) {
+    case 'learning':
+      return 'border-rose-200 bg-rose-50 text-rose-700';
+    case 'exam':
+      return 'border-[#C8CEF8] bg-[#EEF0FF] text-[#4F5FD5]';
+    case 'task':
+      return 'border-[#E8CCA0] bg-[#FFF7EA] text-[#8B621F]';
+    default:
+      return 'border-[#E5DED8] bg-[#F8F5F3] text-[#766F73]';
+  }
+};
+
+const getBAActivityFilterLabel = (filter: HQBAActivityFilter) => {
+  if (filter === 'all') return '所有 BA';
+  return HQ_BA_ACTIVITY_SUMMARY.find(item => item.filterKey === filter)?.label ?? '所有 BA';
+};
+
+const doesBAActivityMatchFilter = (row: HQBAActivityRow, filter: HQBAActivityFilter) => {
+  if (filter === 'all') return true;
+  if (filter === 'online' || filter === 'offline') return row.status === filter;
+  return row.activityType === filter;
+};
 
 const HQ_STAFF_PROFILES = {
   Siti: {
@@ -236,12 +382,39 @@ const HQ_STORE_PROFILES = {
   },
 };
 
+type HQStoreProfile = (typeof HQ_STORE_PROFILES)[keyof typeof HQ_STORE_PROFILES];
+
+const getStoreMonthlyPoints = (store: HQStoreProfile) => {
+  const employeeCount = store.employees.length;
+  if (employeeCount === 0) return 0;
+
+  const totalPoints = store.employees.reduce((sum, employee) => {
+    return sum + getEmployeeMonthlyPointsFromRate(employee.completionRate, employee.lastExamScore);
+  }, 0);
+  return totalPoints / employeeCount;
+};
+
+const formatStoreMonthlyPoints = (store: HQStoreProfile) => {
+  return formatPointValue(getStoreMonthlyPoints(store));
+};
+
 export function HTDashboard({ onNavigate }: HTDashboardProps) {
+  const { language } = useI18n();
   const [showAllTasks, setShowAllTasks] = useState(false);
+  const [selectedTaskMonth, setSelectedTaskMonth] = useState('2026-07');
+  const [taskTypeFilter, setTaskTypeFilter] = useState<TaskTypeFilter>('全部任务');
+  const [showBaActivityDialog, setShowBaActivityDialog] = useState(false);
+  const [baActivityFilter, setBaActivityFilter] = useState<HQBAActivityFilter>('all');
   const [selectedStaff, setSelectedStaff] = useState<string | null>(null);
   const [selectedStore, setSelectedStore] = useState<string | null>(null);
   const selectedStaffProfile = selectedStaff ? (HQ_STAFF_PROFILES[selectedStaff as keyof typeof HQ_STAFF_PROFILES] ?? HQ_STAFF_PROFILES.Rina) : HQ_STAFF_PROFILES.Rina;
   const selectedStoreProfile = selectedStore ? (HQ_STORE_PROFILES[selectedStore as keyof typeof HQ_STORE_PROFILES] ?? HQ_STORE_PROFILES['Toko Kelapa Gading (雅加达)']) : HQ_STORE_PROFILES['Toko Kelapa Gading (雅加达)'];
+  const filteredBAActivityRows = HQ_BA_ACTIVITY_ROWS.filter(row => doesBAActivityMatchFilter(row, baActivityFilter));
+  const baActivityFilterLabel = getBAActivityFilterLabel(baActivityFilter);
+  const tasksInSelectedMonth = MOCK_ONGOING_TASKS.filter(task => isTaskActiveInMonth(task, selectedTaskMonth));
+  const filteredTasks = taskTypeFilter === '全部任务'
+    ? tasksInSelectedMonth
+    : tasksInSelectedMonth.filter(task => task.type === taskTypeFilter);
 
   const handleStaffClick = (staffName: string) => {
     setSelectedStaff(staffName);
@@ -249,6 +422,18 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
 
   const handleStoreClick = (storeName: string) => {
     setSelectedStore(storeName);
+  };
+
+  const openBaActivityDialog = () => {
+    setBaActivityFilter('all');
+    setShowBaActivityDialog(true);
+  };
+
+  const handleBaActivityCardKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      openBaActivityDialog();
+    }
   };
 
   return (
@@ -263,7 +448,13 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="rounded-2xl shadow-sm border border-[#E9E4DF] overflow-hidden bg-white">
+        <Card
+          role="button"
+          tabIndex={0}
+          onClick={openBaActivityDialog}
+          onKeyDown={handleBaActivityCardKeyDown}
+          className="rounded-2xl shadow-sm border border-[#E9E4DF] overflow-hidden bg-white cursor-pointer transition-all hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-rose-500/25"
+        >
           <CardHeader className="p-4 pb-0 flex flex-row items-center justify-between">
             <CardTitle className="text-xs font-bold text-[#766F73] uppercase tracking-widest">全国当前已激活BA数</CardTitle>
             <Users className="h-4 w-4 text-rose-400" />
@@ -274,6 +465,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                 <span className="text-3xl font-bold text-[#242124]">{HQ_ACTIVE_BA_COUNT.toLocaleString('en-US')}</span>
                 <p className="mt-1 text-[10px] font-medium text-[#9A9396]">（{HQ_INACTIVE_BA_COUNT} 人未激活）</p>
               </div>
+              <span className="rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-[10px] font-bold text-rose-600">实时</span>
             </div>
           </CardContent>
         </Card>
@@ -554,13 +746,15 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                              <div className="rounded-lg border border-[#F3C9BC] bg-[#FFF0E8] p-3">
                                <div className="flex items-start justify-between gap-3">
                                  <div>
-                                   <p className="text-[10px] font-bold uppercase tracking-wider text-[#A85F4B]">当月积分</p>
-                                   <p className="mt-1 text-[10px] leading-relaxed text-[#766F73]">按学习任务、考试成绩、练习达标三项累计</p>
+                                   <p className="text-[10px] font-bold uppercase tracking-wider text-[#A85F4B]">
+                                     <MonthlyPointsFormulaTooltip tooltipClassName="left-0 translate-x-0" />
+                                   </p>
+                                   <p className="mt-1 text-[10px] leading-relaxed text-[#766F73]">任务每完成 1 个计 10 分，考试按原始分计入</p>
                                  </div>
-                                 <span className="text-2xl font-bold text-[#A85F4B]">{selectedStaffProfile.monthlyPoints}</span>
+                                 <span className="text-2xl font-bold text-[#A85F4B]">{getEmployeeMonthlyPoints(selectedStaffProfile.taskCompleted, selectedStaffProfile.examScore)}</span>
                                </div>
                                <div className="mt-3 space-y-2 border-t border-[#F3C9BC] pt-2">
-                                 {selectedStaffProfile.pointBreakdown.map((item) => (
+                                 {getProfilePointBreakdown(selectedStaffProfile).map((item) => (
                                    <div key={item.label} className="flex items-center justify-between gap-2 text-[10px]">
                                      <span className="min-w-0 text-[#766F73]">
                                        <span className="font-bold text-[#3F3A3D]">{item.label}</span>
@@ -639,7 +833,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                             <th className="table-rank-cell py-2.5 px-4 font-bold w-16 text-center">Rank</th>
                             <th className="py-2.5 px-4 font-bold min-w-32">员工姓名</th>
                             <th className="py-2.5 px-2 font-bold hidden sm:table-cell w-1/4">所属区域/门店</th>
-                            <th className={`table-compact-cell py-2.5 px-3 font-bold text-center ${brandTone.textClass}`}>当月积分</th>
+                            <th className={`table-compact-cell py-2.5 px-3 font-bold text-center ${brandTone.textClass}`}><MonthlyPointsFormulaTooltip /></th>
                             <th className="table-compact-cell py-2.5 px-3 font-bold text-center">任务完成率</th>
                             <th className="table-compact-cell py-2.5 px-5 font-bold text-right text-[#766F73]">最新考试平均分</th>
                           </tr>
@@ -649,7 +843,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                             <td className="table-rank-cell py-3 px-4 font-bold text-[#B9822B] text-center">1</td>
                             <td className="py-3 px-4 font-bold text-[#242124] group-hover:text-rose-600 transition-colors">Siti</td>
                             <td className="py-3 px-2 text-[10px] text-[#766F73] hidden sm:table-cell">雅加达区 | Toko Senayan City</td>
-                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>236</td>
+                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{getEmployeeMonthlyPoints(HQ_STAFF_PROFILES.Siti.taskCompleted, HQ_STAFF_PROFILES.Siti.examScore)}</td>
                             <td className="py-3 px-3 text-center font-medium text-[#3F3A3D]">100%</td>
                             <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(98)}`}>98</td>
                           </tr>
@@ -657,7 +851,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                             <td className="table-rank-cell py-3 px-4 font-bold text-[#9A9396] text-center">2</td>
                             <td className="py-3 px-4 font-bold text-[#242124] group-hover:text-rose-600 transition-colors">Dewi</td>
                             <td className="py-3 px-2 text-[10px] text-[#766F73] hidden sm:table-cell">泗水区 | Tunjungan Plaza</td>
-                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>228</td>
+                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{getEmployeeMonthlyPoints(HQ_STAFF_PROFILES.Dewi.taskCompleted, HQ_STAFF_PROFILES.Dewi.examScore)}</td>
                             <td className="py-3 px-3 text-center font-medium text-[#3F3A3D]">98%</td>
                             <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(96)}`}>96</td>
                           </tr>
@@ -665,7 +859,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                             <td className="table-rank-cell py-3 px-4 font-bold text-[#8B621F] text-center">3</td>
                             <td className="py-3 px-4 font-bold text-[#242124] group-hover:text-rose-600 transition-colors">Fitri</td>
                             <td className="py-3 px-2 text-[10px] text-[#766F73] hidden sm:table-cell">雅加达区 | Toko Pacific Place</td>
-                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>219</td>
+                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{getEmployeeMonthlyPoints(HQ_STAFF_PROFILES.Fitri.taskCompleted, HQ_STAFF_PROFILES.Fitri.examScore)}</td>
                             <td className="py-3 px-3 text-center font-medium text-[#3F3A3D]">95%</td>
                             <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(95)}`}>95</td>
                           </tr>
@@ -673,7 +867,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                             <td className="table-rank-cell py-3 px-4 font-bold text-[#9A9396] text-center">4</td>
                             <td className="py-3 px-4 font-bold text-[#242124] group-hover:text-rose-600 transition-colors">Putri</td>
                             <td className="py-3 px-2 text-[10px] text-[#766F73] hidden sm:table-cell">巴厘岛区 | Beachwalk Center</td>
-                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>207</td>
+                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{getEmployeeMonthlyPoints(HQ_STAFF_PROFILES.Putri.taskCompleted, HQ_STAFF_PROFILES.Putri.examScore)}</td>
                             <td className="py-3 px-3 text-center font-medium text-[#3F3A3D]">92%</td>
                             <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(92)}`}>92</td>
                           </tr>
@@ -683,7 +877,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                               Rina
                             </td>
                             <td className="py-3 px-2 text-[10px] text-[#766F73] hidden sm:table-cell">雅加达区 | T. Kelapa Gading</td>
-                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>58</td>
+                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{getEmployeeMonthlyPoints(HQ_STAFF_PROFILES.Rina.taskCompleted, HQ_STAFF_PROFILES.Rina.examScore)}</td>
                             <td className="py-3 px-3 text-center font-medium text-rose-600">37%</td>
                             <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(52)}`}>52</td>
                           </tr>
@@ -748,7 +942,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                               <tr>
                                 <th className="p-3 font-bold w-24">工号</th>
                                 <th className="p-3 font-bold min-w-40">姓名</th>
-                                <th className={`p-3 font-bold w-28 text-center ${brandTone.textClass}`}>当月积分</th>
+                                <th className={`p-3 font-bold w-28 text-center ${brandTone.textClass}`}><MonthlyPointsFormulaTooltip /></th>
                                 <th className="p-3 font-bold w-28 text-center">任务完成率</th>
                                 <th className="p-3 font-bold w-32 text-right">最近一次考试分数</th>
                               </tr>
@@ -767,7 +961,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                                         <span className="truncate">{emp.name}</span>
                                       </div>
                                     </td>
-                                    <td className={`p-3 text-center font-bold ${brandTone.textClass}`}>{emp.monthlyPoints}</td>
+                                    <td className={`p-3 text-center font-bold ${brandTone.textClass}`}>{getEmployeeMonthlyPointsFromRate(emp.completionRate, emp.lastExamScore)}</td>
                                     <td className={`p-3 text-center font-bold ${progressTone.textClass}`}>{emp.completionRate}%</td>
                                     <td className={`p-3 text-right font-bold text-base ${getScoreTone(emp.lastExamScore)}`}>{emp.lastExamScore}</td>
                                   </tr>
@@ -793,6 +987,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                             <th className="py-2.5 px-5 font-bold w-12 text-center">Rank</th>
                             <th className="py-2.5 px-4 font-bold">门店名称</th>
                             <th className="py-2.5 px-2 font-bold hidden sm:table-cell text-center">参训人数</th>
+                            <th className={`py-2.5 px-3 font-bold text-center ${brandTone.textClass}`}><StorePointsFormulaTooltip /></th>
                             <th className="py-2.5 px-3 font-bold text-center">任务完成率</th>
                             <th className="py-2.5 px-5 font-bold text-right text-[#766F73]">最新考试平均分</th>
                           </tr>
@@ -802,6 +997,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                             <td className="py-3 px-5 font-bold text-[#B9822B] text-center">1</td>
                             <td className="py-3 px-4 font-bold text-[#242124] group-hover:text-rose-600 transition-colors">Toko Senayan City (雅加达)</td>
                              <td className="py-3 px-2 text-[10px] text-[#766F73] hidden sm:table-cell text-center font-mono">6/6</td>
+                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{formatStoreMonthlyPoints(HQ_STORE_PROFILES['Toko Senayan City (雅加达)'])}</td>
                             <td className="py-3 px-3 text-center font-medium text-[#3F3A3D]">100%</td>
                             <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(98)}`}>98</td>
                           </tr>
@@ -809,6 +1005,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                             <td className="py-3 px-5 font-bold text-[#9A9396] text-center">2</td>
                             <td className="py-3 px-4 font-bold text-[#242124] group-hover:text-rose-600 transition-colors">Tunjungan Plaza (泗水)</td>
                             <td className="py-3 px-2 text-[10px] text-[#766F73] hidden sm:table-cell text-center font-mono">12/12</td>
+                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{formatStoreMonthlyPoints(HQ_STORE_PROFILES['Tunjungan Plaza (泗水)'])}</td>
                             <td className="py-3 px-3 text-center font-medium text-[#3F3A3D]">100%</td>
                             <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(96)}`}>96</td>
                           </tr>
@@ -816,6 +1013,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                             <td className="py-3 px-5 font-bold text-[#8B621F] text-center">3</td>
                             <td className="py-3 px-4 font-bold text-[#242124] group-hover:text-rose-600 transition-colors">Toko Pacific Place (雅加达)</td>
                             <td className="py-3 px-2 text-[10px] text-[#766F73] hidden sm:table-cell text-center font-mono">8/8</td>
+                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{formatStoreMonthlyPoints(HQ_STORE_PROFILES['Toko Pacific Place (雅加达)'])}</td>
                             <td className="py-3 px-3 text-center font-medium text-[#3F3A3D]">95%</td>
                             <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(95)}`}>95</td>
                           </tr>
@@ -823,6 +1021,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                             <td className="py-3 px-5 font-bold text-[#9A9396] text-center">4</td>
                             <td className="py-3 px-4 font-bold text-[#242124] group-hover:text-rose-600 transition-colors">Beachwalk Center (巴厘岛)</td>
                             <td className="py-3 px-2 text-[10px] text-[#766F73] hidden sm:table-cell text-center font-mono">5/5</td>
+                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{formatStoreMonthlyPoints(HQ_STORE_PROFILES['Beachwalk Center (巴厘岛)'])}</td>
                             <td className="py-3 px-3 text-center font-medium text-[#3F3A3D]">90%</td>
                             <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(92)}`}>92</td>
                           </tr>
@@ -830,6 +1029,7 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                             <td className="py-3 px-5 font-bold text-rose-500 text-center">85</td>
                             <td className="py-3 px-4 font-bold text-rose-600 group-hover:text-rose-800 transition-colors">Toko Kelapa Gading (雅加达)</td>
                             <td className="py-3 px-2 text-[10px] text-rose-500 hidden sm:table-cell text-center font-mono">3/5</td>
+                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{formatStoreMonthlyPoints(HQ_STORE_PROFILES['Toko Kelapa Gading (雅加达)'])}</td>
                             <td className="py-3 px-3 text-center font-medium text-rose-600">60%</td>
                             <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(58)}`}>58</td>
                           </tr>
@@ -843,14 +1043,192 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
         </Tabs>
       </div>
 
+      <Dialog open={showBaActivityDialog} onOpenChange={setShowBaActivityDialog}>
+        <DialogContent className="flex h-[86vh] max-h-[86vh] flex-col overflow-hidden bg-[#FCFAF8] p-0 sm:max-w-6xl">
+          <DialogHeader className="shrink-0 border-b border-[#E9E4DF] bg-white px-6 py-5">
+            <DialogTitle className="flex flex-col gap-1 text-[#242124]">
+              <span className="flex items-center text-lg font-bold">
+                <Users className="mr-2 h-5 w-5 text-rose-500" />
+                今日 BA 活动情况
+              </span>
+              <span className="text-xs font-medium text-[#766F73]">
+                全国已激活 BA {HQ_ACTIVE_BA_COUNT.toLocaleString('en-US')} 人，可按活动状态筛选查看
+              </span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden px-6 pb-6 pt-4">
+            <div className="grid shrink-0 grid-cols-2 gap-3 lg:grid-cols-5">
+              {HQ_BA_ACTIVITY_SUMMARY.map(item => {
+                const Icon = item.icon;
+                const isActive = baActivityFilter === item.filterKey;
+                return (
+                  <button
+                    key={item.label}
+                    type="button"
+                    onClick={() => setBaActivityFilter(prev => prev === item.filterKey ? 'all' : item.filterKey)}
+                    className={`rounded-xl border px-4 py-3 text-left transition-all hover:-translate-y-0.5 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 ${item.toneClass} ${isActive ? 'ring-2 ring-offset-2 ring-[#242124]/15 shadow-md' : ''}`}
+                    aria-pressed={isActive}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-bold">{item.label}</p>
+                        <p className="mt-1 text-2xl font-black leading-none">{item.value}</p>
+                      </div>
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/80 shadow-sm">
+                        <Icon className={`h-4 w-4 ${item.iconClass}`} />
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-[#E9E4DF] bg-white shadow-sm">
+              <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-[#E9E4DF] bg-[#F8F5F3]/60 px-4 py-3">
+                <div>
+                  <h3 className="text-sm font-bold text-[#242124]">{baActivityFilterLabel}列表</h3>
+                  <p className="mt-0.5 text-[11px] text-[#766F73]">
+                    当前显示 {filteredBAActivityRows.length} 人，支持按区域、在线状态、最后活动时间、当前活动与进度查看
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  {baActivityFilter !== 'all' && (
+                    <button
+                      type="button"
+                      onClick={() => setBaActivityFilter('all')}
+                      className="rounded-md border border-[#E5DED8] bg-white px-2.5 py-1 text-[11px] font-bold text-[#5D565A] transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                    >
+                      全部 BA
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="min-h-0 flex-1 overflow-auto">
+                <table className="responsive-data-table min-w-[960px] w-full text-left text-sm">
+                  <thead className="sticky top-0 z-10 border-b border-[#E9E4DF] bg-white text-[10px] font-bold text-[#9A9396]">
+                    <tr>
+                      <th className="px-4 py-3">BA</th>
+                      <th className="px-3 py-3">区域</th>
+                      <th className="px-3 py-3">在线 / 离线状态</th>
+                      <th className="px-3 py-3">Last Activity</th>
+                      <th className="px-3 py-3">正在进行的活动</th>
+                      <th className="px-3 py-3">当前进度</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F0ECE8]">
+                    {filteredBAActivityRows.map(row => {
+                      const statusMeta = getBAActivityStatusMeta(row.status);
+                      const isIdle = row.activityType === 'idle';
+                      return (
+                        <tr key={row.id} className="transition-colors hover:bg-[#F8F5F3]/70">
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose-50 text-xs font-black text-rose-600 ring-1 ring-rose-100">
+                                {row.name.slice(0, 1)}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-bold text-[#242124]">{row.name}</p>
+                                <p className="text-[10px] font-medium text-[#9A9396]">{row.id}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-3 py-3 text-xs font-medium text-[#5D565A]">{row.region}</td>
+                          <td className="px-3 py-3">
+                            <Badge variant="outline" className={`gap-1.5 border text-[10px] font-bold ${statusMeta.className}`}>
+                              <span className={`h-1.5 w-1.5 rounded-full ${statusMeta.dotClassName}`} />
+                              {statusMeta.label}
+                            </Badge>
+                          </td>
+                          <td className="px-3 py-3 text-xs font-medium text-[#766F73]">{row.lastActivity}</td>
+                          <td className="px-3 py-3">
+                            <Badge variant="outline" className={`max-w-[260px] justify-start truncate border text-[10px] font-medium ${getBAActivityTypeClass(row.activityType)}`}>
+                              {row.activity}
+                            </Badge>
+                          </td>
+                          <td className="px-3 py-3">
+                            <div className="flex min-w-[140px] items-center gap-2">
+                              <Progress value={row.progress} className="h-1.5 bg-slate-100" indicatorClassName={isIdle ? 'bg-[#C9C1C4]' : getProgressTone(row.progress).indicatorClass} />
+                              <span className={`w-9 text-right text-[10px] font-bold ${isIdle ? 'text-[#9A9396]' : getProgressTone(row.progress).textClass}`}>
+                                {isIdle ? '-' : `${row.progress}%`}
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                {filteredBAActivityRows.length === 0 && (
+                  <div className="flex h-32 items-center justify-center text-xs font-medium text-[#9A9396]">
+                    当前筛选下暂无 BA
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* View All Tasks Dialog */}
       <Dialog open={showAllTasks} onOpenChange={setShowAllTasks}>
-        <DialogContent className="sm:max-w-2xl flex flex-col max-h-[80vh]">
+        <DialogContent className="flex h-[80vh] max-h-[44rem] flex-col sm:max-w-2xl">
           <DialogHeader className="border-b border-[#E9E4DF] pb-4 shrink-0">
             <DialogTitle>全国任务监控 (所有进行中)</DialogTitle>
           </DialogHeader>
-          <div className="overflow-y-auto px-1 py-4 space-y-3">
-            {MOCK_ONGOING_TASKS.map(task => {
+          <div className="shrink-0 space-y-2.5 border-b border-[#E9E4DF] pb-4">
+            <div className="flex flex-wrap items-center justify-between gap-2.5">
+              <div
+                className="inline-flex max-w-full flex-wrap items-center rounded-lg border border-[#E9E4DF] bg-[#F8F5F3] p-1"
+                role="radiogroup"
+                aria-label="任务类型筛选"
+              >
+                {TASK_TYPE_FILTERS.map(({ type, icon: Icon }) => {
+                  const isActive = taskTypeFilter === type;
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      role="radio"
+                      aria-checked={isActive}
+                      onClick={() => setTaskTypeFilter(type)}
+                      className={`inline-flex min-h-8 items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-bold transition-colors focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 ${
+                        isActive
+                          ? 'bg-white text-rose-600 shadow-sm ring-1 ring-[#F1D8DC]'
+                          : 'text-[#766F73] hover:bg-white/70 hover:text-[#242124]'
+                      }`}
+                    >
+                      <Icon className="h-3.5 w-3.5 shrink-0" />
+                      <span>{type}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="shrink-0 text-xs font-medium text-[#766F73]">开始时间</span>
+                <Select value={selectedTaskMonth} onValueChange={(value) => setSelectedTaskMonth(value ?? '2026-07')}>
+                  <SelectTrigger className="h-9 min-w-36 border-[#E5DED8] bg-white text-xs font-bold text-[#5D565A]" aria-label="选择月份">
+                    <CalendarRange className="h-3.5 w-3.5 text-[#9A9396]" />
+                    <span className="flex-1 text-left">{formatTaskMonth(selectedTaskMonth, language)}</span>
+                  </SelectTrigger>
+                  <SelectContent align="end">
+                    {TASK_MONTH_OPTIONS.map(month => (
+                      <SelectItem key={month} value={month}>{formatTaskMonth(month, language)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <p className="text-[11px] font-medium text-[#9A9396]">
+              <span>已显示</span>{' '}
+              <span key={`${selectedTaskMonth}-${taskTypeFilter}`}>{filteredTasks.length}</span>{' '}
+              <span>条任务</span>
+            </p>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-1 py-4 space-y-3">
+            {filteredTasks.map(task => {
               const tone = getProgressTone(task.progress);
               return (
               <div key={task.id} className="border border-[#E9E4DF] rounded-xl p-4 bg-white shadow-sm relative overflow-hidden">
@@ -867,13 +1245,25 @@ export function HTDashboard({ onNavigate }: HTDashboardProps) {
                   <span className={`font-bold ${tone.textClass}`}>{task.progress}%</span>
                 </div>
                 <Progress value={task.progress} className="h-2 bg-slate-100" indicatorClassName={tone.indicatorClass} />
-                <div className="mt-4 text-xs text-[#766F73] font-medium flex items-center">
-                  {task.isWarning && <AlertTriangle className="h-4 w-4 mr-1 text-[#B9822B]" />}
-                  {task.deadlineText !== '无需截止日期 (长期有效)' ? `截止日期: ${task.deadlineText}` : task.deadlineText}
+                <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-[#F1EDE9] pt-3 text-xs font-medium text-[#766F73]">
+                  {task.isWarning ? (
+                    <AlertTriangle className="h-4 w-4 shrink-0 text-[#B9822B]" />
+                  ) : (
+                    <CalendarRange className="h-4 w-4 shrink-0 text-[#9A9396]" />
+                  )}
+                  <span className="whitespace-nowrap"><span className="text-[#9A9396]">开始时间：</span>{formatTaskTime(task.startTime, language)}</span>
+                  <span className="hidden h-3 w-px bg-[#E5DED8] sm:block" />
+                  <span className="whitespace-nowrap"><span className="text-[#9A9396]">结束时间：</span>{formatTaskTime(task.endTime, language)}</span>
                 </div>
               </div>
               );
             })}
+            {filteredTasks.length === 0 && (
+              <div className="flex min-h-48 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[#E5DED8] bg-[#F8F5F3]/60 text-[#9A9396]">
+                <ClipboardList className="h-7 w-7" />
+                <p className="text-xs font-medium">当前筛选下暂无任务</p>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
