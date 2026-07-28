@@ -1,0 +1,130 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e9]: SalesBoost AI
+        - generic [ref=e10]:
+          - paragraph [ref=e11]: 服务客户
+          - paragraph [ref=e12]: Hebe Beauty
+      - navigation [ref=e13]:
+        - button "全国数据" [ref=e15]:
+          - img [ref=e16]
+          - generic [ref=e21]: 全国数据
+        - generic [ref=e22]:
+          - button "在线课件" [ref=e23]:
+            - generic [ref=e24]:
+              - img [ref=e25]
+              - generic [ref=e27]: 在线课件
+            - img [ref=e28]
+          - generic [ref=e30]:
+            - button "生成新课件" [active] [ref=e31]
+            - button "课件管理" [ref=e32]
+        - button "AI陪练" [ref=e34]:
+          - generic [ref=e35]:
+            - img [ref=e36]
+            - generic [ref=e41]: AI陪练
+          - img [ref=e42]
+        - button "题目与考试" [ref=e45]:
+          - generic [ref=e46]:
+            - img [ref=e47]
+            - generic [ref=e50]: 题目与考试
+          - img [ref=e51]
+        - button "周期任务" [ref=e54]:
+          - generic [ref=e55]:
+            - img [ref=e56]
+            - generic [ref=e58]: 周期任务
+          - img [ref=e59]
+        - button "组织与档案" [ref=e62]:
+          - generic [ref=e63]:
+            - img [ref=e64]
+            - generic [ref=e69]: 组织与档案
+          - img [ref=e70]
+    - generic [ref=e72]:
+      - generic [ref=e73]:
+        - paragraph [ref=e74]: 角色切换 (Demo)
+        - generic [ref=e75]:
+          - combobox [ref=e76]:
+            - option "系统管理员 (SA)"
+            - option "总部培训师 (HT)" [selected]
+            - option "区域经理 (RM)"
+            - option "区域培训师主管 (RTM)"
+            - option "区域培训师 (RT)"
+          - img
+      - generic [ref=e77]:
+        - paragraph [ref=e78]:
+          - text: 当前登录用户
+          - button [ref=e79]:
+            - img [ref=e80]
+        - paragraph [ref=e83]: Sarah Lee
+        - paragraph [ref=e84]: 全球总部
+  - generic [ref=e85]:
+    - banner [ref=e86]:
+      - generic [ref=e87]:
+        - heading "全国培训总览" [level=1] [ref=e88]
+        - generic [ref=e89]: "|"
+        - generic [ref=e90]: SalesBoost AI
+      - generic [ref=e91]:
+        - combobox "Language" [ref=e93]:
+          - option "中文" [selected]
+          - option "英文"
+          - option "印尼语"
+        - generic [ref=e94]:
+          - generic [ref=e95]: 注
+          - button [ref=e96]:
+            - img [ref=e97]
+        - generic [ref=e101]:
+          - paragraph [ref=e102]: Sarah Lee
+          - paragraph [ref=e103]: HQ TRAINER
+        - generic [ref=e105]: SL
+    - main [ref=e106]:
+      - generic [ref=e407]:
+        - generic [ref=e409]:
+          - heading "AI 智能课件生成" [level=1] [ref=e410]
+          - paragraph [ref=e411]: 上传产品知识，一键生成课件、AI讲解与题目
+        - generic [ref=e413]:
+          - generic [ref=e414]:
+            - generic [ref=e415]: "1"
+            - generic [ref=e416]: 上传资料
+          - generic [ref=e418]:
+            - generic [ref=e419]: "2"
+            - generic [ref=e420]: AI生成中
+          - generic [ref=e422]:
+            - generic [ref=e423]: "3"
+            - generic [ref=e424]: 审核与发布
+        - generic [ref=e426]:
+          - img [ref=e428]
+          - heading "拖拽 PPT/PPTX 文件至此或点击上传" [level=3] [ref=e431]
+          - generic [ref=e432]:
+            - generic [ref=e433]:
+              - img [ref=e434]
+              - generic [ref=e437]: Lumina_新品精华_培训版.pptx
+            - generic [ref=e438]:
+              - img [ref=e439]
+              - generic [ref=e442]: 竞品_Lbrand_精华培训.pptx
+          - generic [ref=e443]:
+            - generic [ref=e444]:
+              - text: 附加生成指令 (可选)
+              - textbox "例如：重点突出我们产品的吸收速度，并生成与Lbrand的对比页。主语言使用本土化印尼语。" [ref=e445]
+            - generic [ref=e446]:
+              - generic [ref=e448] [cursor=pointer]:
+                - checkbox "同步生成课后附加题 (10题)" [checked] [ref=e449]
+                - generic [ref=e450]:
+                  - text: 同步生成课后附加题 (10题)
+                  - img [ref=e451]
+              - generic [ref=e453]:
+                - generic [ref=e454]: 注
+                - generic [ref=e455]: 选择讲解角色：
+                - combobox [ref=e456]:
+                  - generic [ref=e457]: role1
+                  - img: ▼
+                - textbox [ref=e458]: role1
+            - generic [ref=e460]:
+              - button "使用AI智能生成课件" [ref=e461]:
+                - img [ref=e462]
+                - text: 使用AI智能生成课件
+              - button "保留原始课件，仅生成讲解" [ref=e465]:
+                - img [ref=e466]
+                - text: 保留原始课件，仅生成讲解
+          - button "开始智能生成" [ref=e469]:
+            - img
+            - text: 开始智能生成
