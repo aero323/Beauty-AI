@@ -5,6 +5,7 @@ import { Button } from '../components/ui/button';
 import { Plus, BookOpen, Clock, Target, Calendar, CheckCircle2, ChevronRight, FileText, Users, Search, CheckCircle, AlertTriangle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { getProgressTone, getTaskStatusBadgeClass } from '../lib/visualTones';
+import { syncInspectionSource } from '../lib/inspectionStore';
 
 const MOCK_COURSES = [
   { id: 'c1', title: '双萃系列核心卖点解析（2023版）', duration: '15 mins' },
@@ -13,7 +14,7 @@ const MOCK_COURSES = [
   { id: 'c4', title: '防晒家族全系列对比', duration: '18 mins' },
 ];
 
-const MOCK_STUDY_TASKS = [
+export const MOCK_STUDY_TASKS = [
   {
     id: 'st1',
     title: '新人入职必修课第一期',
@@ -68,6 +69,7 @@ const MOCK_CANDIDATES = [
 
 export function StudyTaskManage({ isReadOnly = false, userRole }: { isReadOnly?: boolean, userRole?: string }) {
   const [tasks, setTasks] = useState(MOCK_STUDY_TASKS);
+  React.useEffect(() => { syncInspectionSource('study', 'study_task_manage', tasks); }, [tasks]);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(MOCK_STUDY_TASKS[0].id);
   const [createDialog, setCreateDialog] = useState(false);
   const [detailTask, setDetailTask] = useState<any>(null);

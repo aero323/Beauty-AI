@@ -63,11 +63,11 @@ export const getScoreTone = (score: number) => {
 };
 
 export const getTaskStatusBadgeClass = (status: string) => {
-  if (['已完成', '已达标', '已交卷'].includes(status)) {
+  if (['已完成', '已达标', '已交卷', '已结束'].includes(status)) {
     return 'border-[#BFDCCF] bg-[#EEF8F4] text-[#3B8F72]';
   }
 
-  if (['进行中', '学习中', '练习中', '考试中', '正在答题'].includes(status)) {
+  if (['进行中', '学习中', '练习中', '考试中', '正在答题', '分析中'].includes(status)) {
     return 'border-[#E8CCA0] bg-[#FFF7EA] text-[#8B621F]';
   }
 

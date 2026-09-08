@@ -21,8 +21,13 @@ import { ExamBank } from './pages/ExamBank';
 import { ExamHomework } from './pages/ExamHomework';
 import { ExamManage } from './pages/ExamManage';
 import { ExamTaskManage, INITIAL_EXAM_TASKS, type ExamTask } from './pages/ExamTaskManage';
-import { StudyTaskManage } from './pages/StudyTaskManage';
-import { PracticeTaskManage } from './pages/PracticeTaskManage';
+import { StudyTaskManage, MOCK_STUDY_TASKS } from './pages/StudyTaskManage';
+import { PracticeTaskManage, MOCK_PRACTICE_TASKS } from './pages/PracticeTaskManage';
+import { TrainingInspection } from './pages/TrainingInspection';
+import { getInspectionState, startInspectionScheduler, syncInspectionSource } from './lib/inspectionStore';
+import { MediaCollectionTaskManage, initialTasks as INITIAL_MEDIA_TASKS } from './pages/MediaCollectionTaskManage';
+import { PhotoCheckinRecords } from './pages/PhotoCheckinRecords';
+import { MaterialLibrary } from './pages/MaterialLibrary';
 import { StoreArchive } from './pages/StoreArchive';
 import { PersonnelArchive } from './pages/PersonnelArchive';
 import { OrganizationView } from './pages/OrganizationView';
@@ -37,6 +42,7 @@ import { Progress } from './components/ui/progress';
 export default function App() {
   const [role, setRole] = useState<Role>('HQ Trainer');
   const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [materialLibrarySubmissionId, setMaterialLibrarySubmissionId] = useState<string | null>(null);
 
   // Global Course Generation State
   const [courseTask, setCourseTask] = useState<CourseTask | null>(null);
@@ -44,6 +50,15 @@ export default function App() {
   const [homeworkCourseTitle, setHomeworkCourseTitle] = useState<string | null>(null);
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
   const [examTasks, setExamTasks] = useState<ExamTask[]>(INITIAL_EXAM_TASKS);
+
+  React.useEffect(() => {
+    const state = getInspectionState();
+    if (!state.sourceSyncedAt.study) syncInspectionSource('study', 'study_task_manage', MOCK_STUDY_TASKS);
+    if (!state.sourceSyncedAt.practice) syncInspectionSource('practice', 'practice_task_manage', MOCK_PRACTICE_TASKS);
+    if (!state.sourceSyncedAt.media) syncInspectionSource('media', 'media_collection_manage', INITIAL_MEDIA_TASKS);
+    return startInspectionScheduler();
+  }, []);
+  React.useEffect(() => { syncInspectionSource('exam', 'exam_task_manage', examTasks); }, [examTasks]);
 
   React.useEffect(() => {
     if (activeTab !== 'exam_homework') {
@@ -80,6 +95,15 @@ export default function App() {
     setShowSuccessBanner(false);
     setActiveTab('exam_homework');
   };
+
+  const openMaterialAsset = React.useCallback((submissionId: string) => {
+    setMaterialLibrarySubmissionId(submissionId);
+    setActiveTab('material_library');
+  }, []);
+
+  const clearMaterialAssetRequest = React.useCallback(() => {
+    setMaterialLibrarySubmissionId(null);
+  }, []);
 
   const resetCourseTask = () => {
     setCourseTask(null);
@@ -122,6 +146,9 @@ export default function App() {
   };
 
   const renderContent = () => {
+    if (activeTab === 'training_inspection') {
+      return <TrainingInspection role={role} onNavigate={setActiveTab} />;
+    }
     if (activeTab === 'dashboard') {
       switch (role) {
         case 'Super Admin':
@@ -182,6 +209,15 @@ export default function App() {
     if (activeTab === 'ba_quotes') {
       return <BAQuotes />;
     }
+    if (activeTab === 'material_library') {
+      return (
+        <MaterialLibrary
+          userRole={role}
+          requestedSubmissionId={materialLibrarySubmissionId}
+          onRequestedAssetOpened={clearMaterialAssetRequest}
+        />
+      );
+    }
     if (activeTab === 'exam_generate') {
       return <ExamGenerate />;
     }
@@ -213,6 +249,12 @@ export default function App() {
     }
     if (activeTab === 'practice_task_manage') {
       return <PracticeTaskManage isReadOnly={role === 'Regional Manager'} userRole={role} />;
+    }
+    if (activeTab === 'media_collection_manage') {
+      return <MediaCollectionTaskManage userRole={role} onOpenMaterialAsset={openMaterialAsset} />;
+    }
+    if (activeTab === 'photo_checkin_records') {
+      return <React.Fragment key={`photo-checkin-${role}`}><PhotoCheckinRecords userRole={role} /></React.Fragment>;
     }
     if (activeTab === 'store_archive') {
       return <StoreArchive userRole={role} />;

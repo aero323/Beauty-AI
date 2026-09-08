@@ -11,7 +11,10 @@ import {
   ChevronDown,
   ClipboardList,
   Target,
-  Layers
+  Layers,
+  FileVideo2,
+  Camera,
+  ShieldCheck
 } from 'lucide-react';
 import { Role } from '../types';
 import { cn } from '../lib/utils';
@@ -61,11 +64,15 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
           { id: 'users_manage', label: '账号管理', icon: Users },
           { id: 'category_manage', label: '品类设置', icon: BookOpen },
           { id: 'notification_settings', label: '通知设置', icon: Bell },
+          { id: 'media_collection_manage', label: '媒体与审计', icon: FileVideo2 },
+          { id: 'photo_checkin_records', label: 'BA打卡记录', icon: Camera },
+          { id: 'material_library', label: '素材库', icon: BookOpen },
           { id: 'settings', label: '系统设置', icon: Settings },
         ];
       case 'HQ Trainer':
         return [
           { id: 'dashboard', label: '全国数据', icon: LayoutDashboard },
+          { id: 'training_inspection', label: '培训巡检', icon: ShieldCheck },
           { id: 'course_group', label: '在线课件', icon: BookOpen, subMenu: [
             { id: 'courses', label: '生成新课件' },
             { id: 'courses_manage', label: '课件管理' }
@@ -73,7 +80,8 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
           { id: 'ba_practice_group', label: 'AI陪练', icon: Users, subMenu: [
             { id: 'ba_avatars', label: '数字人顾客' },
             { id: 'ba_scripts', label: '场景剧本' },
-            { id: 'ba_quotes', label: '金句库' }
+            { id: 'ba_quotes', label: '金句库' },
+            { id: 'material_library', label: '素材库' }
           ] },
           { id: 'exam_group', label: '题目与考试', icon: ClipboardList, subMenu: [
             { id: 'exam_generate', label: '生成题目' },
@@ -84,6 +92,8 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
           { id: 'tasks_group', label: '周期任务', icon: FolderOpen, subMenu: [
             { id: 'study_task_manage', label: '学习任务管理' },
             { id: 'practice_task_manage', label: '练习任务管理' },
+            { id: 'media_collection_manage', label: '音视频采集任务' },
+            { id: 'photo_checkin_records', label: 'BA打卡记录' },
             { id: 'exam_task_manage', label: '考试任务管理' }
           ] },
           { id: 'org_group', label: '组织与档案', icon: Users, subMenu: [
@@ -94,15 +104,20 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
       case 'Regional Training Manager':
         return [
           { id: 'dashboard', label: '区域数据', icon: LayoutDashboard },
+          { id: 'training_inspection', label: '培训巡检', icon: ShieldCheck },
           { id: 'regional_content', label: '区域补充内容', icon: BookOpen, subMenu: [
             { id: 'courses', label: '生成新课件' },
             { id: 'courses_manage', label: '区域课件管理' },
             { id: 'ba_scripts', label: '区域场景剧本' },
-            { id: 'ba_avatars', label: '区域数字人顾客' }
+            { id: 'ba_avatars', label: '区域数字人顾客' },
+            { id: 'material_library', label: '素材库' }
           ] },
           { id: 'tasks', label: '周期任务', icon: Target, subMenu: [
             { id: 'study_task_manage', label: '学习任务' },
             { id: 'practice_task_manage', label: '练习任务' },
+            { id: 'media_collection_manage', label: '音视频采集任务' },
+            { id: 'photo_checkin_records', label: 'BA打卡记录' },
+            { id: 'material_library', label: '素材库' },
             { id: 'exam_task_manage', label: '考试任务' }
           ] },
           { id: 'org_group', label: '组织与档案', icon: Users, subMenu: [
@@ -113,9 +128,13 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
       case 'Regional Manager':
         return [
           { id: 'dashboard', label: '区域数据', icon: LayoutDashboard },
+          { id: 'training_inspection', label: '培训巡检', icon: ShieldCheck },
           { id: 'tasks_group', label: '周期任务监控', icon: ClipboardList, subMenu: [
             { id: 'study_task_manage', label: '学习任务' },
             { id: 'practice_task_manage', label: '练习任务' },
+            { id: 'media_collection_manage', label: '音视频采集任务' },
+            { id: 'photo_checkin_records', label: 'BA打卡记录' },
+            { id: 'material_library', label: '素材库' },
             { id: 'exam_task_manage', label: '考试任务' }
           ] },
           { id: 'org_group', label: '组织与档案', icon: Users, subMenu: [
@@ -126,15 +145,19 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
       case 'Regional Trainer':
         return [
           { id: 'dashboard', label: '区域数据', icon: LayoutDashboard },
+          { id: 'training_inspection', label: '培训巡检', icon: ShieldCheck },
           { id: 'regional_content', label: '区域补充内容', icon: BookOpen, subMenu: [
             { id: 'courses', label: '生成新课件' },
             { id: 'courses_manage', label: '区域课件管理' },
             { id: 'ba_scripts', label: '区域场景剧本' },
-            { id: 'ba_avatars', label: '区域数字人顾客' }
+            { id: 'ba_avatars', label: '区域数字人顾客' },
+            { id: 'material_library', label: '素材库' }
           ] },
           { id: 'tasks', label: '周期任务', icon: Target, subMenu: [
             { id: 'study_task_manage', label: '学习任务' },
             { id: 'practice_task_manage', label: '练习任务' },
+            { id: 'media_collection_manage', label: '音视频采集任务' },
+            { id: 'photo_checkin_records', label: 'BA打卡记录' },
             { id: 'exam_task_manage', label: '考试任务' }
           ] },
         ];
@@ -382,7 +405,12 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
         </header>
 
         {/* Scrollable Content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-transparent p-8">
+        <div className="md:hidden border-b border-[#E5DED8] bg-white px-4 py-2">
+          <select aria-label="移动端导航" value={activeTab} onChange={event => setActiveTab(event.target.value)} className="w-full min-h-9 rounded-md border border-[#E5DED8] bg-white px-2 text-xs">
+            {navItems.flatMap(item => item.subMenu ?? [{ id: item.id, label: item.label }]).map(item => <option key={item.id} value={item.id}>{item.label}</option>)}
+          </select>
+        </div>
+        <main className={`flex-1 overflow-x-hidden overflow-y-auto bg-transparent ${activeTab === 'training_inspection' ? 'p-4 md:p-8' : 'p-8'}`}>
           <div className="max-w-7xl mx-auto h-full space-y-6">
              {children}
           </div>

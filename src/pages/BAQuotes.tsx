@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Trash2, CheckCircle, Save, Settings, MessageSquare, AlertCircle, ImageIcon, Upload, Wand2, ChevronRight, ChevronDown, Package, Folder, FolderOpen, ArrowLeft, Play, Mic, ChevronUp, RotateCcw } from 'lucide-react';
+import { Plus, Trash2, CheckCircle, Save, Settings, MessageSquare, AlertCircle, ImageIcon, Upload, Wand2, ChevronRight, ChevronDown, Package, Folder, FolderOpen, ArrowLeft, Play, Mic, ChevronUp, RotateCcw, LibraryBig, Link2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '../components/ui/dialog';
 import { aiActionTone } from '../lib/visualTones';
 import { EffectiveStatusBadge, type EffectiveStatus } from '../components/EffectiveStatusBadge';
+import { MaterialReferenceDialog } from '../components/MaterialReferenceDialog';
+import { createDerivedAssetReferences } from '../lib/materialLibraryData';
+import type { DerivedAssetReference, GoldenMaterial } from '../types';
 
 interface Quote {
   id: string;
   text: string;
   hint: string;
+  sourceReferences?: DerivedAssetReference[];
 }
 
 interface Product {
@@ -310,6 +314,7 @@ export function BAQuotes() {
   const [toastMessage, setToastMessage] = useState('产品库已保存');
   const [toastTone, setToastTone] = useState<'success' | 'warning'>('success');
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [materialReferenceOpen, setMaterialReferenceOpen] = useState(false);
 
   const showFeedback = (message: string, tone: 'success' | 'warning' = 'success', duration = 2500) => {
     setToastMessage(message);
@@ -374,6 +379,18 @@ export function BAQuotes() {
       hint: ''
     };
     handleUpdateProduct('quotes', [...selectedProduct.quotes, newQuote]);
+  };
+
+  const applyMaterialReference = (materials: GoldenMaterial[]) => {
+    if (!selectedProduct || !materials.length) return;
+    const importedQuotes: Quote[] = materials.map((material) => ({
+      id: `material-quote-${material.id}-${Date.now()}`,
+      text: material.quoteText ?? `“${material.evidence[0]?.transcript ?? material.summary}”`,
+      hint: `适用：${material.targetLabel}。${material.aiSummary ?? material.summary}`,
+      sourceReferences: createDerivedAssetReferences('quote', [material]),
+    }));
+    handleUpdateProduct('quotes', [...selectedProduct.quotes, ...importedQuotes]);
+    showFeedback(`已从素材库导入 ${importedQuotes.length} 条金句草稿`, 'success', 3000);
   };
 
   const handleRemoveQuote = (quoteId: string) => {
@@ -652,6 +669,10 @@ export function BAQuotes() {
                       <h3 className="text-sm font-bold text-[#242124]">产品销售金句库</h3>
                     </div>
                     <div className="flex items-center gap-2">
+                      <Button onClick={() => setMaterialReferenceOpen(true)} variant="outline" size="sm" className="h-8 border-[#D8DEFF] bg-[#EEF1FF] text-[#515BCB] hover:bg-[#E1E7FF]">
+                        <LibraryBig className="h-4 w-4 mr-1" />
+                        引用素材
+                      </Button>
                       <Button onClick={handleGenerateQuotes} variant="secondary" size="sm" className={`h-8 ${aiActionTone.buttonClass}`}>
                         <Wand2 className={`h-4 w-4 mr-1 ${aiActionTone.iconClass}`} />
                         AI 一键生成金句
@@ -693,6 +714,14 @@ export function BAQuotes() {
                               placeholder="例如：适合在顾客抱怨皮肤干燥脱皮时使用..."
                             />
                           </div>
+                          {quote.sourceReferences?.length ? (
+                            <div className="rounded-md border border-[#D8DEFF] bg-[#F7F8FF] px-3 py-2">
+                              <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#515BCB]"><Link2 className="h-3.5 w-3.5" />素材库来源</div>
+                              {quote.sourceReferences.map((source) => (
+                                <div key={source.id} className="mt-1.5 text-[11px] leading-relaxed text-[#766F73]">{source.materialTitle} · v{source.materialVersion} · 证据 {source.evidenceRanges.map((range) => `${Math.floor(range.startSec / 60)}:${String(range.startSec % 60).padStart(2, '0')} - ${Math.floor(range.endSec / 60)}:${String(range.endSec % 60).padStart(2, '0')}`).join('，')}</div>
+                              ))}
+                            </div>
+                          ) : null}
                         </div>
                         <button
                           onClick={() => handleRemoveQuote(quote.id)}
@@ -724,6 +753,13 @@ export function BAQuotes() {
           open={previewOpen}
           onOpenChange={setPreviewOpen}
           product={selectedProductForPreview}
+        />
+        <MaterialReferenceDialog
+          open={materialReferenceOpen}
+          onOpenChange={setMaterialReferenceOpen}
+          target="quote"
+          quoteTargetLabel={selectedProduct?.name}
+          onApply={applyMaterialReference}
         />
       </div>
     </div>

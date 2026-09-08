@@ -1,10 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Plus, Trash2, Upload, User, FileText, Tag, Image as ImageIcon, Save, CheckCircle, MessageSquare, Bot, Send, RotateCcw, Wand2 } from 'lucide-react';
+import { Plus, Trash2, Upload, User, FileText, Tag, Image as ImageIcon, Save, CheckCircle, MessageSquare, Bot, Send, RotateCcw, Wand2, LibraryBig, Link2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '../components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { EffectiveStatusBadge, type EffectiveStatus } from '../components/EffectiveStatusBadge';
 import { aiActionTone } from '../lib/visualTones';
+import { MaterialReferenceDialog } from '../components/MaterialReferenceDialog';
+import { createDerivedAssetReferences } from '../lib/materialLibraryData';
+import type { DerivedAssetReference, GoldenMaterial } from '../types';
 
 type AvatarLanguage = '中文' | '英文' | '印尼语';
 
@@ -24,6 +27,7 @@ interface Avatar {
   tags: string[];
   prompt: string;
   flow: string;
+  sourceReferences?: DerivedAssetReference[];
   effectiveStatus: EffectiveStatus;
 }
 
@@ -242,6 +246,7 @@ export function BAAvatars() {
   const [previewInput, setPreviewInput] = useState('');
   const [previewMessages, setPreviewMessages] = useState<PreviewMessage[]>([]);
   const [previewTyping, setPreviewTyping] = useState(false);
+  const [materialReferenceOpen, setMaterialReferenceOpen] = useState(false);
   const replyTimerRef = useRef<number | null>(null);
 
   const selectedAvatar = avatars.find(a => a.id === selectedId) || avatars[0];
@@ -316,6 +321,30 @@ export function BAAvatars() {
     setToastMessage('保存成功');
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
+  };
+
+  const applyMaterialReference = (materials: GoldenMaterial[]) => {
+    const customerMaterial = materials[0];
+    const methodMaterial = materials[1];
+    const tags = Array.from(new Set([...selectedAvatar.tags, ...materials.flatMap((material) => material.tags)])).slice(0, 8);
+    const prompt = [
+      `你是一位具有明确购买顾虑的美妆顾客。${customerMaterial.aiSummary ?? customerMaterial.summary}`,
+      methodMaterial ? `在 BA 沟通时，重点观察对方是否能做到：${methodMaterial.aiSummary ?? methodMaterial.summary}` : '',
+      '表达自然直接，优先追问真实肤感、使用场景和试用体验。',
+    ].filter(Boolean).join('\n');
+    const flow = materials.map((material, index) => `${index + 1}. ${material.aiSummary ?? material.summary}`).join('\n');
+    setAvatars((current) => current.map((avatar) => avatar.id === selectedId ? {
+      ...avatar,
+      tags,
+      prompt,
+      flow,
+      sourceReferences: createDerivedAssetReferences('avatar', materials),
+      effectiveStatus: 'pending',
+    } : avatar));
+    setFlowMode('custom');
+    setToastMessage(`已引用 ${materials.length} 条黄金素材，生成可编辑草稿`);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 2800);
   };
 
   const handleGenerateAvatarImage = () => {
@@ -469,6 +498,14 @@ export function BAAvatars() {
                 <p className="text-xs text-[#766F73] mt-1">配置角色外观、人格设定及互动流程以用于 BA 陪练</p>
               </div>
               <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setMaterialReferenceOpen(true)}
+                  className="border-[#D8DEFF] bg-[#EEF1FF] text-[#515BCB] hover:bg-[#E1E7FF]"
+                >
+                  <LibraryBig className="h-4 w-4" />
+                  <span>引用素材</span>
+                </Button>
                 <Button
                   variant="outline"
                   onClick={() => setPreviewOpen(true)}
@@ -676,6 +713,20 @@ export function BAAvatars() {
                   </div>
                 </div>
 
+                {selectedAvatar.sourceReferences?.length ? (
+                  <section className="rounded-xl border border-[#D8DEFF] bg-[#F7F8FF] p-5">
+                    <div className="flex items-center gap-2 text-sm font-bold text-[#515BCB]"><Link2 className="h-4 w-4" />来源素材</div>
+                    <div className="mt-3 space-y-2">
+                      {selectedAvatar.sourceReferences.map((source) => (
+                        <div key={source.id} className="rounded-lg border border-[#D8DEFF] bg-white px-3 py-2.5">
+                          <div className="flex flex-wrap items-center justify-between gap-2"><span className="text-sm font-bold text-[#3F3A3D]">{source.materialTitle}</span><span className="text-[11px] text-[#766F73]">v{source.materialVersion} · {source.materialScope}</span></div>
+                          <div className="mt-1.5 text-xs text-[#766F73]">证据 {source.evidenceRanges.map((range) => `${Math.floor(range.startSec / 60)}:${String(range.startSec % 60).padStart(2, '0')} - ${Math.floor(range.endSec / 60)}:${String(range.endSec % 60).padStart(2, '0')}`).join('，')}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
+
               </div>
             </div>
           </>
@@ -844,6 +895,12 @@ export function BAAvatars() {
             </div>
           </DialogContent>
         </Dialog>
+        <MaterialReferenceDialog
+          open={materialReferenceOpen}
+          onOpenChange={setMaterialReferenceOpen}
+          target="avatar"
+          onApply={applyMaterialReference}
+        />
       </div>
     </div>
   );

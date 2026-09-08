@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, FileText, CheckCircle, Save, Settings, MessageSquare, AlertCircle, ImageIcon, Upload, Wand2 } from 'lucide-react';
+import { Plus, Trash2, FileText, CheckCircle, Save, Settings, MessageSquare, AlertCircle, ImageIcon, Upload, Wand2, LibraryBig, Link2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
 import { aiActionTone } from '../lib/visualTones';
 import { EffectiveStatusBadge, type EffectiveStatus } from '../components/EffectiveStatusBadge';
 import { ConversationPlaygroundDialog, type PlaygroundMessage } from '../components/ConversationPlaygroundDialog';
+import { MaterialReferenceDialog } from '../components/MaterialReferenceDialog';
+import { createDerivedAssetReferences } from '../lib/materialLibraryData';
+import type { DerivedAssetReference, GoldenMaterial } from '../types';
 
 interface ScriptStep {
   id: string;
@@ -20,6 +23,7 @@ interface ScriptScenario {
   steps: ScriptStep[];
   imageUrl?: string;
   scope?: string;
+  sourceReferences?: DerivedAssetReference[];
   effectiveStatus: EffectiveStatus;
 }
 
@@ -57,6 +61,7 @@ export function BAScripts() {
   const [toastMessage, setToastMessage] = useState('剧本已保存');
   const [toastTone, setToastTone] = useState<'success' | 'warning'>('success');
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [materialReferenceOpen, setMaterialReferenceOpen] = useState(false);
 
   const selectedScript = scripts.find(s => s.id === selectedId) || scripts[0];
   const previewScript = selectedScript
@@ -136,6 +141,23 @@ export function BAScripts() {
   const handleSave = () => {
     setScripts(prev => prev.map(s => s.id === selectedId ? { ...s, effectiveStatus: 'active' } : s));
     showFeedback('剧本已保存', 'success', 3000);
+  };
+
+  const applyMaterialReference = (materials: GoldenMaterial[]) => {
+    if (!materials.length) return;
+    const steps = materials.map((material, index) => ({
+      id: `material-step-${Date.now()}-${index}`,
+      description: `${index + 1}. ${material.title}`,
+      hint: material.aiSummary ?? material.summary,
+    }));
+    setScripts((current) => current.map((script) => script.id === selectedId ? {
+      ...script,
+      description: `围绕${materials.map((material) => material.targetLabel).filter((value, index, values) => values.indexOf(value) === index).join('、')}，${materials.map((material) => material.aiSummary ?? material.summary).join('；')}`,
+      steps,
+      sourceReferences: createDerivedAssetReferences('script', materials),
+      effectiveStatus: 'pending',
+    } : script));
+    showFeedback(`已引用 ${materials.length} 条黄金素材，生成可编辑剧本草稿`, 'success', 3000);
   };
 
   const buildPreviewMessages = (script: ScriptScenario): PlaygroundMessage[] => [
@@ -354,6 +376,14 @@ export function BAScripts() {
               <div className="flex items-center gap-3">
                 <Button
                   variant="outline"
+                  onClick={() => setMaterialReferenceOpen(true)}
+                  className="border-[#D8DEFF] bg-[#EEF1FF] text-[#515BCB] hover:bg-[#E1E7FF]"
+                >
+                  <LibraryBig className="h-4 w-4" />
+                  <span>引用素材</span>
+                </Button>
+                <Button
+                  variant="outline"
                   onClick={() => setPreviewOpen(true)}
                   className="border-[#E5DED8] bg-white text-[#3F3A3D] hover:bg-[#F8F5F3]"
                 >
@@ -538,6 +568,20 @@ export function BAScripts() {
                   </div>
                 </div>
 
+                {selectedScript.sourceReferences?.length ? (
+                  <section className="rounded-xl border border-[#D8DEFF] bg-[#F7F8FF] p-5">
+                    <div className="flex items-center gap-2 text-sm font-bold text-[#515BCB]"><Link2 className="h-4 w-4" />来源素材</div>
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      {selectedScript.sourceReferences.map((source) => (
+                        <div key={source.id} className="rounded-lg border border-[#D8DEFF] bg-white px-3 py-2.5">
+                          <div className="flex items-start justify-between gap-2"><span className="text-sm font-bold text-[#3F3A3D]">{source.materialTitle}</span><span className="shrink-0 text-[11px] text-[#766F73]">v{source.materialVersion}</span></div>
+                          <div className="mt-1 text-xs text-[#766F73]">证据 {source.evidenceRanges.map((range) => `${Math.floor(range.startSec / 60)}:${String(range.startSec % 60).padStart(2, '0')} - ${Math.floor(range.endSec / 60)}:${String(range.endSec % 60).padStart(2, '0')}`).join('，')}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
+
               </div>
             </div>
           </>
@@ -557,6 +601,12 @@ export function BAScripts() {
           initialMessages={previewInitialMessages}
           generateReply={generatePreviewReply}
           rightPane={previewRightPane}
+        />
+        <MaterialReferenceDialog
+          open={materialReferenceOpen}
+          onOpenChange={setMaterialReferenceOpen}
+          target="script"
+          onApply={applyMaterialReference}
         />
       </div>
     </div>
