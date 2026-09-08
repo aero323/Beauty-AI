@@ -3,6 +3,7 @@ import { Plus, Trash2, FileText, CheckCircle, Save, Settings, MessageSquare, Ale
 import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
+import { PracticePromptNotice } from '../components/PracticePromptNotice';
 import { aiActionTone } from '../lib/visualTones';
 import { EffectiveStatusBadge, type EffectiveStatus } from '../components/EffectiveStatusBadge';
 import { ConversationPlaygroundDialog, type PlaygroundMessage } from '../components/ConversationPlaygroundDialog';
@@ -403,6 +404,7 @@ export function BAScripts() {
 
             <div className="flex-1 overflow-y-auto p-6 md:p-8">
               <div className="max-w-4xl mx-auto space-y-6">
+                <PracticePromptNotice />
 
                 {/* General Info */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#E9E4DF]">

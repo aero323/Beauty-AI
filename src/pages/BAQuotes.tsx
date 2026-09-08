@@ -7,6 +7,7 @@ import { EffectiveStatusBadge, type EffectiveStatus } from '../components/Effect
 import { MaterialReferenceDialog } from '../components/MaterialReferenceDialog';
 import { createDerivedAssetReferences } from '../lib/materialLibraryData';
 import type { DerivedAssetReference, GoldenMaterial } from '../types';
+import { PracticePromptNotice } from '../components/PracticePromptNotice';
 
 interface Quote {
   id: string;
@@ -568,6 +569,7 @@ export function BAQuotes() {
 
             <div className="flex-1 overflow-y-auto p-6 md:p-8">
               <div className="max-w-4xl mx-auto space-y-6">
+                <PracticePromptNotice />
 
                 {/* Product Basic Info */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#E9E4DF]">

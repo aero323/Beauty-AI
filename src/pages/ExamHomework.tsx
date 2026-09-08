@@ -3,17 +3,12 @@ import { BookOpen, ClipboardList, Database, Save, Search, PlusCircle, CheckCircl
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
+import { useQuestionBank } from '../lib/QuestionBankContext';
+import { getQuestionTagNames, QUESTION_TYPE_LABELS } from '../lib/questionBank';
 
 const COURSES = [
   { id: 'c1', title: 'Lumina 新品精华培训', date: '2023-11-20', questionIds: ['b1', 'b3'] },
   { id: 'c2', title: '冬季护肤基础', date: '2023-11-18', questionIds: [] },
-];
-
-const BANK = [
-  { id: 'b1', content: 'Lumina新品精华的核心成分是什么？', tags: ['成分', '新品'] },
-  { id: 'b2', content: '下列哪一项是Lumina新品精华的主要修护成分？', tags: ['成分'] },
-  { id: 'b3', content: 'Lumina新品精华适合激光术后使用。', tags: ['适用人群', '新品'] },
-  { id: 'b4', content: '冬季护肤最重要的步骤是？', tags: ['基础', '冬季'] },
 ];
 
 interface ExamHomeworkProps {
@@ -21,6 +16,7 @@ interface ExamHomeworkProps {
 }
 
 export function ExamHomework({ selectedCourseTitle }: ExamHomeworkProps) {
+  const { questions, tags } = useQuestionBank();
   const [selectedCourseId, setSelectedCourseId] = useState<string>(COURSES[0].id);
   const [courses, setCourses] = useState(COURSES);
   const [showToast, setShowToast] = useState(false);
@@ -42,8 +38,9 @@ export function ExamHomework({ selectedCourseTitle }: ExamHomeworkProps) {
   }, [selectedCourseTitle]);
 
   const selectedCourse = courses.find(c => c.id === selectedCourseId);
-  const linkedQuestions = BANK.filter(q => selectedCourse?.questionIds.includes(q.id));
-  const availableQuestions = BANK.filter(q => !selectedCourse?.questionIds.includes(q.id));
+  const activeBank = questions.filter(q => q.status === 'active');
+  const linkedQuestions = activeBank.filter(q => selectedCourse?.questionIds.includes(q.id));
+  const availableQuestions = activeBank.filter(q => !selectedCourse?.questionIds.includes(q.id));
 
   const handleLink = (questionId: string) => {
     setCourses(prev => prev.map(c =>
@@ -146,7 +143,7 @@ export function ExamHomework({ selectedCourseTitle }: ExamHomeworkProps) {
                       <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#3B8F72]"></div>
                       <CardContent className="p-4 pl-5">
                         <div className="flex justify-between items-start gap-4">
-                          <div className="text-sm font-medium text-[#242124]">{i + 1}. {q.content}</div>
+                          <div data-i18n-skip="true" className="text-sm font-medium text-[#242124]">{i + 1}. {q.stem}</div>
                           <button
                             onClick={() => handleUnlink(q.id)}
                             className="p-1.5 text-[#9A9396] hover:text-red-500 hover:bg-red-50 rounded-md transition-colors shrink-0"
@@ -155,8 +152,9 @@ export function ExamHomework({ selectedCourseTitle }: ExamHomeworkProps) {
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
-                        <div className="mt-2 flex space-x-2">
-                          {q.tags.map(t => <Badge key={t} variant="secondary" className="text-[10px]">{t}</Badge>)}
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <Badge variant="outline" className="text-[10px] bg-white border-emerald-100 text-[#2F735C]">{QUESTION_TYPE_LABELS[q.type]}</Badge>
+                          {getQuestionTagNames(q, tags).map(t => <Badge key={t} data-i18n-skip="true" variant="secondary" className="text-[10px]">{t}</Badge>)}
                         </div>
                       </CardContent>
                     </Card>
@@ -183,7 +181,7 @@ export function ExamHomework({ selectedCourseTitle }: ExamHomeworkProps) {
                     <Card key={q.id} className="border-[#E5DED8] shadow-sm group">
                       <CardContent className="p-4">
                         <div className="flex justify-between items-start gap-4">
-                          <div className="text-sm font-medium text-[#3F3A3D]">{q.content}</div>
+                          <div data-i18n-skip="true" className="text-sm font-medium text-[#3F3A3D]">{q.stem}</div>
                           <button
                             onClick={() => handleLink(q.id)}
                             className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-md transition-colors shrink-0 flex items-center shadow-sm border border-rose-100"
@@ -192,8 +190,9 @@ export function ExamHomework({ selectedCourseTitle }: ExamHomeworkProps) {
                             <PlusCircle className="h-4 w-4 mr-1" /> 添加
                           </button>
                         </div>
-                        <div className="mt-2 flex space-x-2">
-                          {q.tags.map(t => <Badge key={t} variant="outline" className="text-[10px] bg-[#F8F5F3]">{t}</Badge>)}
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <Badge variant="outline" className="text-[10px] bg-white border-rose-100 text-rose-600">{QUESTION_TYPE_LABELS[q.type]}</Badge>
+                          {getQuestionTagNames(q, tags).map(t => <Badge key={t} data-i18n-skip="true" variant="outline" className="text-[10px] bg-[#F8F5F3]">{t}</Badge>)}
                         </div>
                       </CardContent>
                     </Card>

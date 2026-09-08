@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Building, Users, CalendarCheck, BookOpen, Presentation, ChevronRight, Search } from 'lucide-react';
 import { brandTone, getScoreTone } from '../lib/visualTones';
+import { MonthlyPointsFormulaTooltip } from '../components/MonthlyPointsFormulaTooltip';
+import { getEmployeeMonthlyPointsFromRate } from '../lib/points';
 
 const MOCK_STORES = [
   { id: 's1', name: 'Jakarta Grand Indonesia', city: 'Jakarta' },
@@ -179,7 +181,7 @@ export function StoreArchive({ userRole }: { userRole?: string }) {
                    <tr>
                      <th className="p-4 font-bold text-[#766F73] w-24">工号</th>
                      <th className="p-4 font-bold text-[#766F73] w-48">姓名</th>
-                     <th className="p-4 font-bold text-[#766F73] w-32">当月积分</th>
+                     <th className="p-4 font-bold text-[#766F73] w-32"><MonthlyPointsFormulaTooltip /></th>
                      <th className="p-4 font-bold text-[#766F73] w-32">任务完成率</th>
                      <th className="p-4 font-bold text-[#766F73] w-48">最近一次考试分数</th>
                    </tr>
@@ -195,7 +197,9 @@ export function StoreArchive({ userRole }: { userRole?: string }) {
                           {emp.name}
                         </td>
                         <td className="p-4">
-                           <span className={`font-bold ${brandTone.textClass}`}>{emp.monthlyPoints}</span>
+                           <span className={`font-bold ${brandTone.textClass}`}>
+                             {getEmployeeMonthlyPointsFromRate(Number.parseFloat(emp.completionRate), emp.lastExamScore)}
+                           </span>
                         </td>
                         <td className="p-4">
                            <span className="font-bold text-[#3B8F72]">{emp.completionRate}</span>

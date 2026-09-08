@@ -90,6 +90,36 @@
 
 结论：后台规则和数据聚合负责“结论”，LLM 最多负责“表达”。这样研发可实现、管理者可解释、问题可追溯。
 
+## 题库增强与 AI 派生题实现口径
+
+题库应作为可治理的题目资产库，而不是分散在题库、组卷和附加题页面里的临时列表。题目需要复用全局品类与标签配置，至少包含产品线、产品、知识点标签、自定义标签、题型、难度、来源文件、状态和 AI 来源关系。
+
+建议题目类型：
+
+- `single_choice`：单选题，只有一个正确选项。
+- `multiple_choice`：多选题，可以有多个正确选项。
+- `true_false`：判断题，固定正确 / 错误两个选项。
+- `short_answer`：简答题，包含参考答案、评分要点和可选 AI 阅卷提示。
+
+建议状态：
+
+- `draft`：手动录入草稿，未正式入库。
+- `pending_review`：AI 上传生成或旧题派生后的待审核题。
+- `active`：已审核入库，可用于考试组卷和课件附加题。
+- `archived`：历史题归档，不参与默认组卷。
+
+最小后端接口：
+
+- `GET /question-bank/questions`：支持 `keyword`、`type`、`productLineId`、`productId`、`tagIds`、`difficulty`、`status` 过滤。
+- `POST /question-bank/questions`：手动新增题目。
+- `PATCH /question-bank/questions/:id`：二次编辑题干、答案、标签、分类和状态。
+- `DELETE /question-bank/questions/:id`：删除或归档题目。
+- `POST /question-bank/questions/:id/generate-variants`：基于旧题生成变体，返回 `pending_review` 草稿。
+- `POST /question-bank/questions/bulk-tags`：批量加标签。
+- `GET /taxonomy`：读取全局品类、产品线、产品和标签配置。
+
+AI 旧题派生题必须默认进入 `pending_review`，不能自动进入 `active`。培训师需要在入库前确认题干、答案、标签、产品线和难度，避免相似题、错误答案或不适合考试的主观题直接进入组卷池。
+
 ## Practice 模块与学员端对齐复查
 
 ### 结论

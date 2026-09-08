@@ -6,6 +6,8 @@ import { Progress } from '../components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { brandTone, getProgressTone, getScoreTone } from '../lib/visualTones';
 import { AppDownloadButton } from '../components/AppDownloadButton';
+import { MonthlyPointsFormulaTooltip } from '../components/MonthlyPointsFormulaTooltip';
+import { getEmployeeMonthlyPointsFromRate } from '../lib/points';
 
 export function SMDashboard() {
   const [selectedStaff, setSelectedStaff] = useState<string | null>(null);
@@ -181,7 +183,7 @@ export function SMDashboard() {
                             <th className="py-2.5 px-5 font-bold w-12 text-center">Rank</th>
                             <th className="py-2.5 px-4 font-bold">员工姓名</th>
                             <th className="py-2.5 px-2 font-bold w-1/3">完课进度</th>
-                            <th className={`py-2.5 px-3 font-bold text-center ${brandTone.textClass}`}>当月积分</th>
+                            <th className={`py-2.5 px-3 font-bold text-center ${brandTone.textClass}`}><MonthlyPointsFormulaTooltip /></th>
                             <th className="py-2.5 px-5 font-bold text-right text-[#766F73]">最新考试成绩</th>
                           </tr>
                         </thead>
@@ -195,7 +197,7 @@ export function SMDashboard() {
                                  <span className={`text-[10px] font-bold ${getProgressTone(100).textClass}`}>100%</span>
                                </div>
                             </td>
-                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>214</td>
+                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{getEmployeeMonthlyPointsFromRate(100, 92)}</td>
                             <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(92)}`}>92</td>
                           </tr>
                           <tr className="hover:bg-[#F8F5F3] transition-colors group cursor-pointer" onClick={() => handleStaffClick('Eka')}>
@@ -207,7 +209,7 @@ export function SMDashboard() {
                                  <span className={`text-[10px] font-bold ${getProgressTone(90).textClass}`}>90%</span>
                                </div>
                             </td>
-                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>196</td>
+                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{getEmployeeMonthlyPointsFromRate(90, 86)}</td>
                             <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(86)}`}>86</td>
                           </tr>
                           <tr className="hover:bg-[#F8F5F3] transition-colors group cursor-pointer" onClick={() => handleStaffClick('Putri')}>
@@ -219,7 +221,7 @@ export function SMDashboard() {
                                  <span className={`text-[10px] font-bold ${getProgressTone(85).textClass}`}>85%</span>
                                </div>
                             </td>
-                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>173</td>
+                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{getEmployeeMonthlyPointsFromRate(85, 75)}</td>
                             <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(75)}`}>75</td>
                           </tr>
                           <tr className="hover:bg-[#F8F5F3] transition-colors group cursor-pointer" onClick={() => handleStaffClick('Lestari')}>
@@ -231,7 +233,7 @@ export function SMDashboard() {
                                  <span className={`text-[10px] font-bold ${getProgressTone(60).textClass}`}>60%</span>
                                </div>
                             </td>
-                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>126</td>
+                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{getEmployeeMonthlyPointsFromRate(60, 65)}</td>
                             <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(65)}`}>65</td>
                           </tr>
                            <tr className="hover:bg-rose-50/50 transition-colors group cursor-pointer bg-rose-50/20" onClick={() => handleStaffClick('Rina')}>
@@ -246,7 +248,7 @@ export function SMDashboard() {
                                  <span className={`text-[10px] font-bold ${getProgressTone(37).textClass}`}>37%</span>
                                </div>
                             </td>
-                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>58</td>
+                            <td className={`py-3 px-3 text-center font-bold ${brandTone.textClass}`}>{getEmployeeMonthlyPointsFromRate(37, 52)}</td>
                             <td className={`py-3 px-5 text-right font-bold text-base ${getScoreTone(52)}`}>52</td>
                           </tr>
                         </tbody>

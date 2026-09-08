@@ -1,0 +1,276 @@
+{"kind":"deck","id":"pr/41hq1g","name":"Deck"}
+{"kind":"layout","layoutId":"12400fe1-fa82-464f-94fc-7d4a40340e7e","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"2dd4a61e-3489-46d9-b73f-b7750fe7621d","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/v3gckb","slide":1,"title":"SalesBoost AI","textShapes":4}
+{"kind":"shape","id":"sh/2hwfyxob","slide":1,"bbox":[0,0,1280,720]}
+{"kind":"shape","id":"sh/94fu18jq","slide":1,"bbox":[850,0,430,720]}
+{"kind":"shape","id":"sh/kjm1cfa9","slide":1,"bbox":[904,132,252,252]}
+{"kind":"shape","id":"sh/ra5gbq1o","slide":1,"bbox":[944,172,172,172]}
+{"kind":"textbox","id":"sh/2p8nqxs7","slide":1,"text":"SalesBoost AI","textPreview":"SalesBoost AI","textChars":13,"textLines":1,"bbox":[76,150,700,88]}
+{"kind":"textbox","id":"sh/9gr2p8nq","slide":1,"text":"面向一线销售团队的 AI 培训与销售能力增长平台","textPreview":"面向一线销售团队的 AI 培训与销售能力增长平台","textChars":24,"textLines":1,"bbox":[80,258,720,46]}
+{"kind":"textbox","id":"sh/gvy90je9","slide":1,"text":"从销售知识沉淀、AI 情景陪练到任务追踪，让销售能力可复制、可衡量、可提升。","textPreview":"从销售知识沉淀、AI 情景陪练到任务追踪，让销售能力可复制、可衡量、可提升。","textChars":38,"textLines":1,"bbox":[80,330,690,90]}
+{"kind":"shape","id":"sh/re1w7mp0","slide":1,"bbox":[80,520,190,42]}
+{"kind":"textbox","id":"sh/2t83itgf","slide":1,"text":"Saleskit / 2026","textPreview":"Saleskit / 2026","textChars":15,"textLines":1,"bbox":[90,528,170,28]}
+{"kind":"notes","id":"nt/v3gckb","slide":1,"text":""}
+{"kind":"slide","id":"sl/macz5h","slide":2,"title":"02","textShapes":10}
+{"kind":"textbox","id":"sh/o7qpg3ex","slide":2,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[64,44,54,28]}
+{"kind":"textbox","id":"sh/vmtwra5g","slide":2,"text":"SalesBoost AI Saleskit","textPreview":"SalesBoost AI Saleskit","textChars":22,"textLines":1,"bbox":[1080,44,140,24]}
+{"kind":"textbox","id":"sh/61032lsz","slide":2,"text":"一线销售培训普遍卡在三个断点","textPreview":"一线销售培训普遍卡在三个断点","textChars":14,"textLines":1,"bbox":[64,88,1100,70]}
+{"kind":"shape","id":"sh/d4vmtwra","slide":2,"bbox":[64,168,1152,1.5]}
+{"kind":"shape","id":"sh/oj2t83it","slide":2,"bbox":[78,230,350,230]}
+{"kind":"shape","id":"sh/vy90je9c","slide":2,"bbox":[78,230,6,230]}
+{"kind":"textbox","id":"sh/6dcbulwv","slide":2,"text":"内容难以及时标准化","textPreview":"内容难以及时标准化","textChars":9,"textLines":1,"bbox":[102,254,308,34]}
+{"kind":"textbox","id":"sh/d8v6psfi","slide":2,"text":"产品、方案、政策、竞品信息变化快，培训内容难以及时下发并保持一致。","textPreview":"产品、方案、政策、竞品信息变化快，培训内容难以及时下发并保持一致。","textChars":33,"textLines":1,"bbox":[102,298,308,144]}
+{"kind":"shape","id":"sh/onyd0z61","slide":2,"bbox":[466,230,350,230]}
+{"kind":"shape","id":"sh/epkzupwb","slide":2,"bbox":[466,230,6,230]}
+{"kind":"textbox","id":"sh/7adsji5s","slide":2,"text":"听过不等于会成交","textPreview":"听过不等于会成交","textChars":8,"textLines":1,"bbox":[490,254,308,34]}
+{"kind":"textbox","id":"sh/wval87ed","slide":2,"text":"客户异议、场景应对、价值表达缺少高频练习，销售很难把知识转成动作。","textPreview":"客户异议、场景应对、价值表达缺少高频练习，销售很难把知识转成动作。","textChars":33,"textLines":1,"bbox":[490,298,308,144]}
+{"kind":"shape","id":"sh/pg3ex0nu","slide":2,"bbox":[854,230,350,230]}
+{"kind":"shape","id":"sh/e1w7mp0b","slide":2,"bbox":[854,230,6,230]}
+{"kind":"textbox","id":"sh/7mp0bi9s","slide":2,"text":"掌握情况不可见","textPreview":"掌握情况不可见","textChars":7,"textLines":1,"bbox":[878,254,308,34]}
+{"kind":"textbox","id":"sh/w7mp0bi9","slide":2,"text":"管理层很难看到每个区域、门店、团队、销售个人的真实掌握情况。","textPreview":"管理层很难看到每个区域、门店、团队、销售个人的真实掌握情况。","textChars":30,"textLines":1,"bbox":[878,298,308,144]}
+{"kind":"shape","id":"sh/psfil0rq","slide":2,"bbox":[170,540,940,74]}
+{"kind":"textbox","id":"sh/ed8bat47","slide":2,"text":"销售培训不是缺资料，而是缺“从知识到实战能力”的闭环。","textPreview":"销售培训不是缺资料，而是缺“从知识到实战能力”的闭环。","textChars":27,"textLines":1,"bbox":[205,558,870,40]}
+{"kind":"notes","id":"nt/macz5h","slide":2,"text":""}
+{"kind":"slide","id":"sl/3vemru","slide":3,"title":"03","textShapes":19}
+{"kind":"textbox","id":"sh/o7qpg3ex","slide":3,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[64,44,54,28]}
+{"kind":"textbox","id":"sh/vmtwra5g","slide":3,"text":"SalesBoost AI Saleskit","textPreview":"SalesBoost AI Saleskit","textChars":22,"textLines":1,"bbox":[1080,44,140,24]}
+{"kind":"textbox","id":"sh/61032lsz","slide":3,"text":"SalesBoost AI 把销售培训串成一条增长链路","textPreview":"SalesBoost AI 把销售培训串成一条增长链路","textChars":27,"textLines":1,"bbox":[64,88,1100,70]}
+{"kind":"shape","id":"sh/d4vmtwra","slide":3,"bbox":[64,168,1152,1.5]}
+{"kind":"shape","id":"sh/oj2t83it","slide":3,"bbox":[70,220,150,72]}
+{"kind":"textbox","id":"sh/vy90je9c","slide":3,"text":"内容生成","textPreview":"内容生成","textChars":4,"textLines":1,"bbox":[78,242,134,28]}
+{"kind":"textbox","id":"sh/6dcbulwv","slide":3,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[226,235,44,36]}
+{"kind":"shape","id":"sh/d8v6psfi","slide":3,"bbox":[265,220,150,72]}
+{"kind":"textbox","id":"sh/onyd0z61","slide":3,"text":"任务分发","textPreview":"任务分发","textChars":4,"textLines":1,"bbox":[273,242,134,28]}
+{"kind":"textbox","id":"sh/epkzupwb","slide":3,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[421,235,44,36]}
+{"kind":"shape","id":"sh/7adsji5s","slide":3,"bbox":[460,220,150,72]}
+{"kind":"textbox","id":"sh/wval87ed","slide":3,"text":"AI 陪练","textPreview":"AI 陪练","textChars":5,"textLines":1,"bbox":[468,242,134,28]}
+{"kind":"textbox","id":"sh/pg3ex0nu","slide":3,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[616,235,44,36]}
+{"kind":"shape","id":"sh/e1w7mp0b","slide":3,"bbox":[655,220,150,72]}
+{"kind":"textbox","id":"sh/7mp0bi9s","slide":3,"text":"考试测评","textPreview":"考试测评","textChars":4,"textLines":1,"bbox":[663,242,134,28]}
+{"kind":"textbox","id":"sh/w7mp0bi9","slide":3,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[811,235,44,36]}
+{"kind":"shape","id":"sh/psfil0rq","slide":3,"bbox":[850,220,150,72]}
+{"kind":"textbox","id":"sh/ed8bat47","slide":3,"text":"数据洞察","textPreview":"数据洞察","textChars":4,"textLines":1,"bbox":[858,242,134,28]}
+{"kind":"textbox","id":"sh/7u54zido","slide":3,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[1006,235,44,36]}
+{"kind":"shape","id":"sh/vy90je9c","slide":3,"bbox":[1045,220,150,72]}
+{"kind":"textbox","id":"sh/6dcbulwv","slide":3,"text":"定向复训","textPreview":"定向复训","textChars":4,"textLines":1,"bbox":[1053,242,134,28]}
+{"kind":"shape","id":"sh/d4vmtwra","slide":3,"bbox":[116,391,10,10]}
+{"kind":"textbox","id":"sh/oj2t83it","slide":3,"text":"AI 课件生成与知识内容管理","textPreview":"AI 课件生成与知识内容管理","textChars":14,"textLines":1,"bbox":[142,380,1014,36]}
+{"kind":"shape","id":"sh/vmtwra5g","slide":3,"bbox":[116,433,10,10]}
+{"kind":"textbox","id":"sh/61032lsz","slide":3,"text":"数字人客户、场景剧本、销售金句","textPreview":"数字人客户、场景剧本、销售金句","textChars":15,"textLines":1,"bbox":[142,422,1014,36]}
+{"kind":"shape","id":"sh/dsji5sne","slide":3,"bbox":[116,475,10,10]}
+{"kind":"textbox","id":"sh/o7qpg3ex","slide":3,"text":"学习任务、练习任务、考试任务","textPreview":"学习任务、练习任务、考试任务","textChars":14,"textLines":1,"bbox":[142,464,1014,36]}
+{"kind":"shape","id":"sh/vahoza1g","slide":3,"bbox":[116,517,10,10]}
+{"kind":"textbox","id":"sh/6tovahoz","slide":3,"text":"总部 / 区域 / 门店 / 团队 / 个人多层看板","textPreview":"总部 / 区域 / 门店 / 团队 / 个人多层看板","textChars":26,"textLines":1,"bbox":[142,506,1014,36]}
+{"kind":"shape","id":"sh/gr2p8nqx","slide":3,"bbox":[116,559,10,10]}
+{"kind":"textbox","id":"sh/9cvixcze","slide":3,"text":"高风险销售、薄弱知识点、团队排行与积分体系","textPreview":"高风险销售、薄弱知识点、团队排行与积分体系","textChars":21,"textLines":1,"bbox":[142,548,1014,36]}
+{"kind":"notes","id":"nt/3vemru","slide":3,"text":""}
+{"kind":"slide","id":"sl/851k3k","slide":4,"title":"04","textShapes":10}
+{"kind":"textbox","id":"sh/90je9cvi","slide":4,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[64,44,54,28]}
+{"kind":"textbox","id":"sh/yd0z6103","slide":4,"text":"SalesBoost AI Saleskit","textPreview":"SalesBoost AI Saleskit","textChars":22,"textLines":1,"bbox":[1080,44,140,24]}
+{"kind":"textbox","id":"sh/rytsvu9k","slide":4,"text":"AI 课件与知识生产","textPreview":"AI 课件与知识生产","textChars":10,"textLines":1,"bbox":[64,88,1100,70]}
+{"kind":"shape","id":"sh/g7adsji5","slide":4,"bbox":[64,168,1152,1.5]}
+{"kind":"textbox","id":"sh/9s36hcrm","slide":4,"text":"让销售资料快速变成可学习、可追踪的内容","textPreview":"让销售资料快速变成可学习、可追踪的内容","textChars":19,"textLines":1,"bbox":[80,188,820,42]}
+{"kind":"shape","id":"sh/y1kre1w7","slide":4,"bbox":[90,287,10,10]}
+{"kind":"textbox","id":"sh/rmhk3q5o","slide":4,"text":"支持从 PPTX、PDF、Word 等资料生成培训课件。","textPreview":"支持从 PPTX、PDF、Word 等资料生成培训课件。","textChars":28,"textLines":1,"bbox":[116,276,684,52]}
+{"kind":"shape","id":"sh/g3ex0nux","slide":4,"bbox":[90,345,10,10]}
+{"kind":"textbox","id":"sh/5o7qpg3e","slide":4,"text":"可选择 AI 智能生成课件，或保留原始课件仅生成讲解。","textPreview":"可选择 AI 智能生成课件，或保留原始课件仅生成讲解。","textChars":27,"textLines":1,"bbox":[116,334,684,52]}
+{"kind":"shape","id":"sh/5gbq1ory","slide":4,"bbox":[90,403,10,10]}
+{"kind":"textbox","id":"sh/cvixczed","slide":4,"text":"支持总部标准内容与区域 / 团队补充内容共存。","textPreview":"支持总部标准内容与区域 / 团队补充内容共存。","textChars":23,"textLines":1,"bbox":[116,392,684,52]}
+{"kind":"shape","id":"sh/nap4r65w","slide":4,"bbox":[90,461,10,10]}
+{"kind":"textbox","id":"sh/upwb2hwf","slide":4,"text":"课件可关联附加题，学习完成后自动进入巩固测试。","textPreview":"课件可关联附加题，学习完成后自动进入巩固测试。","textChars":23,"textLines":1,"bbox":[116,450,684,52]}
+{"kind":"shape","id":"sh/54zidony","slide":4,"bbox":[855,232,320,300]}
+{"kind":"shape","id":"sh/cj6tovah","slide":4,"bbox":[855,232,320,12]}
+{"kind":"textbox","id":"sh/nyd0z610","slide":4,"text":"销售话术","textPreview":"销售话术","textChars":4,"textLines":1,"bbox":[895,286,240,36]}
+{"kind":"textbox","id":"sh/udg7adsj","slide":4,"text":"新品、方案、政策和合规要求，都可以更快沉淀成可下发、可追踪的训练内容。","textPreview":"新品、方案、政策和合规要求，都可以更快沉淀成可下发、可追踪的训练内容。","textChars":35,"textLines":1,"bbox":[895,350,240,104]}
+{"kind":"notes","id":"nt/851k3k","slide":4,"text":""}
+{"kind":"slide","id":"sl/zybu49","slide":5,"title":"05","textShapes":9}
+{"kind":"textbox","id":"sh/z25kb6xk","slide":5,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[64,44,54,28]}
+{"kind":"textbox","id":"sh/onyd0z61","slide":5,"text":"SalesBoost AI Saleskit","textPreview":"SalesBoost AI Saleskit","textChars":22,"textLines":1,"bbox":[1080,44,140,24]}
+{"kind":"textbox","id":"sh/d8v6psfi","slide":5,"text":"AI 情景陪练","textPreview":"AI 情景陪练","textChars":7,"textLines":1,"bbox":[64,88,1100,70]}
+{"kind":"shape","id":"sh/6tovahoz","slide":5,"bbox":[64,168,1152,1.5]}
+{"kind":"textbox","id":"sh/vahoza1g","slide":5,"text":"把“会不会卖”从主观判断变成高频训练","textPreview":"把“会不会卖”从主观判断变成高频训练","textChars":18,"textLines":1,"bbox":[80,188,820,42]}
+{"kind":"shape","id":"sh/ovahoza1","slide":5,"bbox":[90,287,10,10]}
+{"kind":"textbox","id":"sh/dg7adsji","slide":5,"text":"数字人客户：模拟不同需求、预算、顾虑、性格和语言习惯的客户。","textPreview":"数字人客户：模拟不同需求、预算、顾虑、性格和语言习惯的客户。","textChars":30,"textLines":1,"bbox":[116,276,684,52]}
+{"kind":"shape","id":"sh/61032lsz","slide":5,"bbox":[90,345,10,10]}
+{"kind":"textbox","id":"sh/vmtwra5g","slide":5,"text":"场景剧本：围绕咨询、推荐、异议处理、竞品对比、成交推进设计演练。","textPreview":"场景剧本：围绕咨询、推荐、异议处理、竞品对比、成交推进设计演练。","textChars":32,"textLines":1,"bbox":[116,334,684,52]}
+{"kind":"shape","id":"sh/b2hwfyxo","slide":5,"bbox":[90,403,10,10]}
+{"kind":"textbox","id":"sh/mhk3q5o7","slide":5,"text":"销售金句：把核心卖点、价值表达和标准话术转成可听、可读、可跟练资产。","textPreview":"销售金句：把核心卖点、价值表达和标准话术转成可听、可读、可跟练资产。","textChars":34,"textLines":1,"bbox":[116,392,684,52]}
+{"kind":"shape","id":"sh/t83itgfm","slide":5,"bbox":[855,232,320,300]}
+{"kind":"shape","id":"sh/4nap4r65","slide":5,"bbox":[855,232,320,12]}
+{"kind":"textbox","id":"sh/bq1oryts","slide":5,"text":"销售话术","textPreview":"销售话术","textChars":4,"textLines":1,"bbox":[895,286,240,36]}
+{"kind":"textbox","id":"sh/m58z25kb","slide":5,"text":"销售不只是看课件，而是在接近真实客户的情境里反复练。","textPreview":"销售不只是看课件，而是在接近真实客户的情境里反复练。","textChars":26,"textLines":1,"bbox":[895,350,240,104]}
+{"kind":"notes","id":"nt/zybu49","slide":5,"text":""}
+{"kind":"slide","id":"sl/minb78","slide":6,"title":"06","textShapes":10}
+{"kind":"textbox","id":"sh/lszqtcj6","slide":6,"text":"06","textPreview":"06","textChars":2,"textLines":1,"bbox":[64,44,54,28]}
+{"kind":"textbox","id":"sh/a5gbq1or","slide":6,"text":"SalesBoost AI Saleskit","textPreview":"SalesBoost AI Saleskit","textChars":22,"textLines":1,"bbox":[1080,44,140,24]}
+{"kind":"textbox","id":"sh/3m94fu18","slide":6,"text":"题库、考试与任务管理","textPreview":"题库、考试与任务管理","textChars":10,"textLines":1,"bbox":[64,88,1100,70]}
+{"kind":"shape","id":"sh/sji5snel","slide":6,"bbox":[64,168,1152,1.5]}
+{"kind":"textbox","id":"sh/h4byhgn2","slide":6,"text":"让培训结果可检查、可推动、可复盘","textPreview":"让培训结果可检查、可推动、可复盘","textChars":16,"textLines":1,"bbox":[80,188,820,42]}
+{"kind":"shape","id":"sh/adsji5sn","slide":6,"bbox":[90,287,10,10]}
+{"kind":"textbox","id":"sh/3ylc7u54","slide":6,"text":"AI 生成题目，沉淀题库标签。","textPreview":"AI 生成题目，沉淀题库标签。","textChars":15,"textLines":1,"bbox":[116,276,684,52]}
+{"kind":"shape","id":"sh/svu9knih","slide":6,"bbox":[90,345,10,10]}
+{"kind":"textbox","id":"sh/hgn29gr2","slide":6,"text":"组卷、发布考试、追踪考试任务。","textPreview":"组卷、发布考试、追踪考试任务。","textChars":15,"textLines":1,"bbox":[116,334,684,52]}
+{"kind":"shape","id":"sh/tgfmlkjm","slide":6,"bbox":[90,403,10,10]}
+{"kind":"textbox","id":"sh/4vmtwra5","slide":6,"text":"学习任务、练习任务、考试任务统一管理。","textPreview":"学习任务、练习任务、考试任务统一管理。","textChars":19,"textLines":1,"bbox":[116,392,684,52]}
+{"kind":"shape","id":"sh/bat47y1k","slide":6,"bbox":[90,461,10,10]}
+{"kind":"textbox","id":"sh/mp0bi9s3","slide":6,"text":"支持总部任务、区域任务、团队任务，匹配不同管理层级。","textPreview":"支持总部任务、区域任务、团队任务，匹配不同管理层级。","textChars":26,"textLines":1,"bbox":[116,450,684,52]}
+{"kind":"shape","id":"sh/tsvu9kni","slide":6,"bbox":[855,232,320,300]}
+{"kind":"shape","id":"sh/47y1kre1","slide":6,"bbox":[855,232,320,12]}
+{"kind":"textbox","id":"sh/bm58z25k","slide":6,"text":"销售话术","textPreview":"销售话术","textChars":4,"textLines":1,"bbox":[895,286,240,36]}
+{"kind":"textbox","id":"sh/m1cfa9w3","slide":6,"text":"从“发了培训”升级为“知道谁完成、谁掌握、谁需要补训”。","textPreview":"从“发了培训”升级为“知道谁完成、谁掌握、谁需要补训”。","textChars":28,"textLines":1,"bbox":[895,350,240,104]}
+{"kind":"notes","id":"nt/minb78","slide":6,"text":""}
+{"kind":"slide","id":"sl/z49rbb","slide":7,"title":"07","textShapes":11}
+{"kind":"textbox","id":"sh/9cvixcze","slide":7,"text":"07","textPreview":"07","textChars":2,"textLines":1,"bbox":[64,44,54,28]}
+{"kind":"textbox","id":"sh/ylc7u54z","slide":7,"text":"SalesBoost AI Saleskit","textPreview":"SalesBoost AI Saleskit","textChars":22,"textLines":1,"bbox":[1080,44,140,24]}
+{"kind":"textbox","id":"sh/r65wjudg","slide":7,"text":"不同层级看到不同粒度的销售能力进展","textPreview":"不同层级看到不同粒度的销售能力进展","textChars":17,"textLines":1,"bbox":[64,88,1100,70]}
+{"kind":"shape","id":"sh/g3ex0nux","slide":7,"bbox":[64,168,1152,1.5]}
+{"kind":"shape","id":"sh/5o7qpg3e","slide":7,"bbox":[90,235,515,135]}
+{"kind":"shape","id":"sh/yxobm58z","slide":7,"bbox":[90,235,6,135]}
+{"kind":"textbox","id":"sh/nih4byhg","slide":7,"text":"总部培训 / 销售运营","textPreview":"总部培训 / 销售运营","textChars":11,"textLines":1,"bbox":[114,259,473,34]}
+{"kind":"textbox","id":"sh/g7adsji5","slide":7,"text":"看全国学习、练习、考试与薄弱点，统一培训节奏。","textPreview":"看全国学习、练习、考试与薄弱点，统一培训节奏。","textChars":23,"textLines":1,"bbox":[114,303,473,49]}
+{"kind":"shape","id":"sh/9s36hcrm","slide":7,"bbox":[675,235,515,135]}
+{"kind":"shape","id":"sh/d8v6psfi","slide":7,"bbox":[675,235,6,135]}
+{"kind":"textbox","id":"sh/onyd0z61","slide":7,"text":"区域培训 / 区域管理","textPreview":"区域培训 / 区域管理","textChars":11,"textLines":1,"bbox":[699,259,473,34]}
+{"kind":"textbox","id":"sh/z25kb6xk","slide":7,"text":"看区域团队差异，快速定位低完成团队和高风险销售。","textPreview":"看区域团队差异，快速定位低完成团队和高风险销售。","textChars":24,"textLines":1,"bbox":[699,303,473,49]}
+{"kind":"shape","id":"sh/6hcrmhk3","slide":7,"bbox":[90,430,515,135]}
+{"kind":"shape","id":"sh/dg7adsji","slide":7,"bbox":[90,430,6,135]}
+{"kind":"textbox","id":"sh/ovahoza1","slide":7,"text":"一线主管 / 门店经理","textPreview":"一线主管 / 门店经理","textChars":11,"textLines":1,"bbox":[114,454,473,34]}
+{"kind":"textbox","id":"sh/vahoza1g","slide":7,"text":"查看本团队成员完课率、考试均分、练习表现。","textPreview":"查看本团队成员完课率、考试均分、练习表现。","textChars":21,"textLines":1,"bbox":[114,498,473,49]}
+{"kind":"shape","id":"sh/6tovahoz","slide":7,"bbox":[675,430,515,135]}
+{"kind":"shape","id":"sh/dsji5sne","slide":7,"bbox":[675,430,6,135]}
+{"kind":"textbox","id":"sh/o7qpg3ex","slide":7,"text":"系统管理员","textPreview":"系统管理员","textChars":5,"textLines":1,"bbox":[699,454,473,34]}
+{"kind":"textbox","id":"sh/kjm1cfa9","slide":7,"text":"管理组织、账号、品类、通知等基础配置。","textPreview":"管理组织、账号、品类、通知等基础配置。","textChars":19,"textLines":1,"bbox":[699,498,473,49]}
+{"kind":"notes","id":"nt/z49rbb","slide":7,"text":""}
+{"kind":"slide","id":"sl/014e3a","slide":8,"title":"08","textShapes":12}
+{"kind":"textbox","id":"sh/qtcj6tov","slide":8,"text":"08","textPreview":"08","textChars":2,"textLines":1,"bbox":[64,44,54,28]}
+{"kind":"textbox","id":"sh/1gvy90je","slide":8,"text":"SalesBoost AI Saleskit","textPreview":"SalesBoost AI Saleskit","textChars":22,"textLines":1,"bbox":[1080,44,140,24]}
+{"kind":"textbox","id":"sh/8z25kb6x","slide":8,"text":"让培训管理既可解释，又能激励一线参与","textPreview":"让培训管理既可解释，又能激励一线参与","textChars":18,"textLines":1,"bbox":[64,88,1100,70]}
+{"kind":"shape","id":"sh/fmlkjm1c","slide":8,"bbox":[64,168,1152,1.5]}
+{"kind":"shape","id":"sh/q1orytsv","slide":8,"bbox":[78,238,260,210]}
+{"kind":"shape","id":"sh/xs72x4na","slide":8,"bbox":[78,238,6,210]}
+{"kind":"textbox","id":"sh/87ed8bat","slide":8,"text":"学习积分","textPreview":"学习积分","textChars":4,"textLines":1,"bbox":[102,262,218,34]}
+{"kind":"textbox","id":"sh/fyxobm58","slide":8,"text":"任务完成、课件学习、有效练习、考试奖励共同构成。","textPreview":"任务完成、课件学习、有效练习、考试奖励共同构成。","textChars":24,"textLines":1,"bbox":[102,306,218,124]}
+{"kind":"shape","id":"sh/qd4vmtwr","slide":8,"bbox":[378,238,260,210]}
+{"kind":"shape","id":"sh/sfil0rqd","slide":8,"bbox":[378,238,6,210]}
+{"kind":"textbox","id":"sh/h0fepkzu","slide":8,"text":"月榜排行","textPreview":"月榜排行","textChars":4,"textLines":1,"bbox":[402,262,218,34]}
+{"kind":"textbox","id":"sh/a9w3m94f","slide":8,"text":"支持区域、团队、个人维度查看。","textPreview":"支持区域、团队、个人维度查看。","textChars":15,"textLines":1,"bbox":[402,306,218,124]}
+{"kind":"shape","id":"sh/zupwb2hw","slide":8,"bbox":[678,238,260,210]}
+{"kind":"shape","id":"sh/orytsvu9","slide":8,"bbox":[678,238,6,210]}
+{"kind":"textbox","id":"sh/hcrmhk3q","slide":8,"text":"高风险销售","textPreview":"高风险销售","textChars":5,"textLines":1,"bbox":[702,262,218,34]}
+{"kind":"textbox","id":"sh/al87ed8b","slide":8,"text":"通过登录、任务、考试、练习等结构化数据识别。","textPreview":"通过登录、任务、考试、练习等结构化数据识别。","textChars":22,"textLines":1,"bbox":[702,306,218,124]}
+{"kind":"shape","id":"sh/z61032ls","slide":8,"bbox":[978,238,260,210]}
+{"kind":"shape","id":"sh/oza1gvy9","slide":8,"bbox":[978,238,6,210]}
+{"kind":"textbox","id":"sh/hk3q5o7q","slide":8,"text":"知识薄弱点","textPreview":"知识薄弱点","textChars":5,"textLines":1,"bbox":[1002,262,218,34]}
+{"kind":"textbox","id":"sh/1w7mp0bi","slide":8,"text":"来自错题、题目标签、产品标签和练习表现。","textPreview":"来自错题、题目标签、产品标签和练习表现。","textChars":20,"textLines":1,"bbox":[1002,306,218,124]}
+{"kind":"shape","id":"sh/8bat47y1","slide":8,"bbox":[162,535,956,72]}
+{"kind":"textbox","id":"sh/jqh0fepk","slide":8,"text":"AI 负责辅助表达和总结，核心判断来自可解释的数据规则。","textPreview":"AI 负责辅助表达和总结，核心判断来自可解释的数据规则。","textChars":28,"textLines":1,"bbox":[210,554,860,34]}
+{"kind":"notes","id":"nt/014e3a","slide":8,"text":""}
+{"kind":"slide","id":"sl/e3jid3","slide":9,"title":"09","textShapes":16}
+{"kind":"textbox","id":"sh/m1cfa9w3","slide":9,"text":"09","textPreview":"09","textChars":2,"textLines":1,"bbox":[64,44,54,28]}
+{"kind":"textbox","id":"sh/tsvu9kni","slide":9,"text":"SalesBoost AI Saleskit","textPreview":"SalesBoost AI Saleskit","textChars":22,"textLines":1,"bbox":[1080,44,140,24]}
+{"kind":"textbox","id":"sh/47y1kre1","slide":9,"text":"一次销售专项训练的完整闭环","textPreview":"一次销售专项训练的完整闭环","textChars":13,"textLines":1,"bbox":[64,88,1100,70]}
+{"kind":"shape","id":"sh/bat47y1k","slide":9,"bbox":[64,168,1152,1.5]}
+{"kind":"shape","id":"sh/mp0bi9s3","slide":9,"bbox":[90,215,48,48]}
+{"kind":"textbox","id":"sh/tgfmlkjm","slide":9,"text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[90,225,48,25]}
+{"kind":"textbox","id":"sh/4vmtwra5","slide":9,"text":"上传产品资料、方案资料或活动政策，生成培训课件与讲解","textPreview":"上传产品资料、方案资料或活动政策，生成培训课件与讲解","textChars":26,"textLines":1,"bbox":[156,212,460,64]}
+{"kind":"shape","id":"sh/b2hwfyxo","slide":9,"bbox":[650,215,48,48]}
+{"kind":"textbox","id":"sh/mhk3q5o7","slide":9,"text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[650,225,48,25]}
+{"kind":"textbox","id":"sh/0z61032l","slide":9,"text":"自动关联附加题，发布学习任务","textPreview":"自动关联附加题，发布学习任务","textChars":14,"textLines":1,"bbox":[716,212,460,64]}
+{"kind":"shape","id":"sh/pkzupwb2","slide":9,"bbox":[90,327,48,48]}
+{"kind":"textbox","id":"sh/itgfmlkj","slide":9,"text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[90,337,48,25]}
+{"kind":"textbox","id":"sh/7ed8bat4","slide":9,"text":"创建销售金句和客户异议场景剧本","textPreview":"创建销售金句和客户异议场景剧本","textChars":15,"textLines":1,"bbox":[156,324,460,64]}
+{"kind":"shape","id":"sh/0nuxc3yl","slide":9,"bbox":[650,327,48,48]}
+{"kind":"textbox","id":"sh/p8nqxs72","slide":9,"text":"4","textPreview":"4","textChars":1,"textLines":1,"bbox":[650,337,48,25]}
+{"kind":"textbox","id":"sh/ih4byhgn","slide":9,"text":"销售在移动端学习、跟读、陪练、考试","textPreview":"销售在移动端学习、跟读、陪练、考试","textChars":17,"textLines":1,"bbox":[716,324,460,64]}
+{"kind":"shape","id":"sh/72x4nap4","slide":9,"bbox":[90,439,48,48]}
+{"kind":"textbox","id":"sh/wjudg7ad","slide":9,"text":"5","textPreview":"5","textChars":1,"textLines":1,"bbox":[90,449,48,25]}
+{"kind":"textbox","id":"sh/p4r65wju","slide":9,"text":"区域或主管查看团队完成率、考试结果和薄弱点","textPreview":"区域或主管查看团队完成率、考试结果和薄弱点","textChars":21,"textLines":1,"bbox":[156,436,460,64]}
+{"kind":"shape","id":"sh/9gr2p8nq","slide":9,"bbox":[650,439,48,48]}
+{"kind":"textbox","id":"sh/gvy90je9","slide":9,"text":"6","textPreview":"6","textChars":1,"textLines":1,"bbox":[650,449,48,25]}
+{"kind":"textbox","id":"sh/ra5gbq1o","slide":9,"text":"对低分销售 / 低完成团队发布补训任务","textPreview":"对低分销售 / 低完成团队发布补训任务","textChars":19,"textLines":1,"bbox":[716,436,460,64]}
+{"kind":"textbox","id":"sh/2p8nqxs7","slide":9,"text":"一次销售培训，不再止于一场会，而是变成持续可追踪的能力建设。","textPreview":"一次销售培训，不再止于一场会，而是变成持续可追踪的能力建设。","textChars":30,"textLines":1,"bbox":[120,600,1040,34]}
+{"kind":"notes","id":"nt/e3jid3","slide":9,"text":""}
+{"kind":"slide","id":"sl/6eduui","slide":10,"title":"10","textShapes":19}
+{"kind":"textbox","id":"sh/2lszqtcj","slide":10,"text":"10","textPreview":"10","textChars":2,"textLines":1,"bbox":[64,44,54,28]}
+{"kind":"textbox","id":"sh/d8bat47y","slide":10,"text":"SalesBoost AI Saleskit","textPreview":"SalesBoost AI Saleskit","textChars":22,"textLines":1,"bbox":[1080,44,140,24]}
+{"kind":"textbox","id":"sh/knih4byh","slide":10,"text":"适用于高频培训、高标准话术、强一线执行的销售团队","textPreview":"适用于高频培训、高标准话术、强一线执行的销售团队","textChars":24,"textLines":1,"bbox":[64,88,1100,70]}
+{"kind":"shape","id":"sh/vu9knih4","slide":10,"bbox":[64,168,1152,1.5]}
+{"kind":"textbox","id":"sh/29gr2p8n","slide":10,"text":"典型行业","textPreview":"典型行业","textChars":4,"textLines":1,"bbox":[90,220,460,36]}
+{"kind":"textbox","id":"sh/d0z61032","slide":10,"text":"典型场景","textPreview":"典型场景","textChars":4,"textLines":1,"bbox":[690,220,460,36]}
+{"kind":"shape","id":"sh/kf6dcbul","slide":10,"bbox":[90,285,240,52]}
+{"kind":"textbox","id":"sh/vixczed8","slide":10,"text":"零售导购","textPreview":"零售导购","textChars":4,"textLines":1,"bbox":[100,293,220,38]}
+{"kind":"shape","id":"sh/2x4nap4r","slide":10,"bbox":[355,285,240,52]}
+{"kind":"textbox","id":"sh/gfmlkjm1","slide":10,"text":"医药代表","textPreview":"医药代表","textChars":4,"textLines":1,"bbox":[365,293,220,38]}
+{"kind":"shape","id":"sh/90je9cvi","slide":10,"bbox":[90,352,240,52]}
+{"kind":"textbox","id":"sh/yd0z6103","slide":10,"text":"汽车销售","textPreview":"汽车销售","textChars":4,"textLines":1,"bbox":[100,360,220,38]}
+{"kind":"shape","id":"sh/rytsvu9k","slide":10,"bbox":[355,352,240,52]}
+{"kind":"textbox","id":"sh/g7adsji5","slide":10,"text":"金融 / 保险顾问","textPreview":"金融 / 保险顾问","textChars":9,"textLines":1,"bbox":[365,360,220,38]}
+{"kind":"shape","id":"sh/9s36hcrm","slide":10,"bbox":[90,419,240,52]}
+{"kind":"textbox","id":"sh/y1kre1w7","slide":10,"text":"房产经纪","textPreview":"房产经纪","textChars":4,"textLines":1,"bbox":[100,427,220,38]}
+{"kind":"shape","id":"sh/rmhk3q5o","slide":10,"bbox":[355,419,240,52]}
+{"kind":"textbox","id":"sh/g3ex0nux","slide":10,"text":"B2B 客户经理","textPreview":"B2B 客户经理","textChars":8,"textLines":1,"bbox":[365,427,220,38]}
+{"kind":"shape","id":"sh/5o7qpg3e","slide":10,"bbox":[90,486,240,52]}
+{"kind":"textbox","id":"sh/p0bi9s36","slide":10,"text":"本地生活 / 连锁门店销售","textPreview":"本地生活 / 连锁门店销售","textChars":13,"textLines":1,"bbox":[100,494,220,38]}
+{"kind":"shape","id":"sh/0fepkzup","slide":10,"bbox":[355,486,240,52]}
+{"kind":"textbox","id":"sh/bulwval8","slide":10,"text":"客服转销售、续费与增购团队","textPreview":"客服转销售、续费与增购团队","textChars":13,"textLines":1,"bbox":[365,494,220,38]}
+{"kind":"shape","id":"sh/i9s36hcr","slide":10,"bbox":[690,285,240,52]}
+{"kind":"textbox","id":"sh/tovahoza","slide":10,"text":"新品 / 新方案上市培训","textPreview":"新品 / 新方案上市培训","textChars":12,"textLines":1,"bbox":[700,293,220,38]}
+{"kind":"shape","id":"sh/032lszqt","slide":10,"bbox":[955,285,240,52]}
+{"kind":"textbox","id":"sh/bi9s36hc","slide":10,"text":"竞品对比与异议处理","textPreview":"竞品对比与异议处理","textChars":9,"textLines":1,"bbox":[965,293,220,38]}
+{"kind":"shape","id":"sh/ixczed8v","slide":10,"bbox":[690,352,240,52]}
+{"kind":"textbox","id":"sh/tcj6tova","slide":10,"text":"新人销售上岗训练","textPreview":"新人销售上岗训练","textChars":8,"textLines":1,"bbox":[700,360,220,38]}
+{"kind":"shape","id":"sh/0rqd4vmt","slide":10,"bbox":[955,352,240,52]}
+{"kind":"textbox","id":"sh/at47y1kr","slide":10,"text":"区域销售标准化","textPreview":"区域销售标准化","textChars":7,"textLines":1,"bbox":[965,360,220,38]}
+{"kind":"shape","id":"sh/3ex0nuxc","slide":10,"bbox":[690,419,240,52]}
+{"kind":"textbox","id":"sh/szqtcj6t","slide":10,"text":"促销活动前训练","textPreview":"促销活动前训练","textChars":7,"textLines":1,"bbox":[700,427,220,38]}
+{"kind":"shape","id":"sh/lkjm1cfa","slide":10,"bbox":[955,419,240,52]}
+{"kind":"textbox","id":"sh/ahoza1gv","slide":10,"text":"合规话术与服务标准培训","textPreview":"合规话术与服务标准培训","textChars":11,"textLines":1,"bbox":[965,427,220,38]}
+{"kind":"notes","id":"nt/6eduui","slide":10,"text":""}
+{"kind":"slide","id":"sl/hb1d5g","slide":11,"title":"11","textShapes":12}
+{"kind":"textbox","id":"sh/rmhk3q5o","slide":11,"text":"11","textPreview":"11","textChars":2,"textLines":1,"bbox":[64,44,54,28]}
+{"kind":"textbox","id":"sh/g7adsji5","slide":11,"text":"SalesBoost AI Saleskit","textPreview":"SalesBoost AI Saleskit","textChars":22,"textLines":1,"bbox":[1080,44,140,24]}
+{"kind":"textbox","id":"sh/9s36hcrm","slide":11,"text":"SalesBoost AI 不是单点培训工具，而是销售能力运营平台","textPreview":"SalesBoost AI 不是单点培训工具，而是销售能力运营平台","textChars":33,"textLines":1,"bbox":[64,88,1100,70]}
+{"kind":"shape","id":"sh/yd0z6103","slide":11,"bbox":[64,168,1152,1.5]}
+{"kind":"shape","id":"sh/rytsvu9k","slide":11,"bbox":[88,252,250,240]}
+{"kind":"shape","id":"sh/gfmlkjm1","slide":11,"bbox":[88,252,6,240]}
+{"kind":"textbox","id":"sh/90je9cvi","slide":11,"text":"实战导向","textPreview":"实战导向","textChars":4,"textLines":1,"bbox":[112,276,208,34]}
+{"kind":"textbox","id":"sh/ylc7u54z","slide":11,"text":"面向一线销售实战，而不是通用学习平台。","textPreview":"面向一线销售实战，而不是通用学习平台。","textChars":19,"textLines":1,"bbox":[112,320,208,154]}
+{"kind":"shape","id":"sh/r65wjudg","slide":11,"bbox":[382,252,250,240]}
+{"kind":"shape","id":"sh/vahoza1g","slide":11,"bbox":[382,252,6,240]}
+{"kind":"textbox","id":"sh/6tovahoz","slide":11,"text":"完整闭环","textPreview":"完整闭环","textChars":4,"textLines":1,"bbox":[406,276,208,34]}
+{"kind":"textbox","id":"sh/dg7adsji","slide":11,"text":"同时覆盖内容、练习、考试、任务、看板。","textPreview":"同时覆盖内容、练习、考试、任务、看板。","textChars":19,"textLines":1,"bbox":[406,320,208,154]}
+{"kind":"shape","id":"sh/ovahoza1","slide":11,"bbox":[676,252,250,240]}
+{"kind":"shape","id":"sh/z25kb6xk","slide":11,"bbox":[676,252,6,240]}
+{"kind":"textbox","id":"sh/6hcrmhk3","slide":11,"text":"分层运营","textPreview":"分层运营","textChars":4,"textLines":1,"bbox":[700,276,208,34]}
+{"kind":"textbox","id":"sh/d8v6psfi","slide":11,"text":"支持总部标准化与区域本地化内容共存。","textPreview":"支持总部标准化与区域本地化内容共存。","textChars":18,"textLines":1,"bbox":[700,320,208,154]}
+{"kind":"shape","id":"sh/onyd0z61","slide":11,"bbox":[970,252,250,240]}
+{"kind":"shape","id":"sh/vy90je9c","slide":11,"bbox":[970,252,6,240]}
+{"kind":"textbox","id":"sh/6dcbulwv","slide":11,"text":"可解释数据","textPreview":"可解释数据","textChars":5,"textLines":1,"bbox":[994,276,208,34]}
+{"kind":"textbox","id":"sh/ahoza1gv","slide":11,"text":"数据口径可解释，便于培训团队和管理层信任。","textPreview":"数据口径可解释，便于培训团队和管理层信任。","textChars":21,"textLines":1,"bbox":[994,320,208,154]}
+{"kind":"textbox","id":"sh/32lszqtc","slide":11,"text":"并支持多语言销售培训环境，适配跨区域、跨门店、跨业务线团队。","textPreview":"并支持多语言销售培训环境，适配跨区域、跨门店、跨业务线团队。","textChars":30,"textLines":1,"bbox":[156,570,970,34]}
+{"kind":"notes","id":"nt/hb1d5g","slide":11,"text":""}
+{"kind":"slide","id":"sl/59wdnw","slide":12,"title":"12","textShapes":9}
+{"kind":"textbox","id":"sh/8bat47y1","slide":12,"text":"12","textPreview":"12","textChars":2,"textLines":1,"bbox":[64,44,54,28]}
+{"kind":"textbox","id":"sh/jqh0fepk","slide":12,"text":"SalesBoost AI Saleskit","textPreview":"SalesBoost AI Saleskit","textChars":22,"textLines":1,"bbox":[1080,44,140,24]}
+{"kind":"textbox","id":"sh/q5o7qpg3","slide":12,"text":"建议从一个销售专项或一个区域团队开始验证","textPreview":"建议从一个销售专项或一个区域团队开始验证","textChars":20,"textLines":1,"bbox":[64,88,1100,70]}
+{"kind":"shape","id":"sh/18jqh0fe","slide":12,"bbox":[64,168,1152,1.5]}
+{"kind":"shape","id":"sh/8nqxs72x","slide":12,"bbox":[86,220,300,120]}
+{"kind":"textbox","id":"sh/j2t83itg","slide":12,"text":"试点周期","textPreview":"试点周期","textChars":4,"textLines":1,"bbox":[116,245,240,30]}
+{"kind":"textbox","id":"sh/qh0fepkz","slide":12,"text":"4-6 周","textPreview":"4-6 周","textChars":5,"textLines":1,"bbox":[116,288,240,40]}
+{"kind":"shape","id":"sh/1cfa9w3m","slide":12,"bbox":[438,220,330,260]}
+{"kind":"shape","id":"sh/crmhk3q5","slide":12,"bbox":[438,220,6,260]}
+{"kind":"textbox","id":"sh/2t83itgf","slide":12,"text":"试点范围","textPreview":"试点范围","textChars":4,"textLines":1,"bbox":[462,244,288,34]}
+{"kind":"textbox","id":"sh/re1w7mp0","slide":12,"text":"1 个产品线 / 业务线 / 销售专项\n1-2 个区域或团队\n一批核心销售人员\n新品、方案、促销或新人上岗专项","textPreview":"1 个产品线 / 业务线 / 销售专项 | 1-2 个区域或团队 | 一批核心销售人员 | 新品、方案、促销或新人上岗专项","textChars":55,"textLines":4,"bbox":[462,288,288,174]}
+{"kind":"shape","id":"sh/kzupwb2h","slide":12,"bbox":[820,220,330,260]}
+{"kind":"shape","id":"sh/9knih4by","slide":12,"bbox":[820,220,6,260]}
+{"kind":"textbox","id":"sh/25kb6xkf","slide":12,"text":"观察指标","textPreview":"观察指标","textChars":4,"textLines":1,"bbox":[844,244,288,34]}
+{"kind":"textbox","id":"sh/rqd4vmtw","slide":12,"text":"销售激活率、课件完课率、练习任务达标率、考试通过率 / 均分、薄弱知识点变化、团队与个人排名变化","textPreview":"销售激活率、课件完课率、练习任务达标率、考试通过率 / 均分、薄弱知识点变化、团队与个人排名变化","textChars":48,"textLines":1,"bbox":[844,288,288,174]}
+{"kind":"notes","id":"nt/59wdnw","slide":12,"text":""}
+{"kind":"slide","id":"sl/an0tmi","slide":13,"title":"让每一次培训，","textShapes":4}
+{"kind":"textbox","id":"sh/h4byhgn2","slide":13,"text":"让每一次培训，\n都沉淀为可复用的销售能力资产","textPreview":"让每一次培训， | 都沉淀为可复用的销售能力资产","textChars":22,"textLines":2,"bbox":[92,128,820,170]}
+{"kind":"textbox","id":"sh/adsji5sn","slide":13,"text":"SalesBoost AI 帮助企业把总部知识、区域经验和一线话术统一沉淀，并通过 AI 陪练和数据看板持续提升销售团队的实战表现。","textPreview":"SalesBoost AI 帮助企业把总部知识、区域经验和一线话术统一沉淀，并通过 AI 陪练和数据看板持续提升销售团队的实战表现。","textChars":66,"textLines":1,"bbox":[96,340,820,90]}
+{"kind":"shape","id":"sh/3ylc7u54","slide":13,"bbox":[96,508,760,76]}
+{"kind":"textbox","id":"sh/s72x4nap","slide":13,"text":"建议下一步：选择一个销售专项场景，启动 SalesBoost AI 试点演示。","textPreview":"建议下一步：选择一个销售专项场景，启动 SalesBoost AI 试点演示。","textChars":39,"textLines":1,"bbox":[126,530,700,34]}
+{"kind":"textbox","id":"sh/lszqtcj6","slide":13,"text":"SalesBoost AI","textPreview":"SalesBoost AI","textChars":13,"textLines":1,"bbox":[980,610,200,30]}
+{"kind":"notes","id":"nt/an0tmi","slide":13,"text":""}
