@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import type { Role } from '../types';
 import { Search, Filter, Clock, Eye, Edit, Download, CalendarCheck, MoreVertical, Link, ChevronDown, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -67,9 +68,10 @@ const ALL_TAGS = ['全部', '区域专供', '实操手法', '本月重点', '问
 interface RTCourseManagementProps {
   onOpenCourse?: (courseTitle: string) => void;
   onOpenHomework?: (courseTitle: string) => void;
+  userRole?: Role;
 }
 
-export function RTCourseManagement({ onOpenCourse, onOpenHomework }: RTCourseManagementProps) {
+export function RTCourseManagement({ onOpenCourse, onOpenHomework, userRole }: RTCourseManagementProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState('全部');
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
@@ -323,6 +325,7 @@ export function RTCourseManagement({ onOpenCourse, onOpenHomework }: RTCourseMan
             </div>
          </div>
       )}
+
     </div>
   );
 }

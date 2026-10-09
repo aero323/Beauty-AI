@@ -34,11 +34,20 @@ import { OrganizationView } from './pages/OrganizationView';
 import { UsersManage } from './pages/UsersManage';
 import { CategoryManage } from './pages/CategoryManage';
 import { NotificationSettings } from './pages/NotificationSettings';
+import { SystemSettings } from './pages/SystemSettings';
+import { ApprovalCenter } from './pages/ApprovalCenter';
+import { ApprovalInbox } from './pages/ApprovalInbox';
+import { ApprovalFlowConfig } from './pages/ApprovalFlowConfig';
+import { ApprovalRecords } from './pages/ApprovalRecords';
+import { MessageCenter } from './pages/MessageCenter';
+import { MyApprovals } from './pages/MyApprovals';
+import { runApprovalReminders } from './lib/approvalStore';
 import { KnowledgeGraph } from './pages/KnowledgeGraph';
 import { Role } from './types';
 import { Loader2, CheckCircle } from 'lucide-react';
 import { Progress } from './components/ui/progress';
 import { QuestionBankProvider } from './lib/QuestionBankContext';
+import { DevNotesProvider } from './lib/devNotes';
 import type { DefaultExamProfileQuestion, ExamPassRule } from './lib/examPublishSettings';
 
 export default function App() {
@@ -60,6 +69,11 @@ export default function App() {
     if (window.location.hash.slice(1) !== activeTab)
       window.history.replaceState(null, '', `#${activeTab}`);
   }, [activeTab]);
+
+  // 启动时检查一遍超时未处理的审批：满 24 小时未处理的单据只催办一次，不自动通过
+  React.useEffect(() => {
+    runApprovalReminders();
+  }, []);
 
   React.useEffect(() => {
     const state = getInspectionState();
@@ -196,6 +210,27 @@ export default function App() {
     if (activeTab === 'notification_settings' && role === 'Super Admin') {
       return <NotificationSettings />;
     }
+    if (activeTab === 'settings' && role === 'Super Admin') {
+      return <SystemSettings />;
+    }
+    if (activeTab === 'approval_home') {
+      return <ApprovalCenter role={role} onNavigate={setActiveTab} />;
+    }
+    if (activeTab === 'approval_inbox') {
+      return <ApprovalInbox role={role} />;
+    }
+    if (activeTab === 'approval_flow_config') {
+      return <ApprovalFlowConfig role={role} />;
+    }
+    if (activeTab === 'approval_records') {
+      return <ApprovalRecords role={role} />;
+    }
+    if (activeTab === 'message_center') {
+      return <MessageCenter role={role} />;
+    }
+    if (activeTab === 'my_approvals') {
+      return <MyApprovals role={role} />;
+    }
     if (activeTab === 'knowledge_graph' && role === 'Super Admin') {
       return <KnowledgeGraph />;
     }
@@ -207,23 +242,25 @@ export default function App() {
           resetTask={resetCourseTask}
           onExitEditor={courseEditorReturnTab ? exitCourseEditor : undefined}
           onOpenHomework={openCourseHomework}
+          onOpenApprovals={() => setActiveTab('my_approvals')}
+          userRole={role}
         />
       );
     }
     if (activeTab === 'courses_manage') {
       if (role === 'Regional Training Manager') {
-        return <RTCourseManagement onOpenCourse={openCourseEditor} onOpenHomework={openCourseHomework} />;
+        return <RTCourseManagement onOpenCourse={openCourseEditor} onOpenHomework={openCourseHomework} userRole={role} />;
       }
-      return <CourseManagement onOpenCourse={openCourseEditor} onOpenHomework={openCourseHomework} />;
+      return <CourseManagement onOpenCourse={openCourseEditor} onOpenHomework={openCourseHomework} userRole={role} />;
     }
     if (activeTab === 'ba_avatars') {
-      return <BAAvatars />;
+      return <BAAvatars userRole={role} />;
     }
     if (activeTab === 'ba_scripts') {
       if (role === 'Regional Training Manager') {
-        return <RTBAScripts />;
+        return <RTBAScripts userRole={role} />;
       }
-      return <BAScripts />;
+      return <BAScripts userRole={role} />;
     }
     if (activeTab === 'ba_quotes') {
       return <BAQuotes />;
@@ -295,9 +332,11 @@ export default function App() {
 
   return (
     <QuestionBankProvider>
-      <Layout role={role} setRole={setRole} activeTab={activeTab} setActiveTab={setActiveTab}>
-        {renderContent()}
-      </Layout>
+      <DevNotesProvider>
+        <Layout role={role} setRole={setRole} activeTab={activeTab} setActiveTab={setActiveTab}>
+          {renderContent()}
+        </Layout>
+      </DevNotesProvider>
 
       {/* Global Course Generation Banner */}
       {(courseTask?.status === 'generating' || showSuccessBanner) && (

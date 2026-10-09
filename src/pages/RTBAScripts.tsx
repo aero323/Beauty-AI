@@ -6,6 +6,9 @@ import { Badge } from '../components/ui/badge';
 import { PracticePromptNotice } from '../components/PracticePromptNotice';
 import { aiActionTone } from '../lib/visualTones';
 import { EffectiveStatusBadge, type EffectiveStatus } from '../components/EffectiveStatusBadge';
+import type { Role } from '../types';
+import { markRequestApplied, submitForApproval, useApprovalState } from '../lib/approvalStore';
+import { actorForApprover, currentActorForRole } from '../lib/approvalEngine';
 
 interface ScriptStep {
   id: string;
@@ -50,12 +53,27 @@ const RT_INITIAL_SCRIPTS: ScriptScenario[] = [
   }
 ];
 
-export function RTBAScripts() {
+export function RTBAScripts({ userRole }: { userRole?: Role } = {}) {
   const [scripts, setScripts] = useState<ScriptScenario[]>(RT_INITIAL_SCRIPTS);
   const [selectedId, setSelectedId] = useState<string>(RT_INITIAL_SCRIPTS[0].id);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('区域剧本已保存');
   const [toastTone, setToastTone] = useState<'success' | 'warning'>('success');
+
+  // 审批：区域剧本保存前先判断本区域是否开启审批
+  const approvalState = useApprovalState();
+  const approvalActor = currentActorForRole(userRole ?? 'Regional Training Manager', approvalState);
+
+  React.useEffect(() => {
+    const approved = approvalState.requests.filter(item =>
+      item.type === 'script' && item.status === 'approved' && !item.appliedAt && item.creatorId === approvalActor.id,
+    );
+    if (approved.length === 0) return;
+    approved.forEach(item => {
+      setScripts(prev => prev.map(script => script.id === item.targetId ? { ...script, effectiveStatus: 'active' } : script));
+      markRequestApplied(item.id);
+    });
+  }, [approvalState, approvalActor.id]);
 
   const selectedScript = scripts.find(s => s.id === selectedId) || scripts[0];
 
@@ -120,6 +138,36 @@ export function RTBAScripts() {
   };
 
   const handleSave = () => {
+    if (!selectedScript) return;
+    const result = submitForApproval({
+      type: 'script',
+      targetId: selectedScript.id,
+      creator: approvalActor,
+      snapshot: {
+        title: selectedScript.name,
+        summary: selectedScript.description,
+        scope: '区域',
+        regionId: 'south',
+        fields: [
+          { label: '剧本步骤', value: `${selectedScript.steps.length} 个步骤` },
+          { label: '生效范围', value: '雅加达南区' },
+          { label: '引用素材', value: '按区域可用素材' },
+        ],
+        preview: [
+          { label: '剧本步骤', items: selectedScript.steps.map((step, index) => `${index + 1}. ${step.description}${step.hint ? `（${step.hint}）` : ''}`) },
+          { label: '场景说明', items: [selectedScript.description] },
+        ],
+      },
+    });
+    if (result.mode === 'blocked') {
+      showFeedback(result.error ?? '审批流程未配置完成，无法提交。', 'warning', 3200);
+      return;
+    }
+    if (result.mode === 'pending') {
+      const names = (result.request?.approverIds ?? []).map(approverId => actorForApprover(approverId).name).join('、');
+      showFeedback(`已提交审批，等待 ${names || '审批人'} 处理；通过前剧本保持待生效，可到「我的审批流转」查看进度或撤回。`, 'warning', 3600);
+      return;
+    }
     setScripts(prev => prev.map(s => s.id === selectedId ? { ...s, effectiveStatus: 'active' } : s));
     showFeedback('区域剧本已保存', 'success', 3000);
   };
@@ -438,6 +486,7 @@ export function RTBAScripts() {
           </div>
         )}
       </div>
+
     </div>
   );
 }

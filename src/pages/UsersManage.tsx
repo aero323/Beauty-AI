@@ -7,6 +7,9 @@ import { FileUp, Search, Plus, UserCheck, Mail, Database } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 
 const MOCK_USERS = [
+  // 审批管理者账号：审批流程配置里的候选审批人就来自这里（角色 = 审批管理者）
+  { id: 'usr_am_rani', name: 'Rani Wijaya', role: '审批管理者', region: '总部', email: 'rani.w@lumina.id', status: '已激活' },
+  { id: 'usr_am_yoga', name: 'Yoga Pratama', role: '审批管理者', region: '雅加达南区', email: 'yoga.p@lumina.id', status: '已激活' },
   { id: 'usr_1', name: 'Ahmad Maulana', role: '店长', region: '雅加达南区', email: 'ahmad.m@lumina.id', status: '已激活' },
   { id: 'usr_2', name: 'Rina', role: '高级BA', region: '雅加达南区', email: 'rina@lumina.id', status: '已激活' },
   { id: 'usr_3', name: 'Dewi', role: '初级BA', region: '万隆区', email: 'dewi@lumina.id', status: '未激活' },
@@ -36,7 +39,7 @@ export function UsersManage() {
       <div className="flex items-center justify-between mb-4">
          <div>
             <h2 className="text-xl font-bold text-[#1F1C1F]">账号管理与批量入驻</h2>
-            <p className="text-sm text-[#766F73] mt-1">系统管理员可批量导入、激活并管理所有平台用户账号</p>
+            <p className="text-sm text-[#766F73] mt-1">系统管理员可批量导入、激活并管理所有平台用户账号；角色为「审批管理者」的账号会进入审批流程配置的候选审批人名单。</p>
          </div>
          <div className="flex items-center space-x-4">
             <Button variant="outline" className="flex items-center" onClick={() => setImportDialog(true)}>

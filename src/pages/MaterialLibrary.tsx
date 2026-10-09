@@ -418,6 +418,11 @@ export function MaterialLibrary({ userRole, requestedSubmissionId, onRequestedAs
     return [{ id: `evidence-manual-${Date.now()}`, mediaAssetId: asset?.id ?? source.kind, startSec: 0, endSec: asset?.durationSec ?? 0, transcript }];
   };
 
+  /**
+   * 确认进入黄金素材：素材库沿用自身「人工精选确认」的审核口径（培训师读转写 → 填摘要 → 确认），
+   * 不再叠加审批单据。
+   * 研发备注：如客户要求素材入库也走审批，复用 approvalStore 的 submitForApproval 按 material 类型恢复即可。
+   */
   const confirmPromote = () => {
     if (!reviewSource || !reviewForm.title.trim() || !reviewForm.summary.trim() || !reviewForm.transcript.trim() || !reviewForm.albumId) return;
     const sourceAsset = reviewSource.kind === 'asset'
@@ -817,6 +822,7 @@ export function MaterialLibrary({ userRole, requestedSubmissionId, onRequestedAs
       </Dialog>
 
       <Dialog open={Boolean(dismissRecommendation)} onOpenChange={(open) => !open && setDismissRecommendation(null)}><DialogContent className="sm:max-w-md"><DialogHeader className="border-b border-[#E9E4DF] pb-4 pr-8"><DialogTitle className="flex items-center gap-2 text-lg font-bold text-[#3F3A3D]"><CircleOff className="h-5 w-5 text-[#766F73]" />不再推荐</DialogTitle></DialogHeader>{dismissRecommendation ? <div className="space-y-4"><p className="text-sm leading-relaxed text-[#5D565A]">这条 AI 推荐会从推荐列表移除，但原始采集和转写仍会保留在“全部采集”。</p><label className="block"><span className="mb-1.5 block text-xs font-bold text-[#766F73]">备注原因（选填）</span><textarea value={dismissReason} onChange={(event) => setDismissReason(event.target.value)} rows={3} placeholder="例如：表达不完整、场景不具备复用性" className={`${fieldClass} resize-none`} /></label><div className="flex justify-end gap-2 border-t border-[#E9E4DF] pt-4"><Button variant="outline" onClick={() => setDismissRecommendation(null)}>取消</Button><Button onClick={confirmDismissRecommendation} className="bg-[#5D565A] text-white hover:bg-[#3F3A3D]">确认不再推荐</Button></div></div> : null}</DialogContent></Dialog>
+
     </div>
   );
 }

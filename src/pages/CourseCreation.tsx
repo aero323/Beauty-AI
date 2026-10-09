@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { submitForApproval, useApprovalState } from '../lib/approvalStore';
+import { buildCourseApprovalPreview } from '../lib/courseApprovalPreview';
+import { actorForApprover, creatorContextForRole, currentActorForRole } from '../lib/approvalEngine';
+import type { Role } from '../types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
@@ -20,13 +24,20 @@ interface CourseCreationProps {
   resetTask?: () => void;
   onExitEditor?: () => void;
   onOpenHomework?: (courseTitle: string) => void;
+  /** 发布进入待审批后，跳转到「我的审批流转」统一查看进度 */
+  onOpenApprovals?: () => void;
+  userRole?: Role;
 }
 
-export function CourseCreation({ courseTask, startGeneration, resetTask, onExitEditor, onOpenHomework }: CourseCreationProps) {
+export function CourseCreation({ courseTask, startGeneration, resetTask, onExitEditor, onOpenHomework, onOpenApprovals, userRole }: CourseCreationProps) {
   const [localStep, setLocalStep] = useState(1);
   const [coursewareMode, setCoursewareMode] = useState<'ai-courseware' | 'script-only'>('ai-courseware');
   const step = courseTask ? (courseTask.status === 'generating' ? 2 : 3) : localStep;
   const [loadingProgress, setLoadingProgress] = useState(0);
+  // 审批：课件发布先走审批判断，通过后才对学员可见
+  const approvalState = useApprovalState();
+  const approvalActor = currentActorForRole(userRole ?? 'HQ Trainer', approvalState);
+  const [approvalNotice, setApprovalNotice] = useState('');
   const editorTitle = courseTask?.courseTitle || '产品线全景地图';
 
   // Fallback generation for isolated dev or when startGeneration is not provided
@@ -117,9 +128,60 @@ export function CourseCreation({ courseTask, startGeneration, resetTask, onExitE
               <ClipboardList className="w-4 h-4 mr-1.5" /> 关联附加题管理
             </Button>
             <Button size="sm" className="h-8 text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white"><Link className="w-4 h-4 mr-1.5" /> 生成链接</Button>
-            <Button size="sm" className="h-8 text-xs font-bold bg-[#3B8F72] hover:bg-[#2F735C] text-white"><Send className="w-4 h-4 mr-1.5" /> 发布</Button>
+            <Button
+              size="sm"
+              className="h-8 text-xs font-bold bg-[#3B8F72] hover:bg-[#2F735C] text-white"
+              onClick={() => {
+                const scopeInfo = creatorContextForRole(userRole ?? 'HQ Trainer');
+                const targetId = `course-${Date.now()}`;
+                const result = submitForApproval({
+                  type: 'course',
+                  targetId,
+                  creator: approvalActor,
+                  snapshot: {
+                    title: editorTitle,
+                    summary: 'AI 生成 / 上传的课件，包含讲解视频与关联附加题。',
+                    scope: scopeInfo.scope,
+                    regionId: scopeInfo.regionId,
+                    fields: [
+                      { label: '内容形式', value: '课件（AI 生成 + 人工校对）' },
+                      { label: '文件清单', value: '主课件 · 演示视频 · 关联附加题' },
+                      { label: '适用人群', value: scopeInfo.scope === '全国' ? '全国直营门店 BA' : '本区域门店 BA' },
+                    ],
+                    preview: buildCourseApprovalPreview(editorTitle),
+                  },
+                });
+                if (result.mode === 'blocked') {
+                  setApprovalNotice(result.error ?? '审批流程未配置完成，无法提交。');
+                  return;
+                }
+                if (result.mode === 'pending') {
+                  const names = (result.request?.approverIds ?? []).map(approverId => actorForApprover(approverId).name).join('、');
+                  setApprovalNotice(`已提交审批，等待 ${names || '审批人'} 处理；通过前学员端不可见，可在「我的审批流转」查看进度或撤回。`);
+                  return;
+                }
+                setApprovalNotice('审批未开启：本课件已直接发布生效。');
+              }}
+            >
+              <Send className="w-4 h-4 mr-1.5" /> 发布
+            </Button>
           </div>
         </div>
+
+        {approvalNotice && (
+          <div data-i18n-skip="true" className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E8CCA0] bg-[#FFF7EA] px-4 py-2 text-[11px] leading-relaxed text-[#8B621F]">
+            <span>{approvalNotice}</span>
+            {(onOpenApprovals || onExitEditor) && (
+              <button
+                type="button"
+                onClick={() => (onOpenApprovals ?? onExitEditor)?.()}
+                className="rounded-md bg-white px-2 py-1 text-[10px] font-bold text-[#8B621F] ring-1 ring-[#E8CCA0]"
+              >
+                去「我的审批流转」查看
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Main Content Area */}
         <div className="flex-1 flex overflow-hidden">
@@ -255,6 +317,7 @@ export function CourseCreation({ courseTask, startGeneration, resetTask, onExitE
             </div>
           </div>
         </div>
+
       </div>
     );
   }

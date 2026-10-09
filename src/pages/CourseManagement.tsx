@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import type { Role } from '../types';
 import { Search, Filter, Clock, Eye, Edit, Download, CalendarCheck, MoreVertical, Link, ChevronDown, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -107,9 +108,10 @@ const ALL_TAGS = ['全部', '护肤', '彩妆', '香水', '销售技巧', '专�
 interface CourseManagementProps {
   onOpenCourse?: (courseTitle: string) => void;
   onOpenHomework?: (courseTitle: string) => void;
+  userRole?: Role;
 }
 
-export function CourseManagement({ onOpenCourse, onOpenHomework }: CourseManagementProps) {
+export function CourseManagement({ onOpenCourse, onOpenHomework, userRole }: CourseManagementProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState('全部');
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
@@ -363,6 +365,7 @@ export function CourseManagement({ onOpenCourse, onOpenHomework }: CourseManagem
             </div>
          </div>
       )}
+
     </div>
   );
 }

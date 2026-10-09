@@ -336,16 +336,24 @@ export function ExamBank() {
     closeEditPanel();
   };
 
-  const approveEditingQuestion = () => {
-    if (!editingQuestion) return;
-    const normalized = normalizeQuestionForType({ ...editingQuestion, status: 'active' });
-    if (editingMode === 'create') {
+  /**
+   * 审核入库：题库保持原「待审核 → 已入库」轻量审核，不进入审批流程（每道题都审批太重）。
+   * 研发备注：题库只做培训师人工确认；如需更严的管控，走题目状态与权限，不接审批单据。
+   */
+  const approveToBank = (question: QuestionBankItem, options?: { create?: boolean; closePanel?: boolean }) => {
+    const normalized = normalizeQuestionForType({ ...question, status: 'active' });
+    if (options?.create) {
       addQuestions([normalized]);
     } else {
       updateQuestion(normalized);
     }
     showToast('题目已审核入库');
-    closeEditPanel();
+    if (options?.closePanel) closeEditPanel();
+  };
+
+  const approveEditingQuestion = () => {
+    if (!editingQuestion) return;
+    approveToBank(editingQuestion, { create: editingMode === 'create', closePanel: true });
   };
 
   const setEditingField = <K extends keyof QuestionBankItem>(key: K, value: QuestionBankItem[K]) => {
@@ -1111,7 +1119,7 @@ export function ExamBank() {
 
                     <div className="flex w-32 shrink-0 items-center justify-end gap-1">
                       {question.status === 'pending_review' && (
-                        <Button onClick={() => updateQuestion({ ...question, status: 'active' })} variant="ghost" size="sm" className="h-8 w-8 p-0 text-[#3B8F72] hover:bg-[#EEF8F4]" title="审核入库">
+                        <Button onClick={() => approveToBank(question)} variant="ghost" size="sm" className="h-8 w-8 p-0 text-[#3B8F72] hover:bg-[#EEF8F4]" title="审核入库">
                           <Check className="h-4 w-4" />
                         </Button>
                       )}
@@ -1716,6 +1724,7 @@ export function ExamBank() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
     </div>
   );
 }

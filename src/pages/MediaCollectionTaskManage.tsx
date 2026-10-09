@@ -1,5 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { syncInspectionSource } from '../lib/inspectionStore';
+import { submitForApproval, useApprovalState } from '../lib/approvalStore';
+import { actorForApprover, creatorContextForRole, currentActorForRole } from '../lib/approvalEngine';
+import { regionNameOf } from '../lib/approvalTypes';
 import {
   AlertCircle,
   BarChart3,
@@ -252,6 +255,10 @@ export function MediaCollectionTaskManage({ userRole, onOpenMaterialAsset }: Med
   const [deleteReason, setDeleteReason] = useState('');
   const [audienceCoverageOpen, setAudienceCoverageOpen] = useState(false);
   const [auditOpen, setAuditOpen] = useState(false);
+  // 审批：音视频采集任务发布先走审批判断
+  const approvalState = useApprovalState();
+  const approvalActor = currentActorForRole((userRole ?? 'HQ Trainer') as Role, approvalState);
+  const [approvalNotice, setApprovalNotice] = React.useState('');
   const [auditLogs, setAuditLogs] = useState([
     { id: 'log-1', action: '查看媒体', operator: 'Admin', detail: '查看 Siti Aminah 的视频记录', time: '2026-09-03 10:02' },
     { id: 'log-2', action: '重试分析', operator: 'Sarah Lee', detail: '重新触发 ms-103 的 AI 分析', time: '2026-09-03 09:35' },
@@ -380,6 +387,39 @@ export function MediaCollectionTaskManage({ userRole, onOpenMaterialAsset }: Med
       analysisCompletedCount: 0,
       submissions: [],
     };
+    const scopeInfo = creatorContextForRole((userRole ?? 'HQ Trainer') as Role);
+    const result = submitForApproval({
+      type: 'media_task',
+      targetId: newTask.id,
+      creator: approvalActor,
+      snapshot: {
+        title: newTask.title,
+        summary: newTask.intro,
+        scope: scopeInfo.scope,
+        regionId: scopeInfo.regionId,
+        fields: [
+          { label: '分发对象', value: newTask.targetAudienceLabel },
+          { label: '采集要求', value: newTask.capture.mediaKind === 'video' ? '视频，录制 + 上传' : '音频，录制 + 上传' },
+          { label: '任务周期', value: `${newTask.startAt} 至 ${newTask.deadline} · ${newTask.frequency}` },
+        ],
+        preview: [
+          { label: '采集要求', items: [newTask.capture.mediaKind === 'video' ? '视频录制 + 上传，单次最长 5 分钟' : '音频录制 + 上传，单次最长 10 分钟', '需顾客同意许可后方可提交'] },
+          { label: '评分维度', items: newTask.rubric.map(item => `${item.name} ${item.weight}%${item.required ? '（必选）' : ''}`) },
+        ],
+      },
+    });
+    if (result.mode === 'blocked') {
+      setFormError(result.error ?? '审批流程未配置完成，无法提交。');
+      return;
+    }
+    if (result.mode === 'pending') {
+      const names = (result.request?.approverIds ?? []).map(approverId => actorForApprover(approverId).name).join('、');
+      setApprovalNotice(`已提交审批，等待 ${names || '审批人'} 处理；通过前学员端不可见，可到「我的审批流转」查看进度或撤回。`);
+      setCreateOpen(false);
+      setCreateStep('basic');
+      setForm(createInitialForm());
+      return;
+    }
     setTasks(prev => [newTask, ...prev]);
     setSelectedTaskId(newTask.id);
     setCreateOpen(false);
@@ -463,6 +503,9 @@ export function MediaCollectionTaskManage({ userRole, onOpenMaterialAsset }: Med
         </div>
 
         <div className="flex-1 space-y-2 overflow-y-auto p-3">
+          {approvalNotice && (
+            <div data-i18n-skip="true" className="rounded-lg border border-[#E8CCA0] bg-[#FFF7EA] px-3 py-2 text-[10px] leading-relaxed text-[#8B621F]">{approvalNotice}</div>
+          )}
           {visibleTasks.map(task => {
             const progress = Math.round(task.submittedCount / task.targetCount * 100);
             return (
@@ -749,6 +792,7 @@ export function MediaCollectionTaskManage({ userRole, onOpenMaterialAsset }: Med
           <div className="divide-y divide-[#EFEAE7] rounded-lg border border-[#E9E4DF]">{auditLogs.map(log => <div key={log.id} className="grid gap-2 px-4 py-3 sm:grid-cols-[110px_minmax(0,1fr)_130px]"><div className="text-xs font-bold text-[#3F3A3D]">{log.action}</div><div><div data-i18n-skip="true" className="text-xs leading-relaxed text-[#5D565A]">{log.detail}</div><div data-i18n-skip="true" className="mt-1 text-[10px] text-[#9A9396]">操作人：{log.operator}</div></div><div className="text-right text-[10px] text-[#9A9396]">{log.time}</div></div>)}</div>
         </DialogContent>
       </Dialog>
+
     </div>
   );
 }

@@ -292,3 +292,14 @@ html[data-language="en"] .line-clamp-2,
 html[data-language="id"] .line-clamp-2 {
   -webkit-line-clamp: 3;
 }
+
+/* ------------------------------------------------------------------
+ * 研发标注总开关（顶栏「研发标注」切换）
+ * 存量「注」徽标与气泡统一使用 bg-blue-950 / bg-blue-950\/95 两个类渲染，
+ * 关闭时在这里统一隐藏；新增标注请使用 <DevNote> 组件（它带独立开关判断）。
+ * 如未来有非标注元素也使用 bg-blue-950，请改成 DevNote 或换色，避免被误隐藏。
+ * ------------------------------------------------------------------ */
+html[data-dev-notes="off"] .bg-blue-950,
+html[data-dev-notes="off"] .bg-blue-950\/95 {
+  display: none !important;
+}

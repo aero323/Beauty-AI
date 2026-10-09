@@ -8,7 +8,9 @@ import { PracticePromptNotice } from '../components/PracticePromptNotice';
 import { aiActionTone } from '../lib/visualTones';
 import { MaterialReferenceDialog } from '../components/MaterialReferenceDialog';
 import { createDerivedAssetReferences } from '../lib/materialLibraryData';
-import type { DerivedAssetReference, GoldenMaterial } from '../types';
+import type { DerivedAssetReference, GoldenMaterial, Role } from '../types';
+import { markRequestApplied, submitForApproval, useApprovalState } from '../lib/approvalStore';
+import { actorForApprover, creatorContextForRole, currentActorForRole } from '../lib/approvalEngine';
 
 type AvatarLanguage = '中文' | '英文' | '印尼语';
 
@@ -271,12 +273,13 @@ const MOCK_SCENARIO_SCRIPTS = [
   }
 ];
 
-export function BAAvatars() {
+export function BAAvatars({ userRole }: { userRole?: Role } = {}) {
   const [avatars, setAvatars] = useState<Avatar[]>(INITIAL_AVATARS);
   const [selectedId, setSelectedId] = useState<string>(INITIAL_AVATARS[0].id);
   const [tagInput, setTagInput] = useState('');
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('保存成功');
+  const [toastTone, setToastTone] = useState<'success' | 'warning'>('success');
   const [flowMode, setFlowMode] = useState<'custom' | 'existing'>('custom');
   const [selectedScriptId, setSelectedScriptId] = useState(MOCK_SCENARIO_SCRIPTS[0].id);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -285,6 +288,23 @@ export function BAAvatars() {
   const [previewTyping, setPreviewTyping] = useState(false);
   const [materialReferenceOpen, setMaterialReferenceOpen] = useState(false);
   const replyTimerRef = useRef<number | null>(null);
+
+  // 审批：数字人顾客「保存配置」等于提交生效，先判断该类型 / 范围是否需要审批
+  const approvalState = useApprovalState();
+  const approvalActor = currentActorForRole(userRole ?? 'HQ Trainer', approvalState);
+  const approvalContext = creatorContextForRole(userRole ?? 'HQ Trainer');
+
+  // 审批通过后把对应数字人顾客置为「已生效」
+  React.useEffect(() => {
+    const approved = approvalState.requests.filter(item =>
+      item.type === 'digital_human' && item.status === 'approved' && !item.appliedAt && item.creatorId === approvalActor.id,
+    );
+    if (approved.length === 0) return;
+    approved.forEach(item => {
+      setAvatars(prev => prev.map(avatar => avatar.id === item.targetId ? { ...avatar, effectiveStatus: 'active' } : avatar));
+      markRequestApplied(item.id);
+    });
+  }, [approvalState, approvalActor.id]);
 
   const selectedAvatar = avatars.find(a => a.id === selectedId) || avatars[0];
   const selectedScript = flowMode === 'existing'
@@ -353,11 +373,48 @@ export function BAAvatars() {
     }
   };
 
-  const handleSave = () => {
-    setAvatars(prev => prev.map(a => a.id === selectedId ? { ...a, effectiveStatus: 'active' } : a));
-    setToastMessage('保存成功');
+  const showFeedback = (message: string, tone: 'success' | 'warning' = 'success', duration = 3000) => {
+    setToastMessage(message);
+    setToastTone(tone);
     setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+    setTimeout(() => setShowToast(false), duration);
+  };
+
+  const handleSave = () => {
+    if (!selectedAvatar) return;
+    const result = submitForApproval({
+      type: 'digital_human',
+      targetId: selectedAvatar.id,
+      creator: approvalActor,
+      snapshot: {
+        title: `数字人顾客：${selectedAvatar.name}`,
+        summary: selectedAvatar.prompt.split('\n').find(Boolean) ?? '数字人顾客配置',
+        scope: approvalContext.scope,
+        regionId: approvalContext.regionId,
+        fields: [
+          { label: '语种与音色', value: `${selectedAvatar.language} · ${selectedAvatar.voice}` },
+          { label: '顾客标签', value: selectedAvatar.tags.join(' · ') || '未设置' },
+          { label: '生效范围', value: approvalContext.scope === '全国' ? '全国共享' : '雅加达南区' },
+          { label: '引用素材', value: selectedAvatar.sourceReferences?.length ? `黄金素材 ${selectedAvatar.sourceReferences.length} 条` : '未引用素材' },
+        ],
+        preview: [
+          { label: '人格设定', items: selectedAvatar.prompt.split('\n').filter(Boolean) },
+          { label: '对话流程', items: selectedAvatar.flow.split('\n').filter(Boolean) },
+        ],
+      },
+    });
+    if (result.mode === 'blocked') {
+      showFeedback(result.error ?? '审批流程未配置完成，无法提交。', 'warning', 3200);
+      return;
+    }
+    if (result.mode === 'pending') {
+      const names = (result.request?.approverIds ?? []).map(approverId => actorForApprover(approverId).name).join('、');
+      setAvatars(prev => prev.map(a => a.id === selectedId ? { ...a, effectiveStatus: 'pending' } : a));
+      showFeedback(`已提交审批，等待 ${names || '审批人'} 处理；通过前保持待生效，可到「我的审批流转」查看进度或撤回。`, 'warning', 3800);
+      return;
+    }
+    setAvatars(prev => prev.map(a => a.id === selectedId ? { ...a, effectiveStatus: 'active' } : a));
+    showFeedback('配置已保存', 'success', 3000);
   };
 
   const applyMaterialReference = (materials: GoldenMaterial[]) => {
@@ -380,6 +437,7 @@ export function BAAvatars() {
     } : avatar));
     setFlowMode('custom');
     setToastMessage(`已引用 ${materials.length} 条黄金素材，生成可编辑草稿`);
+    setToastTone('success');
     setShowToast(true);
     setTimeout(() => setShowToast(false), 2800);
   };
@@ -389,6 +447,7 @@ export function BAAvatars() {
     const imageUrl = `https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=900&q=80&sig=${seed}`;
     handleUpdate('imageUrl', imageUrl);
     setToastMessage('已生成配图');
+    setToastTone('success');
     setShowToast(true);
     setTimeout(() => setShowToast(false), 2200);
   };
@@ -521,7 +580,7 @@ export function BAAvatars() {
       {/* Right Content: Edit Selected Avatar */}
       <div className="flex-1 bg-[#F7F3F1] flex flex-col relative">
         {showToast && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-[#3B8F72] text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2 animate-in fade-in slide-in-from-top-4">
+          <div className={`absolute top-4 left-1/2 -translate-x-1/2 z-50 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2 animate-in fade-in slide-in-from-top-4 ${toastTone === 'success' ? 'bg-[#3B8F72]' : 'bg-[#B9822B]'}`}>
             <CheckCircle className="h-4 w-4" />
             <span className="text-sm font-bold">{toastMessage}</span>
           </div>

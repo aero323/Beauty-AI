@@ -14,12 +14,20 @@ import {
   Layers,
   FileVideo2,
   Camera,
-  ShieldCheck
+  ShieldCheck,
+  Inbox,
+  History,
+  ClipboardCheck,
+  Settings2
 } from 'lucide-react';
 import { Role } from '../types';
 import { cn } from '../lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useI18n } from '../lib/i18n';
+import { useApprovalState } from '../lib/approvalStore';
+import { useDevNotes } from '../lib/devNotes';
+import { currentActorForRole, unreadCountFor } from '../lib/approvalEngine';
+import { approverAccountById, regionNameOf } from '../lib/approvalTypes';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -44,6 +52,11 @@ interface NavItem {
 export function Layout({ children, role, setRole, activeTab, setActiveTab }: LayoutProps) {
   const [expandedNavs, setExpandedNavs] = useState<string[]>(['course_group']);
   const { language, setLanguage, t } = useI18n();
+  const devNotes = useDevNotes();
+  const approvalState = useApprovalState();
+  const approvalActor = currentActorForRole(role, approvalState);
+  const unreadMessages = unreadCountFor(approvalState, approvalActor.id);
+  const demoApprover = approverAccountById(approvalState.demoApproverId);
   const isMultilingualLayout = language !== 'zh';
   const languageOptionLabels = {
     zh: { zh: '中文', en: '英文', id: '印尼语' },
@@ -73,6 +86,7 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
         return [
           { id: 'dashboard', label: '全国数据', icon: LayoutDashboard },
           { id: 'training_inspection', label: '培训巡检', icon: ShieldCheck },
+          { id: 'my_approvals', label: '我的审批流转', icon: ClipboardCheck },
           { id: 'course_group', label: '在线课件', icon: BookOpen, subMenu: [
             { id: 'courses', label: '生成新课件' },
             { id: 'courses_manage', label: '课件管理' }
@@ -105,6 +119,7 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
         return [
           { id: 'dashboard', label: '区域数据', icon: LayoutDashboard },
           { id: 'training_inspection', label: '培训巡检', icon: ShieldCheck },
+          { id: 'my_approvals', label: '我的审批流转', icon: ClipboardCheck },
           { id: 'regional_content', label: '区域补充内容', icon: BookOpen, subMenu: [
             { id: 'courses', label: '生成新课件' },
             { id: 'courses_manage', label: '区域课件管理' },
@@ -146,6 +161,7 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
         return [
           { id: 'dashboard', label: '区域数据', icon: LayoutDashboard },
           { id: 'training_inspection', label: '培训巡检', icon: ShieldCheck },
+          { id: 'my_approvals', label: '我的审批流转', icon: ClipboardCheck },
           { id: 'regional_content', label: '区域补充内容', icon: BookOpen, subMenu: [
             { id: 'courses', label: '生成新课件' },
             { id: 'courses_manage', label: '区域课件管理' },
@@ -160,6 +176,14 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
             { id: 'photo_checkin_records', label: 'BA打卡记录' },
             { id: 'exam_task_manage', label: '考试任务' }
           ] },
+        ];
+
+      case 'Approval Manager':
+        return [
+          { id: 'approval_home', label: '审批中心', icon: ClipboardCheck },
+          { id: 'approval_inbox', label: '待我审批', icon: Inbox },
+          { id: 'approval_flow_config', label: '审批流程配置', icon: Settings2 },
+          { id: 'approval_records', label: '审批记录', icon: History },
         ];
 
       default:
@@ -180,8 +204,10 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
       return acc;
     }, [] as string[]);
 
-    if (!validIds.includes(activeTab)) {
-      setActiveTab('dashboard');
+    // 消息中心对全部角色开放，但不占导航项，属于隐藏路由
+    const fallbackTab = navItems.find(item => !item.subMenu)?.id ?? navItems[0]?.subMenu?.[0]?.id ?? 'dashboard';
+    if (!validIds.includes(activeTab) && activeTab !== 'message_center') {
+      setActiveTab(fallbackTab);
     }
   }, [role, activeTab, navItems, setActiveTab]);
 
@@ -306,6 +332,7 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
                  <option value="Regional Manager">区域经理 (RM)</option>
                  <option value="Regional Training Manager">区域培训师主管 (RTM)</option>
                  <option value="Regional Trainer">区域培训师 (RT)</option>
+                 <option value="Approval Manager">审批管理者 (AM)</option>
                </select>
                <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/60" />
              </div>
@@ -316,20 +343,22 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
               当前登录用户
               <button className="hover:opacity-100 transition-opacity"><LogOut className="h-3 w-3" /></button>
             </p>
-            <p className="text-sm font-medium text-amber-200 mt-1">
+            <p data-i18n-skip="true" className="text-sm font-medium text-amber-200 mt-1">
               {role === 'Super Admin' ? '系统管理员' :
                role === 'HQ Trainer' ? 'Sarah Lee' :
                role === 'Regional Manager' ? 'Budi Santoso' :
                role === 'Regional Training Manager' ? 'Fitriani' :
                role === 'Regional Trainer' ? 'Nurul Huda' :
+               role === 'Approval Manager' ? (demoApprover?.name ?? 'Rani Wijaya') :
                'Ahmad Maulana'}
             </p>
-            <p className="text-[10px] opacity-40 uppercase mt-1">
+            <p data-i18n-skip="true" className="text-[10px] opacity-40 uppercase mt-1">
               {role === 'Super Admin' ? 'Lumina Admin' :
                role === 'HQ Trainer' ? '全球总部' :
                role === 'Regional Manager' ? '大区管理' :
                role === 'Regional Training Manager' ? '大区培训' :
                role === 'Regional Trainer' ? '南区' :
+               role === 'Approval Manager' ? (demoApprover?.scope === '总部' ? '总部审批' : `${regionNameOf(demoApprover?.regionId)}审批`) :
                '门店'}
             </p>
           </div>
@@ -341,7 +370,7 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
         {/* Header (Role Bar) */}
         <header className="min-h-16 bg-white border-b border-[#E5DED8] flex flex-wrap items-center justify-between gap-3 px-4 py-3 shadow-sm shrink-0 z-10 transition-colors md:px-8">
           <div className="flex min-w-0 flex-1 items-center gap-4">
-             <h1 className="min-w-0 text-lg font-semibold leading-snug text-[#1F1C1F] break-words">{role === 'Super Admin' ? '系统运行概览' : role === 'HQ Trainer' ? '全国培训总览' : role === 'Regional Manager' ? '大区业务看板' : (role === 'Regional Training Manager' || role === 'Regional Trainer') ? '大区培训看板' : '门店考评看板'}</h1>
+             <h1 className="min-w-0 text-lg font-semibold leading-snug text-[#1F1C1F] break-words">{role === 'Super Admin' ? '系统运行概览' : role === 'HQ Trainer' ? '全国培训总览' : role === 'Approval Manager' ? '审批工作台' : role === 'Regional Manager' ? '大区业务看板' : (role === 'Regional Training Manager' || role === 'Regional Trainer') ? '大区培训看板' : '门店考评看板'}</h1>
              <span className="text-[#C9C1C4] hidden md:block">|</span>
              <span className="text-xs font-medium text-[#766F73] hidden md:block">SalesBoost AI</span>
           </div>
@@ -363,31 +392,60 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
                  <option value="id">{languageOptionLabels[language].id}</option>
                </select>
              </div>
+             <button
+               type="button"
+               role="switch"
+               aria-checked={devNotes.enabled}
+               aria-label="研发标注"
+               title="显示 / 隐藏页面上的「注」研发标注"
+               onClick={devNotes.toggle}
+               className={cn(
+                 'inline-flex items-center gap-2 rounded-lg border px-2.5 py-1.5 transition-colors',
+                 devNotes.enabled
+                   ? 'border-[#C7CDFF] bg-[#F3F5FF] text-[#3F48B4]'
+                   : 'border-[#E5DED8] bg-[#F8F5F3] text-[#9A9396]'
+               )}
+             >
+               <span className={cn('relative h-4 w-7 shrink-0 rounded-full transition-colors', devNotes.enabled ? 'bg-[#515BCB]' : 'bg-[#D8D2CE]')}>
+                 <span className={cn('absolute top-0.5 h-3 w-3 rounded-full bg-white shadow-sm transition-transform', devNotes.enabled ? 'translate-x-3.5' : 'translate-x-0.5')} />
+               </span>
+               <span className="hidden text-[11px] font-bold lg:block">研发标注</span>
+             </button>
              <div className="relative group/notification-note">
                <span className="absolute -right-3 -top-2 z-20 h-4 min-w-4 rounded-full bg-blue-950 px-1 text-[9px] font-bold leading-4 text-white text-center shadow-sm backdrop-blur-sm">注</span>
-               <button className="text-[#9A9396] hover:text-[#5D565A] transition-colors relative">
+               <button
+                onClick={() => setActiveTab('message_center')}
+                title="消息中心"
+                className={cn('relative transition-colors', activeTab === 'message_center' ? 'text-[#5D565A]' : 'text-[#9A9396] hover:text-[#5D565A]')}
+              >
                  <Bell className="h-5 w-5" />
-                 <span className="absolute top-0 right-0 block h-2 border-2 border-white w-2 rounded-full bg-rose-500" />
+                 {unreadMessages > 0 && (
+                   <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white">
+                     {unreadMessages > 99 ? '99+' : unreadMessages}
+                   </span>
+                 )}
                </button>
                <div className="absolute right-0 top-full mt-2 hidden group-hover/notification-note:block z-50 w-80 rounded-lg bg-blue-950/95 px-3 py-2 text-xs leading-relaxed text-white shadow-xl backdrop-blur-sm">
-                 给研发：这个通知系统可做可不做；如果做，建议先只提示课件或题目生成完成，后续最多加上周期任务到期提醒。
+                 给研发：站内信已接入审批待办 / 结果 / 撤回 / 24h 催办，点铃铛进「消息中心」。App 推送与 WhatsApp 原型只做渠道状态展示，生产接入时复用「通知设置」里已启用的通道。
                </div>
              </div>
              <div className="text-right hidden md:block">
-               <p className="text-sm font-semibold text-[#242124]">
+               <p data-i18n-skip="true" className="text-sm font-semibold text-[#242124]">
                  {role === 'Super Admin' ? 'Admin' :
                   role === 'HQ Trainer' ? 'Sarah Lee' :
                   role === 'Regional Manager' ? 'Budi Santoso' :
                   role === 'Regional Training Manager' ? 'Fitriani' :
                   role === 'Regional Trainer' ? 'Nurul Huda' :
+                  role === 'Approval Manager' ? (demoApprover?.name ?? 'Rani Wijaya') :
                   'Ahmad Maulana'}
                </p>
-               <p className="text-[10px] text-[#9A9396] font-medium tracking-wide">
+               <p data-i18n-skip="true" className="text-[10px] text-[#9A9396] font-medium tracking-wide">
                  {role === 'Super Admin' ? 'SYSTEM ADMIN' :
                   role === 'HQ Trainer' ? 'HQ TRAINER' :
                   role === 'Regional Manager' ? 'REGIONAL MANAGER' :
                   role === 'Regional Training Manager' ? 'REGIONAL TRAINING MANAGER' :
                   role === 'Regional Trainer' ? 'REGIONAL TRAINER' :
+                  role === 'Approval Manager' ? (demoApprover?.scope === '总部' ? 'APPROVAL MANAGER · HQ' : 'APPROVAL MANAGER · REGION') :
                   'STORE MANAGER'}
                </p>
              </div>
@@ -397,6 +455,7 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
                   role === 'HQ Trainer' ? 'SL' :
                   role === 'Regional Manager' ? 'BS' :
                   role === 'Regional Training Manager' ? 'FI' :
+                  role === 'Approval Manager' ? ((demoApprover?.name ?? 'Rani Wijaya').split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase()) :
                   role === 'Regional Trainer' ? 'NH' :
                   'AM'}
                </div>

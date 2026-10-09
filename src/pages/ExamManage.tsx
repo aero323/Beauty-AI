@@ -5,6 +5,8 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { aiActionTone } from '../lib/visualTones';
+import { markRequestApplied, submitForApproval, useApprovalState } from '../lib/approvalStore';
+import { actorForApprover, currentActorForRole } from '../lib/approvalEngine';
 import { useQuestionBank } from '../lib/QuestionBankContext';
 import { getQuestionTagNames, QUESTION_TYPE_LABELS } from '../lib/questionBank';
 import {
@@ -49,6 +51,12 @@ export function ExamManage({ onExamPublished, onGoToExamTasks }: ExamManageProps
   const [editDesc, setEditDesc] = useState('');
 
   const [toast, setToast] = useState('');
+
+  // 审批：考试发布先走审批判断，通过后才生成考试任务
+  const approvalState = useApprovalState();
+  const approvalActor = currentActorForRole('HQ Trainer', approvalState);
+  const [approvalNotice, setApprovalNotice] = React.useState('');
+  const [publishFeedback, setPublishFeedback] = React.useState('');
 
   const selectedExam = exams.find(e => e.id === selectedExamId);
   const currentQuestions = examQuestions.find(eq => eq.examId === selectedExamId)?.questions || [];
@@ -142,19 +150,69 @@ export function ExamManage({ onExamPublished, onGoToExamTasks }: ExamManageProps
   };
 
   const handlePublish = () => {
-    if (selectedExam) {
-      onExamPublished?.({
-        id: selectedExam.id,
+    if (!selectedExam) return;
+    const result = submitForApproval({
+      type: 'exam',
+      targetId: selectedExam.id,
+      creator: approvalActor,
+      snapshot: {
         title: selectedExam.title,
-        passRules,
-        profileQuestions: DEFAULT_EXAM_PROFILE_QUESTIONS,
-        questionCount: paperQuestionCount,
-      });
+        summary: selectedExam.description,
+        scope: '全国',
+        fields: [
+          { label: '试卷题量', value: `${paperQuestionCount} 题（含随卷信息 ${DEFAULT_EXAM_PROFILE_QUESTIONS.length} 题）` },
+          { label: '及格规则', value: passRules.map(rule => `${rule.roleName} ${rule.score} 分`).join(' · ') },
+          { label: '发布范围', value: '全国范围' },
+        ],
+        preview: [
+          { label: '试卷结构', items: [`专业题 ${Math.max(0, paperQuestionCount - DEFAULT_EXAM_PROFILE_QUESTIONS.length)} 题`, `随卷信息题 ${DEFAULT_EXAM_PROFILE_QUESTIONS.length} 题（不计分，用于统计）`] },
+          { label: '及格线', items: passRules.map(rule => `${rule.roleName}：${rule.score} 分`) },
+        ],
+      },
+    });
+    if (result.mode === 'blocked') {
+      setPublishFeedback(result.error ?? '审批流程未配置完成，无法提交。');
+      return;
     }
+    if (result.mode === 'pending') {
+      const names = (result.request?.approverIds ?? []).map(approverId => actorForApprover(approverId).name).join('、');
+      setPublishFeedback('');
+      setApprovalNotice(`已提交审批，等待 ${names || '审批人'} 处理；通过前不会下发考试任务，可到「我的审批流转」查看进度或撤回。`);
+      setPublishDialog(false);
+      return;
+    }
+    onExamPublished?.({
+      id: selectedExam.id,
+      title: selectedExam.title,
+      passRules,
+      profileQuestions: DEFAULT_EXAM_PROFILE_QUESTIONS,
+      questionCount: paperQuestionCount,
+    });
     setExams(prev => prev.map(e => e.id === selectedExamId ? { ...e, status: 'Published' } : e));
     setPublishDialog(false);
     setPublishSuccessDialog(true);
   };
+
+  // 审批通过后，替创建者把考试任务落库（走现有发布逻辑），并标记已消费，避免重复生成
+  React.useEffect(() => {
+    const applied = approvalState.requests.filter(item =>
+      item.type === 'exam' && item.status === 'approved' && !item.appliedAt && item.creatorId === approvalActor.id,
+    );
+    applied.forEach(item => {
+      const questionCount = Number(item.snapshot.fields.find(field => field.label === '试卷题量')?.value.replace(/[^0-9]/g, '')) || paperQuestionCount;
+      onExamPublished?.({
+        id: item.targetId,
+        title: item.snapshot.title,
+        passRules,
+        profileQuestions: DEFAULT_EXAM_PROFILE_QUESTIONS,
+        questionCount,
+      });
+      setExams(prev => prev.some(exam => exam.id === item.targetId)
+        ? prev.map(exam => exam.id === item.targetId ? { ...exam, status: 'Published' } : exam)
+        : [...prev, { id: item.targetId, title: item.snapshot.title, status: 'Published', questionCount, description: item.snapshot.summary }]);
+      markRequestApplied(item.id);
+    });
+  }, [approvalState, approvalActor.id, onExamPublished, paperQuestionCount, passRules]);
 
   const handleGoToExamTasks = () => {
     setPublishSuccessDialog(false);
@@ -174,6 +232,9 @@ export function ExamManage({ onExamPublished, onGoToExamTasks }: ExamManageProps
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {approvalNotice && (
+            <div data-i18n-skip="true" className="rounded-lg border border-[#E8CCA0] bg-[#FFF7EA] px-3 py-2 text-[10px] leading-relaxed text-[#8B621F]">{approvalNotice}</div>
+          )}
           {exams.map(exam => (
             <div
               key={exam.id}
@@ -500,8 +561,11 @@ export function ExamManage({ onExamPublished, onGoToExamTasks }: ExamManageProps
                 </p>
               </div>
             </div>
+            {publishFeedback && (
+              <p data-i18n-skip="true" className="rounded-lg border border-[#E8CCA0] bg-[#FFF7EA] px-3 py-2 text-xs leading-relaxed text-[#8B621F]">{publishFeedback}</p>
+            )}
             <div className="flex justify-end mt-6 space-x-3">
-              <Button variant="outline" onClick={() => setPublishDialog(false)}>取消</Button>
+              <Button variant="outline" onClick={() => { setPublishFeedback(''); setPublishDialog(false); }}>取消</Button>
               <Button className="bg-[#3B8F72] hover:bg-emerald-700 text-white font-bold" onClick={handlePublish}>
                 确认发布
               </Button>
@@ -588,6 +652,7 @@ export function ExamManage({ onExamPublished, onGoToExamTasks }: ExamManageProps
           </DialogContent>
         </Dialog>
       </div>
+
     </div>
   );
 }

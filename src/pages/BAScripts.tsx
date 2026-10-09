@@ -9,7 +9,9 @@ import { EffectiveStatusBadge, type EffectiveStatus } from '../components/Effect
 import { ConversationPlaygroundDialog, type PlaygroundMessage } from '../components/ConversationPlaygroundDialog';
 import { MaterialReferenceDialog } from '../components/MaterialReferenceDialog';
 import { createDerivedAssetReferences } from '../lib/materialLibraryData';
-import type { DerivedAssetReference, GoldenMaterial } from '../types';
+import type { DerivedAssetReference, GoldenMaterial, Role } from '../types';
+import { markRequestApplied, submitForApproval, useApprovalState } from '../lib/approvalStore';
+import { actorForApprover, currentActorForRole } from '../lib/approvalEngine';
 
 interface ScriptStep {
   id: string;
@@ -55,7 +57,7 @@ const INITIAL_SCRIPTS: ScriptScenario[] = [
   }
 ];
 
-export function BAScripts() {
+export function BAScripts({ userRole }: { userRole?: Role } = {}) {
   const [scripts, setScripts] = useState<ScriptScenario[]>(INITIAL_SCRIPTS);
   const [selectedId, setSelectedId] = useState<string>(INITIAL_SCRIPTS[0].id);
   const [showToast, setShowToast] = useState(false);
@@ -63,6 +65,23 @@ export function BAScripts() {
   const [toastTone, setToastTone] = useState<'success' | 'warning'>('success');
   const [previewOpen, setPreviewOpen] = useState(false);
   const [materialReferenceOpen, setMaterialReferenceOpen] = useState(false);
+
+  // 审批：剧本「保存」等于提交生效，先判断该类型 / 范围是否需要审批
+  const approvalState = useApprovalState();
+  const isRegionalScriptRole = userRole === 'Regional Training Manager' || userRole === 'Regional Trainer';
+  const approvalActor = currentActorForRole(isRegionalScriptRole ? userRole : 'HQ Trainer', approvalState);
+
+  // 审批通过后把对应剧本置为「已生效」
+  React.useEffect(() => {
+    const approved = approvalState.requests.filter(item =>
+      item.type === 'script' && item.status === 'approved' && !item.appliedAt && item.creatorId === approvalActor.id,
+    );
+    if (approved.length === 0) return;
+    approved.forEach(item => {
+      setScripts(prev => prev.map(script => script.id === item.targetId ? { ...script, effectiveStatus: 'active' } : script));
+      markRequestApplied(item.id);
+    });
+  }, [approvalState, approvalActor.id]);
 
   const selectedScript = scripts.find(s => s.id === selectedId) || scripts[0];
   const previewScript = selectedScript
@@ -140,6 +159,39 @@ export function BAScripts() {
   };
 
   const handleSave = () => {
+    if (!selectedScript) return;
+    const approvalContext = isRegionalScriptRole
+      ? { scope: '区域' as const, regionId: 'south' as string | undefined }
+      : { scope: '全国' as const, regionId: undefined as string | undefined };
+    const result = submitForApproval({
+      type: 'script',
+      targetId: selectedScript.id,
+      creator: approvalActor,
+      snapshot: {
+        title: selectedScript.name,
+        summary: selectedScript.description,
+        scope: approvalContext.scope,
+        regionId: approvalContext.regionId,
+        fields: [
+          { label: '剧本步骤', value: `${selectedScript.steps.length} 个步骤` },
+          { label: '生效范围', value: approvalContext.scope === '全国' ? '全国共享' : '雅加达南区' },
+          { label: '引用素材', value: selectedScript.sourceReferences?.length ? `黄金素材 ${selectedScript.sourceReferences.length} 条` : '未引用素材' },
+        ],
+        preview: [
+          { label: '剧本步骤', items: selectedScript.steps.map((step, index) => `${index + 1}. ${step.description}${step.hint ? `（${step.hint}）` : ''}`) },
+          { label: '场景说明', items: [selectedScript.description] },
+        ],
+      },
+    });
+    if (result.mode === 'blocked') {
+      showFeedback(result.error ?? '审批流程未配置完成，无法提交。', 'warning', 3200);
+      return;
+    }
+    if (result.mode === 'pending') {
+      const names = (result.request?.approverIds ?? []).map(approverId => actorForApprover(approverId).name).join('、');
+      showFeedback(`已提交审批，等待 ${names || '审批人'} 处理；通过前剧本保持待生效，可到「我的审批流转」查看进度或撤回。`, 'warning', 3600);
+      return;
+    }
     setScripts(prev => prev.map(s => s.id === selectedId ? { ...s, effectiveStatus: 'active' } : s));
     showFeedback('剧本已保存', 'success', 3000);
   };
@@ -611,6 +663,7 @@ export function BAScripts() {
           onApply={applyMaterialReference}
         />
       </div>
+
     </div>
   );
 }

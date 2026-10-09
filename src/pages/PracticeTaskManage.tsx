@@ -7,6 +7,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/
 import { getProgressTone, getTaskStatusBadgeClass } from '../lib/visualTones';
 import type { MediaKind, PracticeCaptureConfig } from '../types';
 import { syncInspectionSource } from '../lib/inspectionStore';
+import { submitForApproval, useApprovalState } from '../lib/approvalStore';
+import { actorForApprover, creatorContextForRole, currentActorForRole } from '../lib/approvalEngine';
+import { regionNameOf } from '../lib/approvalTypes';
+import type { Role } from '../types';
 
 const MOCK_AVATARS = [
   { id: 'a1', title: 'Ibu Nisa (VIP)' },
@@ -165,6 +169,86 @@ export function PracticeTaskManage({ isReadOnly = false, userRole }: { isReadOnl
   const [deactivateTask, setDeactivateTask] = useState<any>(null);
   const [captureMode, setCaptureMode] = useState<'none' | MediaKind>('none');
 
+  // 审批：练习任务发布先走审批判断
+  const approvalState = useApprovalState();
+  const approvalActor = currentActorForRole((userRole ?? 'HQ Trainer') as Role, approvalState);
+  const [approvalNotice, setApprovalNotice] = React.useState('');
+
+  const buildPracticeDraft = () => {
+    const captureModeLabel = captureMode === 'none' ? '不采集' : captureMode === 'video' ? '采集视频（最长 10 分钟）' : '采集音频（最长 10 分钟）';
+    return {
+      id: `pt${Date.now()}`,
+      title: '新建测试任务',
+      status: '进行中',
+      publishTime: new Date().toISOString().split('T')[0],
+      deadline: '2023-12-31',
+      target: '选中的人群',
+      frequency: '每日完成 1 次',
+      items: { avatars: ['a1'], scripts: [], quotes: [] },
+      progress: 0,
+      targetCount: 100,
+      completedCount: 0,
+      periodCompletedCount: 0,
+      periodTargetCount: 100,
+      periodProgress: 0,
+      scope: creatorContextForRole((userRole ?? 'HQ Trainer') as Role).scope,
+      region: creatorContextForRole((userRole ?? 'HQ Trainer') as Role).scope === '区域' ? '雅加达南区' : undefined,
+      capture: {
+        enabled: captureMode !== 'none',
+        mediaKind: captureMode === 'none' ? undefined : captureMode,
+        fullInteractionRecording: true,
+        consentRequired: true,
+        limits: {
+          maxDurationSec: captureMode === 'none' ? 0 : 600,
+          maxBytes: captureMode === 'video' ? 500 * 1024 * 1024 : captureMode === 'audio' ? 80 * 1024 * 1024 : 0,
+          acceptedMimeTypes: captureMode === 'video' ? ['video/mp4', 'video/quicktime'] : captureMode === 'audio' ? ['audio/mpeg', 'audio/mp4', 'audio/wav'] : []
+        }
+      } satisfies PracticeCaptureConfig,
+      captureStats: { submittedCount: 0, analysisCompletedCount: 0, consentDeniedCount: 0 },
+      captureModeLabel,
+    };
+  };
+
+  const handleCreatePracticeTask = () => {
+    const draft = buildPracticeDraft();
+    const scopeInfo = creatorContextForRole((userRole ?? 'HQ Trainer') as Role);
+    const { captureModeLabel, ...taskDraft } = draft;
+    const result = submitForApproval({
+      type: 'practice_task',
+      targetId: draft.id,
+      creator: approvalActor,
+      snapshot: {
+        title: draft.title,
+        summary: '练习任务：数字人顾客陪练 + 周期频次要求，审批通过后下发。',
+        scope: scopeInfo.scope,
+        regionId: scopeInfo.regionId,
+        fields: [
+          { label: '分发对象', value: draft.target },
+          { label: '练习频次', value: draft.frequency },
+          { label: '音视频采集', value: captureModeLabel },
+        ],
+        preview: [
+          { label: '练习内容', items: ['数字人顾客陪练 · 1 个场景'] },
+          { label: '完成要求', items: [draft.frequency, captureMode === 'none' ? '不采集音视频' : captureModeLabel] },
+        ],
+      },
+    });
+    if (result.mode === 'blocked') {
+      setApprovalNotice(result.error ?? '审批流程未配置完成，无法提交。');
+      return;
+    }
+    if (result.mode === 'pending') {
+      const names = (result.request?.approverIds ?? []).map(approverId => actorForApprover(approverId).name).join('、');
+      setApprovalNotice(`已提交审批，等待 ${names || '审批人'} 处理；通过前学员端不可见，可到「我的审批流转」查看进度或撤回。`);
+      setCaptureMode('none');
+      setCreateDialog(false);
+      return;
+    }
+    setTasks([taskDraft as any, ...tasks]);
+    setCaptureMode('none');
+    setCreateDialog(false);
+  };
+
   const targets = (userRole === 'Regional Training Manager' || userRole === 'Regional Trainer')
     ? ['雅加达南区所有门店 BA', '本区域店长', '本区域新入职员工']
     : ['全国所有门店 BA', '华北区区域经理', '华东区店长', '入职不满3个月的新人'];
@@ -204,6 +288,9 @@ export function PracticeTaskManage({ isReadOnly = false, userRole }: { isReadOnl
         </div>
 
         <div className="flex-1 overflow-y-auto p-3 space-y-2">
+          {approvalNotice && (
+            <div data-i18n-skip="true" className="rounded-lg border border-[#E8CCA0] bg-[#FFF7EA] px-3 py-2 text-[10px] leading-relaxed text-[#8B621F]">{approvalNotice}</div>
+          )}
           {tasks.map(task => (
             <React.Fragment key={task.id}>
             <div
@@ -507,44 +594,7 @@ export function PracticeTaskManage({ isReadOnly = false, userRole }: { isReadOnl
 
           <div className="flex justify-end space-x-3 pt-4 border-t border-[#E9E4DF] shrink-0">
             <Button variant="outline" onClick={() => setCreateDialog(false)}>取消</Button>
-            <Button className="bg-rose-600 hover:bg-rose-700 text-white" onClick={() => {
-              setTasks([{
-                id: `pt${Date.now()}`,
-                title: '新建测试任务',
-                status: '进行中',
-                publishTime: new Date().toISOString().split('T')[0],
-                deadline: '2023-12-31',
-                target: '选中的人群',
-                frequency: '每日完成 1 次',
-                items: {
-                  avatars: ['a1'],
-                  scripts: [],
-                  quotes: []
-                },
-                progress: 0,
-                targetCount: 100,
-                completedCount: 0,
-                periodCompletedCount: 0,
-                periodTargetCount: 100,
-                periodProgress: 0,
-                scope: (userRole === 'Regional Training Manager' || userRole === 'Regional Trainer') ? '区域' : '全国',
-                region: (userRole === 'Regional Training Manager' || userRole === 'Regional Trainer') ? '南区' : undefined,
-                capture: {
-                  enabled: captureMode !== 'none',
-                  mediaKind: captureMode === 'none' ? undefined : captureMode,
-                  fullInteractionRecording: true,
-                  consentRequired: true,
-                  limits: {
-                    maxDurationSec: captureMode === 'none' ? 0 : 600,
-                    maxBytes: captureMode === 'video' ? 500 * 1024 * 1024 : captureMode === 'audio' ? 80 * 1024 * 1024 : 0,
-                    acceptedMimeTypes: captureMode === 'video' ? ['video/mp4', 'video/quicktime'] : captureMode === 'audio' ? ['audio/mpeg', 'audio/mp4', 'audio/wav'] : []
-                  }
-                } satisfies PracticeCaptureConfig,
-                captureStats: { submittedCount: 0, analysisCompletedCount: 0, consentDeniedCount: 0 },
-              }, ...tasks]);
-              setCaptureMode('none');
-              setCreateDialog(false);
-            }}>确认发布任务</Button>
+            <Button className="bg-rose-600 hover:bg-rose-700 text-white" onClick={handleCreatePracticeTask}>确认发布任务</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -676,6 +726,7 @@ export function PracticeTaskManage({ isReadOnly = false, userRole }: { isReadOnl
           </div>
         </DialogContent>
       </Dialog>
+
     </div>
   );
 }

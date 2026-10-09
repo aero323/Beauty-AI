@@ -6,6 +6,11 @@ import { Plus, BookOpen, Clock, Target, Calendar, CheckCircle2, ChevronRight, Fi
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { getProgressTone, getTaskStatusBadgeClass } from '../lib/visualTones';
 import { syncInspectionSource } from '../lib/inspectionStore';
+import { submitForApproval, useApprovalState } from '../lib/approvalStore';
+import { actorForApprover, creatorContextForRole, currentActorForRole } from '../lib/approvalEngine';
+import { regionNameOf } from '../lib/approvalTypes';
+import { buildCourseDetail } from '../lib/courseApprovalPreview';
+import type { Role } from '../types';
 
 const MOCK_COURSES = [
   { id: 'c1', title: '双萃系列核心卖点解析（2023版）', duration: '15 mins' },
@@ -75,6 +80,70 @@ export function StudyTaskManage({ isReadOnly = false, userRole }: { isReadOnly?:
   const [detailTask, setDetailTask] = useState<any>(null);
   const [deactivateTask, setDeactivateTask] = useState<any>(null);
 
+  // 审批：发布动作先走审批判断，通过后才对学员生效
+  const approvalState = useApprovalState();
+  const approvalActor = currentActorForRole((userRole ?? 'HQ Trainer') as Role, approvalState);
+  const [approvalNotice, setApprovalNotice] = React.useState('');
+  const approvedCourseOptions = approvalState.requests
+    .filter(item => item.type === 'course' && item.status === 'approved')
+    .map(item => ({ id: item.targetId, title: `${item.snapshot.title}（审批已生效）`, duration: '待定' }));
+  const courseOptions = [...MOCK_COURSES, ...approvedCourseOptions];
+
+  const handleCreateStudyTask = () => {
+    const id = `st${Date.now()}`;
+    const scopeInfo = creatorContextForRole((userRole ?? 'HQ Trainer') as Role);
+    const publishTime = new Date().toISOString().split('T')[0];
+    const draft = {
+      id,
+      title: '新建测试任务',
+      status: '进行中',
+      publishTime,
+      deadline: '2023-12-31',
+      target: '选中的人群',
+      courses: ['c1'],
+      progress: 0,
+      targetCount: 100,
+      completedCount: 0,
+      scope: scopeInfo.scope,
+      region: scopeInfo.scope === '区域' ? regionNameOf(scopeInfo.regionId) : undefined,
+    };
+    const result = submitForApproval({
+      type: 'study_task',
+      targetId: id,
+      creator: approvalActor,
+      snapshot: {
+        title: draft.title,
+        summary: '学习任务：拼装 1 门课件，面向选中人群，审批通过后下发。',
+        scope: scopeInfo.scope,
+        regionId: scopeInfo.regionId,
+        fields: [
+          { label: '分发对象', value: draft.target },
+          { label: '任务周期', value: `${publishTime} 至 ${draft.deadline}` },
+          { label: '包含课件', value: '双萃系列核心卖点解析（2023版）' },
+        ],
+        preview: [
+          {
+            label: '学习内容',
+            items: [{ text: '双萃系列核心卖点解析（2023版）', detail: buildCourseDetail('双萃系列核心卖点解析（2023版）') }],
+          },
+          { label: '完成要求', items: [`${publishTime} 至 ${draft.deadline} 内完成`, '完成后计入个人学习进度'] },
+        ],
+      },
+    });
+    if (result.mode === 'blocked') {
+      setApprovalNotice(result.error ?? '审批流程未配置完成，无法提交。');
+      return;
+    }
+    if (result.mode === 'pending') {
+      const names = (result.request?.approverIds ?? []).map(approverId => actorForApprover(approverId).name).join('、');
+      setApprovalNotice(`已提交审批，等待 ${names || '审批人'} 处理；通过前学员端不可见，可到「我的审批流转」查看进度或撤回。`);
+      setCreateDialog(false);
+      return;
+    }
+    setTasks([draft, ...tasks]);
+    setCreateDialog(false);
+  };
+
   const targets = (userRole === 'Regional Training Manager' || userRole === 'Regional Trainer')
     ? ['雅加达南区所有门店 BA', '本区域店长', '本区域新入职员工']
     : ['全国所有门店 BA', '所有区域经理', '全国店长', '入职不满3个月的新人'];
@@ -112,6 +181,9 @@ export function StudyTaskManage({ isReadOnly = false, userRole }: { isReadOnly?:
         </div>
 
         <div className="flex-1 overflow-y-auto p-3 space-y-2">
+          {approvalNotice && (
+            <div data-i18n-skip="true" className="rounded-lg border border-[#E8CCA0] bg-[#FFF7EA] px-3 py-2 text-[10px] leading-relaxed text-[#8B621F]">{approvalNotice}</div>
+          )}
           {tasks.map(task => (
             <div
               key={task.id}
@@ -292,23 +364,7 @@ export function StudyTaskManage({ isReadOnly = false, userRole }: { isReadOnly?:
 
           <div className="flex justify-end space-x-3 pt-4 border-t border-[#E9E4DF] shrink-0">
             <Button variant="outline" onClick={() => setCreateDialog(false)}>取消</Button>
-            <Button className="bg-rose-600 hover:bg-rose-700 text-white" onClick={() => {
-              setTasks([{
-                id: `st${Date.now()}`,
-                title: '新建测试任务',
-                status: '进行中',
-                publishTime: new Date().toISOString().split('T')[0],
-                deadline: '2023-12-31',
-                target: '选中的人群',
-                courses: ['c1'],
-                progress: 0,
-                targetCount: 100,
-                completedCount: 0,
-                scope: (userRole === 'Regional Training Manager' || userRole === 'Regional Trainer') ? '区域' : '全国',
-                region: (userRole === 'Regional Training Manager' || userRole === 'Regional Trainer') ? '南区' : undefined,
-              }, ...tasks]);
-              setCreateDialog(false);
-            }}>确认发布任务</Button>
+            <Button className="bg-rose-600 hover:bg-rose-700 text-white" onClick={handleCreateStudyTask}>确认发布任务</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -421,6 +477,7 @@ export function StudyTaskManage({ isReadOnly = false, userRole }: { isReadOnly?:
           </div>
         </DialogContent>
       </Dialog>
+
     </div>
   );
 }

@@ -50,6 +50,23 @@ const en: Dictionary = {
   '账号管理': 'Account Management',
   '品类设置': 'Category Settings',
   '通知设置': 'Notification Settings',
+  '审批中心': 'Approval Center',
+  '待我审批': 'My Approvals',
+  '我的审批流转': 'My Approval Flow',
+  '研发标注': 'Dev Notes',
+  '审批流程配置': 'Approval Flow Settings',
+  '审批记录': 'Approval Records',
+  '消息中心': 'Message Center',
+  '审批管理者': 'Approval Manager',
+  '黄金素材': 'Golden Material',
+  '审批工作台': 'Approval Workspace',
+  '待审批': 'Pending Approval',
+  '变更待审批': 'Revision Pending',
+  '已驳回': 'Rejected',
+  '已撤回': 'Withdrawn',
+  '同意': 'Approve',
+  '驳回': 'Reject',
+  '全部已读': 'Mark All Read',
   '系统设置': 'System Settings',
   '区域数据': 'Regional Data',
   '区域补充内容': 'Regional Content',
@@ -944,6 +961,23 @@ const id: Dictionary = {
   '账号管理': 'Manajemen Akun',
   '品类设置': 'Pengaturan Kategori',
   '通知设置': 'Pengaturan Notifikasi',
+  '审批中心': 'Pusat Persetujuan',
+  '待我审批': 'Persetujuan Saya',
+  '我的审批流转': 'Alur Persetujuan Saya',
+  '研发标注': 'Catatan Dev',
+  '审批流程配置': 'Konfigurasi Alur Persetujuan',
+  '审批记录': 'Riwayat Persetujuan',
+  '消息中心': 'Pusat Pesan',
+  '审批管理者': 'Manajer Persetujuan',
+  '黄金素材': 'Materi Emas',
+  '审批工作台': 'Ruang Kerja Persetujuan',
+  '待审批': 'Menunggu Persetujuan',
+  '变更待审批': 'Revisi Menunggu Persetujuan',
+  '已驳回': 'Ditolak',
+  '已撤回': 'Ditarik',
+  '同意': 'Setujui',
+  '驳回': 'Tolak',
+  '全部已读': 'Tandai Semua Dibaca',
   '系统设置': 'Pengaturan Sistem',
   '区域数据': 'Data Regional',
   '区域补充内容': 'Konten Regional',
@@ -1847,7 +1881,13 @@ const getTextNodeSource = (current: string, remembered?: string) => {
   if (hasCjk(restoredCurrent.trim())) {
     return restoredCurrent;
   }
-  return remembered ? restoreSourceText(remembered) : restoredCurrent;
+  // 动态文本（人名、英文状态等）会被 React 直接改成新值。
+  // 如果这里无脑回退到 remembered，切换审批身份 / 登录账号时界面会一直显示上一个人的名字。
+  // 只有「当前值确实是已知译文」时才回退到记住的原文，其余情况以当前 DOM 值为准。
+  if (current !== remembered && translationToSource[current.trim()] !== undefined) {
+    return remembered ? restoreSourceText(remembered) : restoredCurrent;
+  }
+  return restoredCurrent;
 };
 
 const translateTemplate = (text: string, language: Language) => {
