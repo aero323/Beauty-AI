@@ -4,7 +4,7 @@
  * 范围：课件、学习任务、练习任务、考试、音视频采集任务、数字人顾客、场景剧本七类培训师产出。
  * 题库题目与黄金素材沿用各自原有的审核口径（题库「审核入库」、素材库「确认进入黄金素材」的精选确认），
  * 不进入审批流程：这两处已有轻量人工确认，再叠一层审批太重。
- * 结构：单级审批，任一被指定审批人同意即生效；驳回必填理由、同单据可改可重提。
+ * 结构：多级审批按顺序逐级进行，每级任一被指定审批人同意后进入下一级；驳回必填理由、同单据可改可重提。
  * 配置：类型 × 范围（全国 / 区域），区域未单独配置时沿用全国流程。
  */
 
@@ -71,6 +71,8 @@ export interface ApprovalApproverAccount {
   /** 归属：总部 / 区域 */
   scope: '总部' | '区域';
   regionId?: string;
+  /** 部门（演示多级审批里的「市场部」场景） */
+  dept?: string;
   status: '已激活' | '未激活';
 }
 
@@ -80,6 +82,7 @@ export interface ApprovalApproverAccount {
  */
 export const APPROVER_ACCOUNTS: ApprovalApproverAccount[] = [
   { id: 'usr_am_rani', name: 'Rani Wijaya', email: 'rani.w@lumina.id', scope: '总部', status: '已激活' },
+  { id: 'usr_am_maya', name: 'Maya Kusuma', email: 'maya.k@lumina.id', scope: '总部', dept: '市场部', status: '已激活' },
   { id: 'usr_am_yoga', name: 'Yoga Pratama', email: 'yoga.p@lumina.id', scope: '区域', regionId: 'south', status: '已激活' },
 ];
 
@@ -90,12 +93,19 @@ export function approverAccountById(id: string): ApprovalApproverAccount | undef
 export function approverLabel(id: string): string {
   const account = approverAccountById(id);
   if (!account) return id;
+  if (account.dept) return `${account.name}（${account.dept}）`;
   return account.scope === '总部' ? `${account.name}（总部）` : `${account.name}（${regionNameOf(account.regionId)}）`;
+}
+
+/** 多级审批的单个层级：同一层级内任一审批人同意即进入下一层级 */
+export interface ApprovalLevel {
+  approverIds: string[];
 }
 
 export interface ApprovalFlowRule {
   enabled: boolean;
-  approverIds: string[];
+  /** 审批层级：按顺序逐级审批；单级流程只有一个层级 */
+  levels: ApprovalLevel[];
 }
 
 export interface ApprovalTypeFlow {
@@ -192,7 +202,12 @@ export interface ApprovalRequest {
   supersedesRequestId?: string;
   submittedAt: string;
   resolvedAt?: string;
+  /** 当前层级待处理的审批人（多级流程随审批推进更新）；任一同意后进入下一级 */
   approverIds: string[];
+  /** 提交时冻结的层级快照：下标 = 层级序号（0 起） */
+  levelApprovers: string[][];
+  /** 当前所处层级（0 起） */
+  currentLevel: number;
   decision?: ApprovalDecision;
   history: ApprovalEvent[];
   reminderSentAt?: string;

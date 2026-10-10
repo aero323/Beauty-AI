@@ -3,7 +3,8 @@
  *
  * 所有状态迁移都在这里完成：提交、同意、驳回、撤回、重提、提醒、配置修改。
  * 不依赖 localStorage 与 React，便于单测；持久化在 approvalStore.ts 里做。
- * 口径：单级审批，任一被指定审批人同意即生效；驳回必填理由；老版本在变更重审期间继续生效。
+ * 口径：多级审批按顺序逐级进行，每级任一被指定审批人同意后进入下一级，最后一级同意才生效；
+ *       任一级驳回即整单驳回（必填理由）；老版本在变更重审期间继续生效。
  */
 
 import type { Role } from '../types';
@@ -53,14 +54,15 @@ export type SubmitApprovalResult = ApprovalMutationResult & { mode: 'direct' | '
 export interface ResolvedApprovalRule {
   /** 是否需要审批 */
   required: boolean;
-  approverIds: string[];
+  /** 每级的审批人（下标 = 层级序号，0 起）；单级流程长度为 1 */
+  levels: string[][];
   /** 规则来源：总开关关闭 / 类型关闭 / 全国流程 / 区域流程 */
   source: 'master_off' | 'type_off' | 'national' | 'region';
   /** 区域内容是否沿用了全国流程 */
   regionFallback: boolean;
 }
 
-const emptyRule = (): ApprovalFlowRule => ({ enabled: false, approverIds: [] });
+const emptyRule = (): ApprovalFlowRule => ({ enabled: false, levels: [] });
 
 export function createDefaultApprovalConfig(): ApprovalConfig {
   const types = {} as Record<ApprovalObjectType, ApprovalTypeFlow>;
@@ -78,17 +80,17 @@ export function resolveApprovalRule(
 ): ResolvedApprovalRule {
   const typeFlow = config.types[type];
   if (!config.masterEnabled || !typeFlow) {
-    return { required: false, approverIds: [], source: 'master_off', regionFallback: false };
+    return { required: false, levels: [], source: 'master_off', regionFallback: false };
   }
   const regionalRule = scope === '区域' && regionId ? typeFlow.regional[regionId] : undefined;
   const rule = regionalRule ?? typeFlow.national;
   const source: ResolvedApprovalRule['source'] = regionalRule ? 'region' : typeFlow.national.enabled ? 'national' : 'type_off';
   if (!rule.enabled) {
-    return { required: false, approverIds: [], source: 'type_off', regionFallback: false };
+    return { required: false, levels: [], source: 'type_off', regionFallback: false };
   }
   return {
     required: true,
-    approverIds: [...rule.approverIds],
+    levels: rule.levels.map(level => [...level.approverIds]),
     source,
     regionFallback: scope === '区域' && !regionalRule,
   };
@@ -121,7 +123,8 @@ export function actorForApprover(approverId: string): ApprovalActor {
   if (!account) {
     return { id: approverId, name: approverId, role: '审批管理者', label: '审批管理者' };
   }
-  const scopeLabel = account.scope === '总部' ? '总部' : regionNameOf(account.regionId) ?? '区域';
+  const baseLabel = account.scope === '总部' ? '总部' : regionNameOf(account.regionId) ?? '区域';
+  const scopeLabel = account.dept ? `${baseLabel} · ${account.dept}` : baseLabel;
   return {
     id: account.id,
     name: account.name,
@@ -229,13 +232,16 @@ export function submitForApproval(
   if (!rule.required) {
     return { state, mode: 'direct' };
   }
-  if (rule.approverIds.length === 0) {
+  const missingLevel = rule.levels.findIndex(level => level.length === 0);
+  if (rule.levels.length === 0 || missingLevel >= 0) {
+    const detail = rule.levels.length === 0 ? '还没有配置审批层级' : `第 ${missingLevel + 1} 级还没有指定审批人`;
     return {
       state,
       mode: 'blocked',
-      error: `「${snapshot.scope === '区域' ? regionNameOf(snapshot.regionId) ?? '区域' : '全国'}」的${typeLabel(type)}审批已开启，但还没有指定审批人。请先让审批管理者在「审批流程配置」里补齐审批人。`,
+      error: `「${snapshot.scope === '区域' ? regionNameOf(snapshot.regionId) ?? '区域' : '全国'}」的${typeLabel(type)}审批已开启，但${detail}。请先让系统管理员在「审批流程配置」里补齐。`,
     };
   }
+  const levels = rule.levels;
   const at = now.toISOString();
   const existingVersions = state.requests
     .filter(item => item.type === type && item.targetId === targetId)
@@ -254,7 +260,9 @@ export function submitForApproval(
     isRevision: Boolean(input.isRevision),
     supersedesRequestId: input.supersedesRequestId,
     submittedAt: at,
-    approverIds: rule.approverIds,
+    approverIds: levels[0],
+    levelApprovers: levels,
+    currentLevel: 0,
     history: [
       {
         id: eventId(input.isRevision ? 'resubmit' : 'submit', at, targetId),
@@ -264,18 +272,20 @@ export function submitForApproval(
         actorName: creator.name,
         actorRole: creator.label,
         version,
-        note: input.isRevision ? '提交变更版本，等待审批' : '提交审批',
-        approverIds: rule.approverIds,
+        note: input.isRevision
+          ? `提交变更版本，等待第 1 级审批${levels.length > 1 ? `（共 ${levels.length} 级）` : ''}`
+          : levels.length > 1 ? `提交审批（共 ${levels.length} 级）` : '提交审批',
+        approverIds: levels[0],
       },
     ] as ApprovalEvent[],
   };
   let next: ApprovalState = { ...state, requests: [creation, ...state.requests] };
-  for (const approverId of rule.approverIds) {
+  for (const approverId of levels[0]) {
     const approver = actorForApprover(approverId);
     next = notify(next, {
       kind: 'todo',
       title: input.isRevision ? `变更待审批：${snapshot.title}` : `新的待审批：${snapshot.title}`,
-      body: `${creator.name}（${creator.label}）提交了${typeLabel(type)}，范围：${scopeText(snapshot)}${rule.regionFallback ? '（沿用全国流程）' : ''}。请查看后处理。`,
+      body: `${creator.name}（${creator.label}）提交了${typeLabel(type)}，范围：${scopeText(snapshot)}${rule.regionFallback ? '（沿用全国流程）' : ''}。${levels.length > 1 ? `本单共 ${levels.length} 级审批，当前第 1 级。` : ''}请查看后处理。`,
       recipientId: approver.id,
       recipientName: approver.name,
       requestId: creation.id,
@@ -294,6 +304,13 @@ function guardPending(state: ApprovalState, requestId: string, actor: ApprovalAc
     return { request, error: `该单据${handled}，无需重复操作。` };
   }
   if (!request.approverIds.includes(actor.id)) {
+    const myLevel = request.levelApprovers.findIndex(ids => ids.includes(actor.id));
+    if (myLevel > request.currentLevel) {
+      return { request, error: `当前进行到第 ${request.currentLevel + 1} 级，你负责第 ${myLevel + 1} 级；轮到时会收到待办通知。` };
+    }
+    if (myLevel >= 0 && myLevel < request.currentLevel) {
+      return { request, error: `你已在第 ${myLevel + 1} 级处理过这条单据，当前进行到第 ${request.currentLevel + 1} 级。` };
+    }
     return { request, error: '你不是这条流程指定的审批人。' };
   }
   return { request };
@@ -304,6 +321,51 @@ export function approveRequest(state: ApprovalState, requestId: string, actor: A
   if (!request) return { state, error };
   if (error) return { state, error, request };
   const at = now.toISOString();
+  const totalLevels = request.levelApprovers.length;
+  const level = request.currentLevel;
+  const isLastLevel = level >= totalLevels - 1;
+  const levelNote = totalLevels > 1 ? `第 ${level + 1} 级同意` : '同意';
+
+  // 非最后一级：推进到下一级，并通知下一级审批人
+  if (!isLastLevel) {
+    const nextLevel = level + 1;
+    const nextApprovers = [...request.levelApprovers[nextLevel]];
+    const updated: ApprovalRequest = {
+      ...request,
+      currentLevel: nextLevel,
+      approverIds: nextApprovers,
+      history: [
+        ...request.history,
+        {
+          id: eventId('approve', at, request.id),
+          action: 'approve',
+          at,
+          actorId: actor.id,
+          actorName: actor.name,
+          actorRole: actor.label,
+          version: request.version,
+          note: `${levelNote}，进入第 ${nextLevel + 1} 级`,
+        },
+      ],
+    };
+    let next = withRequest(state, updated);
+    for (const approverId of nextApprovers) {
+      const approver = actorForApprover(approverId);
+      next = notify(next, {
+        kind: 'todo',
+        title: `第 ${nextLevel + 1} 级待审批：${request.snapshot.title}`,
+        body: `${request.creatorName} 提交的${typeLabel(request.type)}已通过第 ${level + 1} 级，现在轮到你审批（第 ${nextLevel + 1} 级，共 ${totalLevels} 级）。`,
+        recipientId: approver.id,
+        recipientName: approver.name,
+        requestId: request.id,
+        targetTab: 'approval_inbox',
+        at,
+      });
+    }
+    return { state: next, request: updated };
+  }
+
+  // 最后一级：内容生效
   const decision: ApprovalDecision = { outcome: 'approved', byId: actor.id, byName: actor.name, at };
   const updated: ApprovalRequest = {
     ...request,
@@ -320,7 +382,7 @@ export function approveRequest(state: ApprovalState, requestId: string, actor: A
         actorName: actor.name,
         actorRole: actor.label,
         version: request.version,
-        note: '同意，内容生效',
+        note: totalLevels > 1 ? `${levelNote}，内容生效` : '同意，内容生效',
       },
     ],
   };
@@ -328,7 +390,7 @@ export function approveRequest(state: ApprovalState, requestId: string, actor: A
   next = notify(next, {
     kind: 'result',
     title: `审批通过：${request.snapshot.title}`,
-    body: `${actor.name} 已同意，${typeLabel(request.type)}已生效${request.isRevision ? '，新版本替换原生效版本' : ''}。`,
+    body: `${actor.name} 已同意${totalLevels > 1 ? `（最后一级，共 ${totalLevels} 级）` : ''}，${typeLabel(request.type)}已生效${request.isRevision ? '，新版本替换原生效版本' : ''}。`,
     recipientId: request.creatorId,
     recipientName: request.creatorName,
     requestId: request.id,
@@ -368,7 +430,7 @@ export function rejectRequest(
         actorName: actor.name,
         actorRole: actor.label,
         version: request.version,
-        note: trimmed,
+        note: request.levelApprovers.length > 1 ? `第 ${request.currentLevel + 1} 级驳回：${trimmed}` : trimmed,
       },
     ],
   };
@@ -413,7 +475,8 @@ export function withdrawRequest(state: ApprovalState, requestId: string, actor: 
     ],
   };
   let next = withRequest(state, updated);
-  for (const approverId of request.approverIds) {
+  const allApprovers = Array.from(new Set(request.levelApprovers.flat()));
+  for (const approverId of allApprovers) {
     const approver = actorForApprover(approverId);
     next = notify(next, {
       kind: 'withdrawn',
@@ -442,6 +505,8 @@ export function resubmitRequest(
   if (request.creatorId !== actor.id) return { state, error: '只有提交人可以重新提交这条单据。', request };
   const at = now.toISOString();
   const version = request.version + 1;
+  const totalLevels = request.levelApprovers.length;
+  const firstLevel = [...request.levelApprovers[0]];
   const updated: ApprovalRequest = {
     ...request,
     version,
@@ -450,6 +515,8 @@ export function resubmitRequest(
     resolvedAt: undefined,
     decision: undefined,
     reminderSentAt: undefined,
+    currentLevel: 0,
+    approverIds: firstLevel,
     history: [
       ...request.history,
       {
@@ -460,18 +527,18 @@ export function resubmitRequest(
         actorName: actor.name,
         actorRole: actor.label,
         version,
-        note: note.trim() || '修改后重新提交',
-        approverIds: request.approverIds,
+        note: totalLevels > 1 ? `${note.trim() || '修改后重新提交'}；重新从第 1 级开始审批` : note.trim() || '修改后重新提交',
+        approverIds: firstLevel,
       },
     ],
   };
   let next = withRequest(state, updated);
-  for (const approverId of request.approverIds) {
+  for (const approverId of firstLevel) {
     const approver = actorForApprover(approverId);
     next = notify(next, {
       kind: 'todo',
       title: `重新提交待审批：${request.snapshot.title}`,
-      body: `${actor.name} 已按驳回意见修改并重新提交（v${version}）。`,
+      body: `${actor.name} 已按驳回意见修改并重新提交（v${version}）${totalLevels > 1 ? `，重新从第 1 级开始（共 ${totalLevels} 级）` : ''}。`,
       recipientId: approver.id,
       recipientName: approver.name,
       requestId: request.id,
@@ -612,7 +679,7 @@ export function runReminders(state: ApprovalState, now = new Date()): ApprovalSt
       next = notify(next, {
         kind: 'reminder',
         title: `待审超过 ${waitedHours} 小时：${request.snapshot.title}`,
-        body: `${request.creatorName} 提交的${typeLabel(request.type)}还没处理，请尽快审批。系统不会自动通过。`,
+        body: `${request.creatorName} 提交的${typeLabel(request.type)}还没处理${request.levelApprovers.length > 1 ? `（当前第 ${request.currentLevel + 1} 级，共 ${request.levelApprovers.length} 级）` : ''}，请尽快审批。系统不会自动通过。`,
         recipientId: approver.id,
         recipientName: approver.name,
         requestId: request.id,
@@ -636,10 +703,18 @@ export function pendingForApprover(state: ApprovalState, approverId: string): Ap
     .sort((a, b) => a.submittedAt.localeCompare(b.submittedAt));
 }
 
+/** 我最后一次同意 / 驳回的时间（多级流程中间层级同意也计入「已处理」） */
+export function lastHandledAt(request: ApprovalRequest, approverId: string): string | undefined {
+  const events = request.history.filter(
+    event => (event.action === 'approve' || event.action === 'reject') && event.actorId === approverId,
+  );
+  return events[events.length - 1]?.at;
+}
+
 export function handledByApprover(state: ApprovalState, approverId: string): ApprovalRequest[] {
   return state.requests
-    .filter(item => item.decision?.byId === approverId)
-    .sort((a, b) => (b.resolvedAt ?? '').localeCompare(a.resolvedAt ?? ''));
+    .filter(item => lastHandledAt(item, approverId) !== undefined)
+    .sort((a, b) => (lastHandledAt(b, approverId) ?? '').localeCompare(lastHandledAt(a, approverId) ?? ''));
 }
 
 export function unreadCountFor(state: ApprovalState, recipientId: string): number {
@@ -664,14 +739,17 @@ export function approvalStatsFor(state: ApprovalState, approverId: string, now =
   const pending = pendingForApprover(state, approverId).length;
   const handled = handledByApprover(state, approverId);
   const todayKey = now.toISOString().slice(0, 10);
-  const handledToday = handled.filter(item => (item.resolvedAt ?? '').slice(0, 10) === todayKey).length;
+  const handledToday = handled.filter(item => (lastHandledAt(item, approverId) ?? '').slice(0, 10) === todayKey).length;
   const durations = handled
-    .map(item => (item.resolvedAt ? new Date(item.resolvedAt).getTime() - new Date(item.submittedAt).getTime() : 0))
+    .map(item => {
+      const at = lastHandledAt(item, approverId);
+      return at ? new Date(at).getTime() - new Date(item.submittedAt).getTime() : 0;
+    })
     .filter(value => value > 0);
   const averageHours = durations.length
     ? Math.round((durations.reduce((sum, value) => sum + value, 0) / durations.length / 3600000) * 10) / 10
     : null;
-  const rejected = handled.filter(item => item.decision?.outcome === 'rejected').length;
+  const rejected = handled.filter(item => item.decision?.outcome === 'rejected' && item.decision.byId === approverId).length;
   return { pending, handledToday, handledTotal: handled.length, averageHours, rejected };
 }
 

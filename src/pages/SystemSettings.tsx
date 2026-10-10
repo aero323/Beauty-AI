@@ -76,7 +76,7 @@ export function SystemSettings() {
                       </p>
                       <p className="mt-0.5 text-[10px] leading-relaxed text-[#9A9396]">
                         {flow.national.enabled
-                          ? `全国：${flow.national.approverIds.length ? flow.national.approverIds.map(approverLabel).join('、') : '未配审批人'}`
+                          ? `全国：${summarizeLevels(flow.national.levels)}`
                           : '全国：未开启'}
                         {regionalEnabled.length > 0 ? ` · 区域：${regionalEnabled.length} 个区域单独配置` : ''}
                       </p>
@@ -95,7 +95,8 @@ export function SystemSettings() {
             <div className="text-xs leading-relaxed text-[#766F73]">
               <p className="font-bold text-[#3F3A3D]">给研发的口径</p>
               <p className="mt-1">1. 这里的总开关是客户级（租户级）开关：关闭时所有类型直接生效，审批配置页只读。</p>
-              <p>2. 开启时按「类型 × 范围」判断是否需要审批；区域未单独配置就沿用全国流程；开启但未配审批人时提交会被阻止并提示补齐配置。</p>
+              <p>2. 开启时按「类型 × 范围」判断是否需要审批；区域未单独配置就沿用全国流程；开启但层级未配齐（缺审批人）时提交会被阻止并提示补齐配置。</p>
+            <p>2.1 多级审批按层级顺序逐级进行，最后一级同意才生效；任一级驳回即整单驳回。审批流程配置归超管（本页总开关 + 「审批流程配置」页）。</p>
               <p>3. 原型里审批人来自固定的演示账号名单，生产环境需要接到账号管理 / 组织权限系统，并禁止自审。</p>
             </div>
           </CardContent>
@@ -110,9 +111,22 @@ export function SystemSettings() {
   );
 }
 
+/** 把多级规则压成一行：第1级 A、B → 第2级 C */
+function summarizeLevels(levels: ApprovalTypeFlow['national']['levels']): string {
+  if (levels.length === 0 || levels.some(level => level.approverIds.length === 0)) return '未配齐审批人';
+  if (levels.length === 1) return levels[0].approverIds.map(approverLabel).join('、');
+  return levels
+    .map((level, index) => `第${index + 1}级 ${level.approverIds.map(approverLabel).join('、')}`)
+    .join(' → ');
+}
+
+function ruleIncomplete(rule: ApprovalTypeFlow['national']): boolean {
+  return rule.levels.length === 0 || rule.levels.some(level => level.approverIds.length === 0);
+}
+
 function PendingHint({ flow }: { flow: ApprovalTypeFlow }) {
-  const missing = (flow.national.enabled && flow.national.approverIds.length === 0)
-    || Object.values(flow.regional).some(rule => rule.enabled && rule.approverIds.length === 0);
+  const missing = (flow.national.enabled && ruleIncomplete(flow.national))
+    || Object.values(flow.regional).some(rule => rule.enabled && ruleIncomplete(rule));
   if (!missing) return <span className="mt-1 shrink-0" />;
   return (
     <span className="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-full bg-[#FFF7EA] px-1.5 py-0.5 text-[10px] font-bold text-[#8B621F]">

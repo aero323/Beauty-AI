@@ -46,7 +46,7 @@ import {
 } from './approvalTypes';
 
 const key = 'salesboost.approval.v1';
-const SCHEMA = 12;
+const SCHEMA = 13;
 
 let current: ApprovalState | undefined;
 let storageError = '';
@@ -67,28 +67,28 @@ function buildConfig(): ApprovalConfig {
   }
   types.course = {
     type: 'course',
-    national: { enabled: true, approverIds: ['usr_am_rani'] },
-    regional: { south: { enabled: true, approverIds: ['usr_am_yoga'] } },
+    national: { enabled: true, levels: [{ approverIds: ['usr_am_maya'] }, { approverIds: ['usr_am_rani'] }] },
+    regional: { south: { enabled: true, levels: [{ approverIds: ['usr_am_yoga'] }] } },
     updatedAt: new Date().toISOString(),
     updatedBy: '审批管理者',
   };
   types.study_task = {
     type: 'study_task',
-    national: { enabled: true, approverIds: ['usr_am_rani'] },
+    national: { enabled: true, levels: [{ approverIds: ['usr_am_rani'] }] },
     regional: {},
     updatedAt: new Date().toISOString(),
     updatedBy: '审批管理者',
   };
   types.practice_task = {
     type: 'practice_task',
-    national: { enabled: false, approverIds: [] },
-    regional: { south: { enabled: true, approverIds: ['usr_am_yoga'] } },
+    national: { enabled: false, levels: [] },
+    regional: { south: { enabled: true, levels: [{ approverIds: ['usr_am_yoga'] }] } },
     updatedAt: new Date().toISOString(),
     updatedBy: '审批管理者',
   };
   types.exam = {
     type: 'exam',
-    national: { enabled: true, approverIds: ['usr_am_rani'] },
+    national: { enabled: true, levels: [{ approverIds: ['usr_am_rani'] }] },
     regional: {},
     updatedAt: new Date().toISOString(),
     updatedBy: '审批管理者',
@@ -96,7 +96,7 @@ function buildConfig(): ApprovalConfig {
   // 音视频采集任务默认关闭：留给演示「客户按类型打开审批」
   types.media_task = {
     type: 'media_task',
-    national: { enabled: false, approverIds: [] },
+    national: { enabled: false, levels: [] },
     regional: {},
     updatedAt: new Date().toISOString(),
     updatedBy: '审批管理者',
@@ -104,16 +104,16 @@ function buildConfig(): ApprovalConfig {
   // 数字人顾客接入同一套审批（AI 陪练模块的内容，与场景剧本同口径）
   types.digital_human = {
     type: 'digital_human',
-    national: { enabled: true, approverIds: ['usr_am_rani'] },
-    regional: { south: { enabled: true, approverIds: ['usr_am_yoga'] } },
+    national: { enabled: true, levels: [{ approverIds: ['usr_am_rani'] }] },
+    regional: { south: { enabled: true, levels: [{ approverIds: ['usr_am_yoga'] }] } },
     updatedAt: new Date().toISOString(),
     updatedBy: '审批管理者',
   };
   // 场景剧本接入同一套审批；题库与素材库保持各自原有的轻量审核，不进审批
   types.script = {
     type: 'script',
-    national: { enabled: true, approverIds: ['usr_am_rani'] },
-    regional: { south: { enabled: true, approverIds: ['usr_am_yoga'] } },
+    national: { enabled: true, levels: [{ approverIds: ['usr_am_rani'] }] },
+    regional: { south: { enabled: true, levels: [{ approverIds: ['usr_am_yoga'] }] } },
     updatedAt: new Date().toISOString(),
     updatedBy: '审批管理者',
   };
@@ -154,9 +154,11 @@ export function createSeedApprovalState(now = new Date()): ApprovalState {
     status: 'pending',
     isRevision: false,
     submittedAt: at26h,
-    approverIds: ['usr_am_rani'],
+    approverIds: ['usr_am_maya'],
+    levelApprovers: [['usr_am_maya'], ['usr_am_rani']],
+    currentLevel: 0,
     history: [
-      { id: 'apr-seed-course-1-submit', action: 'submit', at: at26h, actorId: 'usr_ht_sarah', actorName: 'Sarah Lee', actorRole: '总部培训师', version: 1, note: '提交审批，等待总部审批人确认', approverIds: ['usr_am_rani'] },
+      { id: 'apr-seed-course-1-submit', action: 'submit', at: at26h, actorId: 'usr_ht_sarah', actorName: 'Sarah Lee', actorRole: '总部培训师', version: 1, note: '提交审批（共 2 级：市场部 → 总部）', approverIds: ['usr_am_maya'] },
     ],
   };
 
@@ -193,6 +195,8 @@ export function createSeedApprovalState(now = new Date()): ApprovalState {
     submittedAt: at2d,
     resolvedAt: at2d,
     approverIds: ['usr_am_rani'],
+    levelApprovers: [['usr_am_rani']],
+    currentLevel: 0,
     decision: { outcome: 'approved', byId: 'usr_am_rani', byName: 'Rani Wijaya', at: at2d },
     history: [
       { id: 'apr-seed-study-1-submit', action: 'submit', at: at2d, actorId: 'usr_ht_sarah', actorName: 'Sarah Lee', actorRole: '总部培训师', version: 1, note: '提交审批', approverIds: ['usr_am_rani'] },
@@ -262,6 +266,8 @@ export function createSeedApprovalState(now = new Date()): ApprovalState {
     supersedesRequestId: 'apr-seed-course-live-1',
     submittedAt: at5h,
     approverIds: ['usr_am_rani'],
+    levelApprovers: [['usr_am_rani']],
+    currentLevel: 0,
     history: [
       { id: 'apr-seed-course-2-submit', action: 'resubmit', at: at5h, actorId: 'usr_ht_sarah', actorName: 'Sarah Lee', actorRole: '总部培训师', version: 2, note: '提交变更版本，等待审批', approverIds: ['usr_am_rani'] },
     ],
@@ -292,6 +298,8 @@ export function createSeedApprovalState(now = new Date()): ApprovalState {
     submittedAt: hoursAgo(now, 14 * 24),
     resolvedAt: hoursAgo(now, 14 * 24),
     approverIds: ['usr_am_rani'],
+    levelApprovers: [['usr_am_rani']],
+    currentLevel: 0,
     decision: { outcome: 'approved', byId: 'usr_am_rani', byName: 'Rani Wijaya', at: hoursAgo(now, 14 * 24) },
     history: [
       { id: 'apr-seed-course-live-1-submit', action: 'submit', at: hoursAgo(now, 14 * 24), actorId: 'usr_ht_sarah', actorName: 'Sarah Lee', actorRole: '总部培训师', version: 1, note: '提交审批', approverIds: ['usr_am_rani'] },
@@ -326,6 +334,8 @@ export function createSeedApprovalState(now = new Date()): ApprovalState {
     isRevision: false,
     submittedAt: at3h,
     approverIds: ['usr_am_yoga'],
+    levelApprovers: [['usr_am_yoga']],
+    currentLevel: 0,
     history: [
       { id: 'apr-seed-practice-1-submit', action: 'submit', at: at3h, actorId: 'usr_rt_nurul', actorName: 'Nurul Huda', actorRole: '区域培训师（雅加达南区）', version: 1, note: '提交审批，等待区域审批人确认', approverIds: ['usr_am_yoga'] },
     ],
@@ -359,6 +369,8 @@ export function createSeedApprovalState(now = new Date()): ApprovalState {
     submittedAt: at1d,
     resolvedAt: hoursAgo(now, 28),
     approverIds: ['usr_am_yoga'],
+    levelApprovers: [['usr_am_yoga']],
+    currentLevel: 0,
     decision: {
       outcome: 'rejected',
       byId: 'usr_am_yoga',
@@ -399,6 +411,8 @@ export function createSeedApprovalState(now = new Date()): ApprovalState {
     isRevision: false,
     submittedAt: at2h,
     approverIds: ['usr_am_yoga'],
+    levelApprovers: [['usr_am_yoga']],
+    currentLevel: 0,
     history: [
       { id: 'apr-seed-script-1-submit', action: 'submit', at: at2h, actorId: 'usr_rt_nurul', actorName: 'Nurul Huda', actorRole: '区域培训师（雅加达南区）', version: 1, note: '提交区域剧本审批', approverIds: ['usr_am_yoga'] },
     ],
@@ -432,6 +446,8 @@ export function createSeedApprovalState(now = new Date()): ApprovalState {
     isRevision: false,
     submittedAt: at4h,
     approverIds: ['usr_am_yoga'],
+    levelApprovers: [['usr_am_yoga']],
+    currentLevel: 0,
     history: [
       { id: 'apr-seed-avatar-1-submit', action: 'submit', at: at4h, actorId: 'usr_rt_nurul', actorName: 'Nurul Huda', actorRole: '区域培训师（雅加达南区）', version: 1, note: '提交数字人顾客审批', approverIds: ['usr_am_yoga'] },
     ],
@@ -456,11 +472,11 @@ export function createSeedApprovalState(now = new Date()): ApprovalState {
       kind: 'todo',
       category: 'approval',
       title: '新的待审批：双萃精华冬季主推话术（2026版）',
-      body: 'Sarah Lee（总部培训师）提交了课件，范围：全国。请查看后处理。',
+      body: 'Sarah Lee（总部培训师）提交了课件，范围：全国。本单共 2 级审批（市场部 → 总部），当前第 1 级。请查看后处理。',
       createdAt: at26h,
       readAt: undefined,
-      recipientId: 'usr_am_rani',
-      recipientName: 'Rani Wijaya',
+      recipientId: 'usr_am_maya',
+      recipientName: 'Maya Kusuma',
       channels: ['inbox', 'app_push', 'whatsapp'],
       requestId: pendingCourse.id,
       targetTab: 'approval_inbox',
@@ -560,7 +576,11 @@ function isCompatible(saved: any): boolean {
   if (!config || typeof config.masterEnabled !== 'boolean' || !config.types) return false;
   if (!Array.isArray(requests) || !Array.isArray(notifications)) return false;
   for (const type of APPROVAL_TYPE_ORDER) {
-    if (!config.types[type]) return false;
+    const flow = config.types[type];
+    if (!flow || !Array.isArray(flow.national?.levels)) return false;
+    for (const rule of Object.values(flow.regional ?? {}) as any[]) {
+      if (!Array.isArray(rule?.levels)) return false;
+    }
   }
   for (const request of requests) {
     if (!request || typeof request.id !== 'string' || typeof request.targetId !== 'string') return false;
@@ -568,6 +588,8 @@ function isCompatible(saved: any): boolean {
     if (!['pending', 'approved', 'rejected', 'withdrawn'].includes(request.status)) return false;
     if (!request.snapshot || typeof request.snapshot.title !== 'string') return false;
     if (!Array.isArray(request.history) || !Array.isArray(request.approverIds)) return false;
+    if (!Array.isArray(request.levelApprovers) || !request.levelApprovers.every((ids: unknown) => Array.isArray(ids))) return false;
+    if (typeof request.currentLevel !== 'number') return false;
   }
   for (const item of notifications) {
     if (!item || typeof item.id !== 'string' || typeof item.recipientId !== 'string') return false;

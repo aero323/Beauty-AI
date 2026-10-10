@@ -33,8 +33,8 @@ function baseState(): ApprovalState {
   };
 }
 
-function withNationalCourseRule(state: ApprovalState, approverIds = ['usr_am_rani']): ApprovalState {
-  return setFlowRule(state, 'course', 'national', { enabled: true, approverIds }, 'test', now);
+function withNationalCourseRule(state: ApprovalState, levels: string[][] = [['usr_am_rani']]): ApprovalState {
+  return setFlowRule(state, 'course', 'national', { enabled: true, levels: levels.map(ids => ({ approverIds: ids })) }, 'test', now);
 }
 
 function nationalSnapshot(): ApprovalSnapshot {
@@ -63,7 +63,7 @@ test('配置解析：总开关、类型开关、区域回退与未配审批人',
   const nationalOnly = withNationalCourseRule(baseState());
   const national = resolveApprovalRule(nationalOnly.config, 'course', '全国');
   assert.equal(national.required, true);
-  assert.deepEqual(national.approverIds, ['usr_am_rani']);
+  assert.deepEqual(national.levels, [['usr_am_rani']]);
 
   // 区域未单独配置 → 沿用全国流程
   const fallback = resolveApprovalRule(nationalOnly.config, 'course', '区域', 'south');
@@ -72,15 +72,19 @@ test('配置解析：总开关、类型开关、区域回退与未配审批人',
   assert.equal(fallback.source, 'national');
 
   // 区域单独配置 → 使用区域审批人
-  const regional = setFlowRule(nationalOnly, 'course', 'south', { enabled: true, approverIds: ['usr_am_yoga'] }, 'test', now);
+  const regional = setFlowRule(nationalOnly, 'course', 'south', { enabled: true, levels: [{ approverIds: ['usr_am_yoga'] }] }, 'test', now);
   const resolved = resolveApprovalRule(regional.config, 'course', '区域', 'south');
   assert.equal(resolved.source, 'region');
-  assert.deepEqual(resolved.approverIds, ['usr_am_yoga']);
+  assert.deepEqual(resolved.levels, [['usr_am_yoga']]);
 
-  // 开启但没配审批人：需要审批但池子为空，提交会被阻止
+  // 多级规则：解析返回逐层审批人
+  const multi = resolveApprovalRule(withNationalCourseRule(baseState(), [['usr_am_rani'], ['usr_am_yoga']]).config, 'course', '全国');
+  assert.deepEqual(multi.levels, [['usr_am_rani'], ['usr_am_yoga']]);
+
+  // 开启但没配层级：需要审批但层级为空，提交会被阻止
   const missing = resolveApprovalRule(withNationalCourseRule(baseState(), []).config, 'course', '全国');
   assert.equal(missing.required, true);
-  assert.deepEqual(missing.approverIds, []);
+  assert.deepEqual(missing.levels, []);
 });
 
 test('提交：生成待审批单据并通知审批人', () => {
@@ -90,6 +94,8 @@ test('提交：生成待审批单据并通知审批人', () => {
   const request = result.request!;
   assert.equal(request.status, 'pending');
   assert.deepEqual(request.approverIds, ['usr_am_rani']);
+  assert.deepEqual(request.levelApprovers, [['usr_am_rani']]);
+  assert.equal(request.currentLevel, 0);
   assert.equal(request.version, 1);
   assert.equal(request.history.length, 1);
   assert.equal(unreadCountFor(result.state, 'usr_am_rani'), 1);
@@ -98,11 +104,14 @@ test('提交：生成待审批单据并通知审批人', () => {
   assert.equal(unreadCountFor(result.state, 'usr_ht_sarah'), 0);
 });
 
-test('提交：开启审批但未指定审批人时被阻止', () => {
-  const state = withNationalCourseRule(baseState(), []);
-  const result = submitForApproval(state, { type: 'course', targetId: 'course-1', snapshot: nationalSnapshot(), creator }, now);
-  assert.equal(result.mode, 'blocked');
-  assert.match(result.error ?? '', /还没有指定审批人/);
+test('提交：开启审批但层级未配齐时被阻止', () => {
+  const noLevels = submitForApproval(withNationalCourseRule(baseState(), []), { type: 'course', targetId: 'course-1', snapshot: nationalSnapshot(), creator }, now);
+  assert.equal(noLevels.mode, 'blocked');
+  assert.match(noLevels.error ?? '', /还没有配置审批层级/);
+
+  const missingSecond = submitForApproval(withNationalCourseRule(baseState(), [['usr_am_rani'], []]), { type: 'course', targetId: 'course-1', snapshot: nationalSnapshot(), creator }, now);
+  assert.equal(missingSecond.mode, 'blocked');
+  assert.match(missingSecond.error ?? '', /第 2 级还没有指定审批人/);
 });
 
 test('提交：未开启审批时直接生效（不产生单据）', () => {
@@ -180,7 +189,7 @@ test('变更重审：新版本审批期间老版本继续生效', () => {
 });
 
 test('区域流程：区域审批人处理区域单据，未被指定的审批人不能操作', () => {
-  let state = setFlowRule(baseState(), 'practice_task', 'south', { enabled: true, approverIds: ['usr_am_yoga'] }, 'test', now);
+  let state = setFlowRule(baseState(), 'practice_task', 'south', { enabled: true, levels: [{ approverIds: ['usr_am_yoga'] }] }, 'test', now);
   const submitted = submitForApproval(state, { type: 'practice_task', targetId: 'task-1', snapshot: regionalSnapshot(), creator: regionalCreator }, now);
   assert.equal(submitted.mode, 'pending');
   state = submitted.state;
@@ -216,17 +225,17 @@ test('已有在审单据时不重复排队', () => {
 
 test('数字人顾客接入同一套配置与审批流程（全国 / 区域两档）', () => {
   let state = baseState();
-  state = setFlowRule(state, 'digital_human', 'national', { enabled: true, approverIds: ['usr_am_rani'] }, 'test', now);
-  state = setFlowRule(state, 'digital_human', 'south', { enabled: true, approverIds: ['usr_am_yoga'] }, 'test', now);
+  state = setFlowRule(state, 'digital_human', 'national', { enabled: true, levels: [{ approverIds: ['usr_am_rani'] }] }, 'test', now);
+  state = setFlowRule(state, 'digital_human', 'south', { enabled: true, levels: [{ approverIds: ['usr_am_yoga'] }] }, 'test', now);
 
   // 区域单据走区域审批人；未单独配置的区域沿用全国流程
   const southRule = resolveApprovalRule(state.config, 'digital_human', '区域', 'south');
   assert.equal(southRule.source, 'region');
-  assert.deepEqual(southRule.approverIds, ['usr_am_yoga']);
+  assert.deepEqual(southRule.levels, [['usr_am_yoga']]);
   const northRule = resolveApprovalRule(state.config, 'digital_human', '区域', 'north');
   assert.equal(northRule.source, 'national');
   assert.equal(northRule.regionFallback, true);
-  assert.deepEqual(northRule.approverIds, ['usr_am_rani']);
+  assert.deepEqual(northRule.levels, [['usr_am_rani']]);
 
   // 提交后进入待审批；通过前不生效，任一区域审批人同意即生效
   const snapshot: ApprovalSnapshot = {
@@ -248,14 +257,14 @@ test('数字人顾客接入同一套配置与审批流程（全国 / 区域两�
 
 test('场景剧本接入同一套配置与审批流程（题库与素材库不接审批）', () => {
   let state = baseState();
-  state = setFlowRule(state, 'script', 'south', { enabled: true, approverIds: ['usr_am_yoga'] }, 'test', now);
+  state = setFlowRule(state, 'script', 'south', { enabled: true, levels: [{ approverIds: ['usr_am_yoga'] }] }, 'test', now);
 
   // 题库与素材库已从审批对象里移除，配置里不再存在对应流程
   assert.equal(Object.prototype.hasOwnProperty.call(state.config.types, 'question'), false);
   assert.equal(Object.prototype.hasOwnProperty.call(state.config.types, 'material'), false);
   const scriptRule = resolveApprovalRule(state.config, 'script', '区域', 'south');
   assert.equal(scriptRule.source, 'region');
-  assert.deepEqual(scriptRule.approverIds, ['usr_am_yoga']);
+  assert.deepEqual(scriptRule.levels, [['usr_am_yoga']]);
 
   const scriptSnapshot: ApprovalSnapshot = {
     title: '场景剧本：敏感肌换季安抚（南区版）',
@@ -269,4 +278,52 @@ test('场景剧本接入同一套配置与审批流程（题库与素材库不�
   const approved = approveRequest(submitted.state, submitted.request!.id, southApprover, now);
   assert.equal(approved.request?.status, 'approved');
   assert.equal(approved.request?.type, 'script');
+});
+
+test('多级审批：按层级顺序推进，最后一级同意才生效', () => {
+  const state = withNationalCourseRule(baseState(), [['usr_am_rani'], ['usr_am_yoga']]);
+  const submitted = submitForApproval(state, { type: 'course', targetId: 'course-1', snapshot: nationalSnapshot(), creator }, now);
+  assert.equal(submitted.mode, 'pending');
+  const request = submitted.request!;
+  assert.deepEqual(request.levelApprovers, [['usr_am_rani'], ['usr_am_yoga']]);
+  assert.equal(request.currentLevel, 0);
+  assert.deepEqual(request.approverIds, ['usr_am_rani']);
+
+  // 第 2 级审批人不能提前处理
+  const early = approveRequest(submitted.state, request.id, southApprover, now);
+  assert.match(early.error ?? '', /当前进行到第 1 级/);
+  assert.equal(early.state.requests[0].status, 'pending');
+
+  // 第 1 级同意 → 推进到第 2 级并通知下一级
+  const level1 = approveRequest(submitted.state, request.id, hqApprover, now);
+  assert.equal(level1.request?.status, 'pending');
+  assert.equal(level1.request?.currentLevel, 1);
+  assert.deepEqual(level1.request?.approverIds, ['usr_am_yoga']);
+  assert.ok(level1.state.notifications.some(item => item.recipientId === 'usr_am_yoga' && item.kind === 'todo'));
+
+  // 第 2 级同意 → 内容生效并通知创建者
+  const level2 = approveRequest(level1.state, request.id, southApprover, now);
+  assert.equal(level2.request?.status, 'approved');
+  assert.equal(level2.request?.decision?.byName, 'Yoga Pratama');
+  assert.ok(level2.state.notifications.some(item => item.recipientId === 'usr_ht_sarah' && item.kind === 'result'));
+
+  // 层级推进后，第 1 级审批人不能再重复处理
+  const repeat = approveRequest(level2.state, request.id, hqApprover, now);
+  assert.match(repeat.error ?? '', /已被 Yoga Pratama 处理/);
+});
+
+test('多级审批：任一级驳回即整单驳回，重提后从第 1 级重新开始', () => {
+  const state = withNationalCourseRule(baseState(), [['usr_am_rani'], ['usr_am_yoga']]);
+  const submitted = submitForApproval(state, { type: 'course', targetId: 'course-1', snapshot: nationalSnapshot(), creator }, now).state;
+  const requestId = submitted.requests[0].id;
+
+  const level1 = approveRequest(submitted, requestId, hqApprover, now);
+  const rejected = rejectRequest(level1.state, requestId, southApprover, '第 2 级不通过：附件缺失', now);
+  assert.equal(rejected.request?.status, 'rejected');
+  assert.equal(rejected.request?.decision?.byName, 'Yoga Pratama');
+
+  const resubmitted = resubmitRequest(rejected.state, requestId, creator, '已补齐附件', now);
+  assert.equal(resubmitted.request?.status, 'pending');
+  assert.equal(resubmitted.request?.currentLevel, 0);
+  assert.deepEqual(resubmitted.request?.approverIds, ['usr_am_rani']);
 });

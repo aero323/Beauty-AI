@@ -10,8 +10,9 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
-import { CheckCircle2, Clock3, Eye, FileText, GitCompare, ListChecks, Send, Undo2, XCircle } from 'lucide-react';
+import { CheckCircle2, Clock3, Eye, FileText, ListChecks, Send, Undo2, XCircle } from 'lucide-react';
 import { ApprovalStatusBadge } from './ApprovalStatusBadge';
+import { DevNote } from '../DevNote';
 import {
   approveRequest,
   rejectRequest,
@@ -21,16 +22,24 @@ import {
   withdrawRequest,
 } from '../../lib/approvalStore';
 import {
+  actorForApprover,
   approversOf,
   formatDateTime,
   formatRelative,
-  liveApprovedRequestForTarget,
   requestById,
   scopeText,
   typeLabel,
 } from '../../lib/approvalEngine';
 import type { ApprovalActor, ApprovalAction, ApprovalPreviewDetail } from '../../lib/approvalTypes';
 import type { Role } from '../../types';
+
+function cnDot(passed: boolean, rejectedHere: boolean, current: boolean): string {
+  const base = 'flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold';
+  if (passed) return `${base} bg-[#EEF8F4] text-[#3B8F72] ring-1 ring-[#BFDCCF]`;
+  if (rejectedHere) return `${base} bg-red-50 text-red-600 ring-1 ring-red-200`;
+  if (current) return `${base} bg-[#EEF1FF] text-[#3F48B4] ring-1 ring-[#C7CDFF]`;
+  return `${base} bg-[#F8F5F3] text-[#9A9396] ring-1 ring-[#EFE9E5]`;
+}
 
 const ACTION_META: Record<ApprovalAction, { label: string; icon: React.ElementType; className: string }> = {
   submit: { label: '提交审批', icon: Send, className: 'text-[#515BCB]' },
@@ -79,12 +88,9 @@ export function ApprovalDetailDialog({
 
   const canDecide = request.status === 'pending' && request.approverIds.includes(actor.id);
   const isCreator = request.creatorId === actor.id;
-  const liveVersion = request.isRevision
-    ? liveApprovedRequestForTarget(state, request.type, request.targetId)
-    : undefined;
 
-  const run = (result: { error?: string }) => {
-    setFeedback(result.error ?? '操作成功。');
+  const run = (result: { error?: string }, successText = '操作成功。') => {
+    setFeedback(result.error ?? successText);
     if (result.error) return;
     setRejecting(false);
     setReason('');
@@ -121,7 +127,12 @@ export function ApprovalDetailDialog({
               )}
             </div>
             <h3 data-i18n-skip="true" className="mt-2 text-base font-bold leading-snug text-[#242124]">{request.snapshot.title}</h3>
-            <p className="mt-1 text-xs leading-relaxed text-[#5D565A]">{request.snapshot.summary}</p>
+            <div className="relative">
+              <p className="mt-1 text-xs leading-relaxed text-[#5D565A]">{request.snapshot.summary}</p>
+              <DevNote className="-right-1 -top-2" tipClassName="w-[24rem]">
+                变更 / 提审的摘要由模型自动生成：随单据产出，供审批人快速了解改了什么。原型里展示的是预置 / 手填文案，生产环境由服务端模型生成并随单据留痕。
+              </DevNote>
+            </div>
             <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-[#766F73]">
               {/* 提交人在「我的审批流转」里就是自己，不再重复展示 */}
               {!isCreator && <span>提交人：{request.creatorName}（{request.history[0]?.actorRole ?? '创建者'}）</span>}
@@ -144,9 +155,27 @@ export function ApprovalDetailDialog({
                     </div>
                   ))}
                 </div>
-                {request.isRevision && liveVersion && (
-                  <div className="mt-3 rounded-lg border border-[#DCEFE7] bg-[#EEF8F4] px-3 py-2 text-[11px] leading-relaxed text-[#2F735C]">
-                    老版本继续生效：「{liveVersion.snapshot.title}」仍在学员端可用，本次通过后替换为新版本，驳回则不影响老版本。
+                {request.levelApprovers.length > 1 && (
+                  <div className="mt-3 rounded-lg border border-[#EEF1FF] bg-[#F8F9FF] px-3 py-2.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#3F48B4]">审批层级（共 {request.levelApprovers.length} 级）</p>
+                    <ol className="mt-2 space-y-1.5">
+                      {request.levelApprovers.map((ids, index) => {
+                        const passed = index < request.currentLevel || request.status === 'approved';
+                        const rejectedHere = request.status === 'rejected' && index === request.currentLevel;
+                        const current = index === request.currentLevel && request.status === 'pending';
+                        const names = ids.map(id => actorForApprover(id).name).join('、') || '未指定';
+                        return (
+                          <li key={index} className="flex flex-wrap items-center gap-1.5 text-[11px] leading-relaxed">
+                            <span className={cnDot(passed, rejectedHere, current)} />
+                            <span className="font-bold text-[#3F3A3D]">第 {index + 1} 级</span>
+                            <span data-i18n-skip="true" className="text-[#766F73]">{names}</span>
+                            <span className={`ml-auto text-[10px] font-bold ${passed ? 'text-[#3B8F72]' : rejectedHere ? 'text-red-600' : current ? 'text-[#3F48B4]' : 'text-[#9A9396]'}`}>
+                              {passed ? '已通过' : rejectedHere ? '已驳回' : current ? '待处理' : '等待中'}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ol>
                   </div>
                 )}
               </section>
@@ -179,7 +208,9 @@ export function ApprovalDetailDialog({
                 </ol>
                 {request.status === 'pending' && (
                   <p className="mt-3 rounded-lg bg-[#F8F5F3] px-3 py-2 text-[11px] leading-relaxed text-[#766F73]">
-                    待审批人：{approversOf(request).map(item => item.name).join('、')} · 任一审批人同意即生效（单级审批）
+                    {request.levelApprovers.length > 1
+                      ? `当前第 ${request.currentLevel + 1} 级审批人：${approversOf(request).map(item => item.name).join('、')} · 任一同意后${request.currentLevel < request.levelApprovers.length - 1 ? `进入第 ${request.currentLevel + 2} 级` : '内容生效'}（共 ${request.levelApprovers.length} 级）`
+                      : `待审批人：${approversOf(request).map(item => item.name).join('、')} · 任一审批人同意即生效（单级审批）`}
                   </p>
                 )}
                 {request.decision && request.status !== 'pending' && (
@@ -196,12 +227,9 @@ export function ApprovalDetailDialog({
             {/* 右栏：内容预览——审批人在这里看清「批的到底是什么」 */}
             <div className="space-y-4">
               <section className="rounded-xl border border-[#D8DEFF] bg-[#FCFDFF] p-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="flex items-center gap-1.5 text-xs font-bold text-[#3F48B4]">
-                    <Eye className="h-3.5 w-3.5" /> 内容预览
-                  </p>
-                  <span className="text-[10px] font-bold text-[#9A9396]">审批人视角 · 只读</span>
-                </div>
+                <p className="flex items-center gap-1.5 text-xs font-bold text-[#3F48B4]">
+                  <Eye className="h-3.5 w-3.5" /> 内容预览
+                </p>
                 {request.snapshot.preview && request.snapshot.preview.length > 0 ? (
                   <div className="mt-3 space-y-3">
                     {request.snapshot.preview.map(section => (
@@ -239,19 +267,6 @@ export function ApprovalDetailDialog({
                   注：条目右侧「查看详情」可按课件逐页 / 附加题题干与答案查看二级详情；生产环境这里渲染真实内容（PPT 逐页、视频播放器、题目组件），并与生效版本做逐项差异对比，原型用结构化内容模拟。
                 </p>
               </section>
-
-              {request.snapshot.changeSummary && request.snapshot.changeSummary.length > 0 && (
-                <section className="rounded-xl border border-[#D8DEFF] bg-[#F8F9FF] p-4">
-                  <p className="flex items-center gap-1.5 text-xs font-bold text-[#3F48B4]">
-                    <GitCompare className="h-3.5 w-3.5" /> 本次变更点
-                  </p>
-                  <ul className="mt-2 space-y-1">
-                    {request.snapshot.changeSummary.map((item, index) => (
-                      <li key={index} data-i18n-skip="true" className="text-xs leading-relaxed text-[#3F48B4]">· {item}</li>
-                    ))}
-                  </ul>
-                </section>
-              )}
             </div>
           </div>
 
@@ -264,8 +279,20 @@ export function ApprovalDetailDialog({
               <Button variant="outline" className="border-red-200 text-red-600 hover:bg-red-50" onClick={() => setRejecting(true)}>
                 <XCircle className="h-4 w-4" /> 驳回
               </Button>
-              <Button className="bg-[#3B8F72] text-white hover:bg-[#2F735C]" onClick={() => run(approveRequest(request.id, actor))}>
-                <CheckCircle2 className="h-4 w-4" /> 同意，内容生效
+              <Button
+                className="bg-[#3B8F72] text-white hover:bg-[#2F735C]"
+                onClick={() => {
+                  const isLastLevel = request.currentLevel >= request.levelApprovers.length - 1;
+                  return run(
+                    approveRequest(request.id, actor),
+                    isLastLevel
+                      ? '已同意，内容生效。'
+                      : `已通过第 ${request.currentLevel + 1} 级，进入第 ${request.currentLevel + 2} 级审批。`,
+                  );
+                }}
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                {request.currentLevel < request.levelApprovers.length - 1 ? `同意，进入第 ${request.currentLevel + 2} 级` : '同意，内容生效'}
               </Button>
             </div>
           )}

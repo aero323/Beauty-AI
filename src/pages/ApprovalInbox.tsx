@@ -51,7 +51,7 @@ export function ApprovalInbox({ role }: { role: Role }) {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold text-[#1F1C1F]">待我审批</h2>
-          <p className="mt-1 text-sm text-[#766F73]">单级审批：任一被指定审批人同意即生效；驳回必须填写理由。</p>
+          <p className="mt-1 text-sm text-[#766F73]">多级审批按顺序逐级进行：每级任一审批人同意后进入下一级，最后一级同意才生效。</p>
         </div>
         <div className="flex items-center gap-1 rounded-lg bg-[#F8F5F3] p-1">
           {([['pending', `待我审批 ${pending.length}`], ['handled', `我已处理 ${handled.length}`]] as const).map(([key, label]) => (
@@ -98,6 +98,11 @@ export function ApprovalInbox({ role }: { role: Role }) {
                     <ApprovalStatusBadge request={request} />
                     <Badge variant="outline" className="py-0 text-[10px] text-[#766F73]">{typeLabel(request.type)}</Badge>
                     <Badge variant="outline" className="py-0 text-[10px] text-[#766F73]">{scopeText(request.snapshot)}</Badge>
+                    {request.levelApprovers.length > 1 && (
+                      <Badge variant="outline" className="border-[#C7CDFF] bg-[#F3F5FF] py-0 text-[10px] text-[#3F48B4]">
+                        第 {Math.min(request.currentLevel + 1, request.levelApprovers.length)}/{request.levelApprovers.length} 级
+                      </Badge>
+                    )}
                     {request.status === 'pending' && (
                       <span className="flex items-center gap-1 text-[10px] font-bold text-[#B9822B]">
                         <Clock3 className="h-3 w-3" /> 已等待 {hoursWaiting(request)} 小时
@@ -121,10 +126,19 @@ export function ApprovalInbox({ role }: { role: Role }) {
                       className="bg-[#3B8F72] text-white hover:bg-[#2F735C]"
                       onClick={() => {
                         const result = approveRequest(request.id, actor);
-                        setFeedback(result.error ?? `已同意：${request.snapshot.title}`);
+                        if (result.error) {
+                          setFeedback(result.error);
+                        } else if (result.request && result.request.status === 'approved') {
+                          setFeedback(`已同意：${request.snapshot.title} 已生效`);
+                        } else {
+                          setFeedback(`已通过第 ${request.currentLevel + 1} 级：进入第 ${request.currentLevel + 2} 级审批`);
+                        }
                       }}
                     >
-                      <CheckCircle2 className="h-3.5 w-3.5" /> 同意
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      {request.levelApprovers.length > 1 && request.currentLevel < request.levelApprovers.length - 1
+                        ? `同意（进入第 ${request.currentLevel + 2} 级）`
+                        : '同意'}
                     </Button>
                   )}
                 </div>

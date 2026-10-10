@@ -16,7 +16,6 @@ import {
   Clock3,
   History,
   ListChecks,
-  Settings2,
   TriangleAlert,
 } from 'lucide-react';
 import { DevNote } from '../components/DevNote';
@@ -45,17 +44,12 @@ export function ApprovalCenter({ role, onNavigate }: { role: Role; onNavigate: (
   const recent = notificationsFor(state, actor.id).slice(0, 5);
   const [detailId, setDetailId] = React.useState<string | null>(null);
 
-  const enabledTypes = APPROVAL_TYPE_ORDER.filter(type => {
-    const flow = state.config.types[type];
-    return flow.national.enabled || Object.values(flow.regional).some(rule => rule.enabled);
-  });
-
   return (
     <div className="space-y-4 pt-2">
       <div className="relative">
         <ApproverIdentityBar />
         <DevNote className="-right-1 -top-2" tipClassName="w-[24rem]">
-          原型用本地切换演示总部 / 区域审批人分流；生产环境取登录态（审批人 = 角色「审批管理者」+ 组织范围）。单级审批：任一被指定审批人同意即生效、先到先得；生产实现需显式禁止自审。
+          原型用本地切换演示总部 / 区域审批人分流；生产环境取登录态（审批人 = 角色「审批管理者」+ 组织范围）。多级审批按层级顺序逐级进行，每级任一被指定审批人同意后进入下一级、最后一级同意才生效（级内先到先得）；生产实现需显式禁止自审。
         </DevNote>
       </div>
 
@@ -63,7 +57,7 @@ export function ApprovalCenter({ role, onNavigate }: { role: Role; onNavigate: (
         <div>
           <h2 className="text-xl font-bold text-[#1F1C1F]">审批中心</h2>
           <p className="mt-1 text-sm text-[#766F73]">
-            {actor.name} · {actor.label} · 单级审批，任一被指定审批人同意即生效
+            {actor.name} · {actor.label} · 多级审批按顺序逐级进行，最后一级同意才生效
           </p>
         </div>
         {!state.config.masterEnabled && (
@@ -97,14 +91,13 @@ export function ApprovalCenter({ role, onNavigate }: { role: Role; onNavigate: (
           </Card>
         ))}
         <DevNote className="-right-1 -top-2" tipClassName="w-[23rem]">
-          数字卡全部由 approvalStatsFor 从「当前审批人」的单据派生，和列表同源：待我审批=仍待我处理；今日已处理=resolvedAt 在今天的我处理过的单据；平均处理时长=（处理时间 − 提交时间）的均值，没处理过显示 --；累计驳回=我驳回过的数量。生产接入时按租户 / 组织范围在服务端聚合。
+          数字卡全部由 approvalStatsFor 从「当前审批人」的单据派生，和列表同源：待我审批=仍待我处理（多级流程只看当前层级）；今日已处理=我最后一次同意 / 驳回发生在今天的单据（中间层级同意也算）；平均处理时长=（我最后一次处理时间 − 提交时间）的均值，没处理过显示 --；累计驳回=我驳回过的数量。生产接入时按租户 / 组织范围在服务端聚合。
         </DevNote>
       </div>
 
-      <div className="relative grid gap-3 md:grid-cols-3">
+      <div className="relative grid gap-3 md:grid-cols-2">
         {[
           { tab: 'approval_inbox', title: '待我审批', desc: `${stats.pending} 条待处理`, icon: ListChecks },
-          { tab: 'approval_flow_config', title: '审批流程配置', desc: `${enabledTypes.length} / ${APPROVAL_TYPE_ORDER.length} 类已开启审批`, icon: Settings2 },
           { tab: 'approval_records', title: '审批记录', desc: `${state.requests.length} 条单据留痕`, icon: History },
         ].map(item => (
           <button
@@ -126,7 +119,7 @@ export function ApprovalCenter({ role, onNavigate }: { role: Role; onNavigate: (
           </button>
         ))}
         <DevNote className="-right-1 -top-2" tipClassName="w-[22rem]">
-          三张卡是导航不是指标：待我审批=我的待办条数；审批流程配置=已开启的类型数（全国或任一区域开启即算，共 {APPROVAL_TYPE_ORDER.length} 类对象）；审批记录=全部单据留痕数（跨审批人、含已撤回）。数字与目标页同源，避免两处对不上。
+          两张卡是导航不是指标：待我审批=我的待办条数（多级流程只统计当前轮到我处理的）；审批记录=全部单据留痕数（跨审批人、含已撤回）。数字与目标页同源，避免两处对不上。审批流程配置已上收给超管（系统设置 + 审批流程配置页），不在审批管理者菜单里。
         </DevNote>
       </div>
 

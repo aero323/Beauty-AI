@@ -26,6 +26,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useI18n } from '../lib/i18n';
 import { useApprovalState } from '../lib/approvalStore';
 import { useDevNotes } from '../lib/devNotes';
+import { DevNote } from './DevNote';
 import { currentActorForRole, unreadCountFor } from '../lib/approvalEngine';
 import { approverAccountById, regionNameOf } from '../lib/approvalTypes';
 
@@ -77,6 +78,7 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
           { id: 'users_manage', label: '账号管理', icon: Users },
           { id: 'category_manage', label: '品类设置', icon: BookOpen },
           { id: 'notification_settings', label: '通知设置', icon: Bell },
+          { id: 'approval_flow_config', label: '审批流程配置', icon: Settings2 },
           { id: 'media_collection_manage', label: '媒体与审计', icon: FileVideo2 },
           { id: 'photo_checkin_records', label: 'BA打卡记录', icon: Camera },
           { id: 'material_library', label: '素材库', icon: BookOpen },
@@ -182,7 +184,6 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
         return [
           { id: 'approval_home', label: '审批中心', icon: ClipboardCheck },
           { id: 'approval_inbox', label: '待我审批', icon: Inbox },
-          { id: 'approval_flow_config', label: '审批流程配置', icon: Settings2 },
           { id: 'approval_records', label: '审批记录', icon: History },
         ];
 
@@ -218,7 +219,7 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
         "w-full bg-[#171518] text-white flex flex-col flex-shrink-0 hidden md:flex transition-[width]",
         isMultilingualLayout ? "md:w-72 xl:w-80" : "md:w-64"
       )}>
-        <div className="p-5 overflow-y-auto min-h-0">
+        <div className="p-5 overflow-y-auto min-h-0 flex-1">
           <div className="mb-6">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-gradient-to-tr from-rose-400 to-amber-200 rounded-lg"></div>
@@ -296,21 +297,28 @@ export function Layout({ children, role, setRole, activeTab, setActiveTab }: Lay
                     )}
                   </>
                 ) : (
-                  <button
-                    onClick={() => setActiveTab(item.id)}
-                    className={cn(
-                      "w-full flex items-start px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-left",
-                      activeTab === item.id
-                        ? "bg-white/[0.12] text-white"
-                        : "text-white opacity-70 hover:bg-white/[0.06]"
+                  <div className="relative">
+                    <button
+                      onClick={() => setActiveTab(item.id)}
+                      className={cn(
+                        "w-full flex items-start px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-left",
+                        activeTab === item.id
+                          ? "bg-white/[0.12] text-white"
+                          : "text-white opacity-70 hover:bg-white/[0.06]"
+                      )}
+                    >
+                      <item.icon className={cn(
+                        "mr-3 mt-0.5 h-5 w-5 shrink-0",
+                        activeTab === item.id ? "text-white" : "text-white opacity-70"
+                      )} />
+                      <span className="min-w-0 whitespace-normal break-words leading-snug">{item.label}</span>
+                    </button>
+                    {item.id === 'approval_flow_config' && (
+                      <DevNote className="right-2 -top-2" tipClassName="w-[13rem]!">
+                        给研发：审批流程配置已上收给超管（原属审批管理者）；支持多级审批——按层级顺序逐级进行，每级任一审批人同意后进入下一级，最后一级同意才生效，任一级驳回即整单驳回。审批管理者只处理待办，不参与流程配置。
+                      </DevNote>
                     )}
-                  >
-                    <item.icon className={cn(
-                      "mr-3 mt-0.5 h-5 w-5 shrink-0",
-                      activeTab === item.id ? "text-white" : "text-white opacity-70"
-                    )} />
-                    <span className="min-w-0 whitespace-normal break-words leading-snug">{item.label}</span>
-                  </button>
+                  </div>
                 )}
               </div>
             ))}

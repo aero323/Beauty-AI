@@ -82,7 +82,7 @@ export function MyApprovals({ role }: { role: Role }) {
         <div>
           <h2 className="text-xl font-bold text-[#1F1C1F]">我的审批流转</h2>
           <p className="mt-1 text-sm text-[#766F73]">
-            你提交的全部审批单据都在这里：查看进度、撤回重提、变更版本一目了然；业务模块只保留提交时的轻量提示。
+            你提交的全部审批单据都在这里：查看进度、撤回重提、变更版本一目了然。
           </p>
         </div>
       </div>
